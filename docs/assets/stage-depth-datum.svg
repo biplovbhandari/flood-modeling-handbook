@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+  <title id="title">Stage, depth, and vertical datum at a channel cross-section</title>
+  <desc id="desc">An original schematic cross-section showing a terrain profile, blue water surface, dashed vertical datum, terrain and water-surface elevations, a local depth arrow, a stage reference within the wetted section, a stage arrow that terminates on the water surface, the relation WSE equals reference elevation plus stage, and a discharge arrow through the section.</desc>
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#146b8c"/>
+    </marker>
+    <marker id="arrow-dark" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#243746"/>
+    </marker>
+    <marker id="arrow-dark-start" markerWidth="10" markerHeight="10" refX="1" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M9,0 L9,6 L0,3 z" fill="#243746"/>
+    </marker>
+    <style>
+      .label { font: 18px system-ui, sans-serif; fill: #172b3a; }
+      .small { font: 15px system-ui, sans-serif; fill: #334e5f; }
+      .strong { font: 600 18px system-ui, sans-serif; fill: #172b3a; }
+    </style>
+  </defs>
+  <rect width="960" height="600" fill="#ffffff"/>
+  <text x="48" y="42" class="strong">Schematic channel cross-section</text>
+
+  <line x1="70" y1="520" x2="900" y2="520" stroke="#6b7280" stroke-width="2" stroke-dasharray="10 8"/>
+  <text x="76" y="550" class="label">vertical datum: z = 0 m</text>
+
+  <path d="M70 190 C180 210 240 270 320 390 C380 475 455 485 520 410 C600 315 690 260 900 205 L900 520 L70 520 Z" fill="#dbc59e"/>
+  <path d="M70 190 C180 210 240 270 320 390 C380 475 455 485 520 410 C600 315 690 260 900 205" fill="none" stroke="#6f5435" stroke-width="6"/>
+  <text x="690" y="240" class="label">terrain profile, z<tspan baseline-shift="sub" font-size="13">b</tspan></text>
+
+  <path d="M260 320 L600 320 C570 350 545 385 520 410 C455 485 380 475 320 390 C295 350 277 330 260 320 Z" fill="#9dd9ee" fill-opacity="0.8"/>
+  <line x1="260" y1="320" x2="600" y2="320" stroke="#146b8c" stroke-width="6"/>
+  <line x1="600" y1="320" x2="795" y2="320" stroke="#146b8c" stroke-width="2" stroke-dasharray="7 6"/>
+  <text x="610" y="306" class="strong">water surface, WSE</text>
+
+  <line x1="430" y1="320" x2="430" y2="466" stroke="#243746" stroke-width="3" marker-start="url(#arrow-dark-start)" marker-end="url(#arrow-dark)"/>
+  <text x="448" y="402" class="strong">depth, h</text>
+  <text x="448" y="427" class="small">h = WSE - z<tspan baseline-shift="sub" font-size="11">b</tspan></text>
+
+  <line x1="795" y1="520" x2="795" y2="320" stroke="#146b8c" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <text x="808" y="430" class="label">WSE above</text>
+  <text x="808" y="453" class="label">vertical datum</text>
+
+  <line x1="280" y1="405" x2="410" y2="405" stroke="#9a3412" stroke-width="5"/>
+  <circle cx="350" cy="405" r="7" fill="#9a3412"/>
+  <text x="270" y="389" class="strong">stage reference, z<tspan baseline-shift="sub" font-size="13">r</tspan></text>
+  <line x1="350" y1="405" x2="350" y2="320" stroke="#9a3412" stroke-width="3" marker-start="url(#arrow-dark-start)" marker-end="url(#arrow-dark)"/>
+  <text x="275" y="355" class="label">stage, s</text>
+  <text x="275" y="304" class="small">WSE = z<tspan baseline-shift="sub" font-size="11">r</tspan> + s</text>
+
+  <line x1="325" y1="350" x2="520" y2="350" stroke="#146b8c" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <text x="330" y="341" class="strong">discharge Q through section</text>
+
+  <line x1="460" y1="365" x2="520" y2="365" stroke="#ffffff" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <line x1="455" y1="390" x2="510" y2="390" stroke="#ffffff" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <line x1="450" y1="415" x2="495" y2="415" stroke="#ffffff" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <text x="530" y="390" class="label">local velocity varies</text>
+
+  <rect x="55" y="565" width="850" height="1" fill="#d1d5db"/>
+  <text x="57" y="590" class="small">Schematic only. Elevations require a stated vertical datum; stage requires a stated reference.</text>
+</svg>

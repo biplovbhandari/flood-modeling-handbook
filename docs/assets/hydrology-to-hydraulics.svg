@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">Hydrology to hydraulics</title>
+  <desc id="desc">An original schematic showing precipitation partitioning and catchment routing producing a discharge hydrograph, selection of one discharge from that hydrograph, and application of the selected discharge at an inflow boundary of a reach-scale hydraulic model. A dashed vertical line marks the boundary between hydrologic modeling and hydraulic modeling.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#263238"/>
+    </marker>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" fill="none" stroke="#b0bec5" stroke-width="1"/>
+    </pattern>
+    <style>
+      .heading { font: 700 24px Arial, sans-serif; fill: #17324d; }
+      .label { font: 600 17px Arial, sans-serif; fill: #263238; }
+      .small { font: 15px Arial, sans-serif; fill: #37474f; }
+      .tiny { font: 13px Arial, sans-serif; fill: #455a64; }
+      .box { fill: #ffffff; stroke: #4d718f; stroke-width: 2; }
+      .arrow { fill: none; stroke: #263238; stroke-width: 2.5; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect x="1" y="1" width="1198" height="558" rx="18" fill="#fafcfd" stroke="#78909c" stroke-width="2"/>
+  <rect x="24" y="24" width="735" height="512" rx="14" fill="#e9f5fb"/>
+  <rect x="781" y="24" width="395" height="512" rx="14" fill="#f3f7ed"/>
+
+  <text x="48" y="60" class="heading">Hydrologic processes and routing</text>
+  <text x="806" y="60" class="heading">Reach-scale hydraulics</text>
+
+  <g aria-label="Catchment processes">
+    <rect x="48" y="92" width="220" height="330" rx="12" class="box"/>
+    <text x="75" y="124" class="label">Catchment inputs</text>
+    <path d="M92 162 C97 141 124 140 132 157 C145 139 176 146 177 168 C195 169 202 194 186 205 H90 C68 198 72 168 92 162Z" fill="#dcefff" stroke="#3979a8" stroke-width="2"/>
+    <line x1="102" y1="214" x2="94" y2="244" stroke="#2779bd" stroke-width="3"/>
+    <line x1="132" y1="214" x2="124" y2="244" stroke="#2779bd" stroke-width="3"/>
+    <line x1="162" y1="214" x2="154" y2="244" stroke="#2779bd" stroke-width="3"/>
+    <text x="82" y="270" class="small">Precipitation</text>
+    <text x="70" y="306" class="small">Partitioning:</text>
+    <text x="86" y="332" class="small">infiltration</text>
+    <text x="86" y="357" class="small">evapotranspiration</text>
+    <text x="86" y="382" class="small">storage and runoff</text>
+    <text x="76" y="407" class="tiny">Antecedent conditions matter</text>
+  </g>
+
+  <path d="M268 252 H306" class="arrow"/>
+
+  <g aria-label="Network routing">
+    <rect x="308" y="92" width="195" height="330" rx="12" class="box"/>
+    <text x="331" y="124" class="label">Network routing</text>
+    <path d="M350 169 L397 218 L397 315" fill="none" stroke="#2979a8" stroke-width="7" stroke-linecap="round"/>
+    <path d="M454 169 L407 218" fill="none" stroke="#2979a8" stroke-width="5" stroke-linecap="round"/>
+    <path d="M335 242 L397 276" fill="none" stroke="#2979a8" stroke-width="4" stroke-linecap="round"/>
+    <path d="M397 315 L445 374" fill="none" stroke="#2979a8" stroke-width="8" stroke-linecap="round" marker-end="url(#arrow)"/>
+    <circle cx="402" cy="218" r="7" fill="#17324d"/>
+    <text x="326" y="151" class="tiny">tributary hydrographs</text>
+    <text x="326" y="339" class="small">Travel time</text>
+    <text x="326" y="363" class="small">Attenuation</text>
+    <text x="326" y="387" class="small">Lateral inflow</text>
+  </g>
+
+  <path d="M503 252 H531" class="arrow"/>
+
+  <g aria-label="Discharge hydrograph and selected discharge">
+    <rect x="533" y="92" width="202" height="330" rx="12" class="box"/>
+    <text x="557" y="124" class="label">Hydrograph Q(t)</text>
+    <line x1="570" y1="331" x2="704" y2="331" stroke="#455a64" stroke-width="2"/>
+    <line x1="570" y1="331" x2="570" y2="164" stroke="#455a64" stroke-width="2"/>
+    <text x="694" y="353" class="tiny">time</text>
+    <text x="551" y="171" class="tiny">Q</text>
+    <polyline points="570,315 592,303 614,267 636,196 655,177 674,215 695,271 704,304" fill="none" stroke="#006bb6" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="655" cy="177" r="8" fill="#d84315"/>
+    <line x1="655" y1="177" x2="655" y2="331" stroke="#d84315" stroke-width="2" stroke-dasharray="6 5"/>
+    <text x="667" y="175" class="label" fill="#a62d0a">Q*</text>
+    <text x="551" y="382" class="small">Select one discharge</text>
+    <text x="551" y="405" class="tiny">with reach, units, source,</text>
+    <text x="551" y="423" class="tiny">and time or scenario meaning</text>
+  </g>
+
+  <line x1="770" y1="80" x2="770" y2="504" stroke="#6d4c41" stroke-width="3" stroke-dasharray="10 8"/>
+  <rect x="681" y="447" width="178" height="58" rx="10" fill="#fff8e1" stroke="#6d4c41" stroke-width="2"/>
+  <text x="699" y="470" class="small">Prepared-forcing</text>
+  <text x="721" y="493" class="small">boundary</text>
+
+  <path d="M735 254 H816" class="arrow"/>
+  <text x="745" y="239" class="small">Q*</text>
+
+  <g aria-label="Reach-scale hydraulic model">
+    <rect x="818" y="92" width="330" height="330" rx="12" class="box"/>
+    <rect x="846" y="146" width="272" height="204" fill="url(#grid)" stroke="#78909c" stroke-width="2"/>
+    <path d="M865 169 C912 187 916 239 959 248 C1005 258 1034 231 1098 321" fill="none" stroke="#6d8a3a" stroke-width="28" opacity="0.55"/>
+    <path d="M865 169 C912 187 916 239 959 248 C1005 258 1034 231 1098 321" fill="none" stroke="#1976a3" stroke-width="11" stroke-linecap="round"/>
+    <line x1="888" y1="151" x2="870" y2="198" stroke="#d84315" stroke-width="7"/>
+    <text x="871" y="139" class="small">QFIX inflow line</text>
+    <path d="M899 202 L930 222" class="arrow"/>
+    <text x="861" y="381" class="small">Terrain + roughness +</text>
+    <text x="861" y="404" class="small">downstream controls</text>
+  </g>
+
+  <text x="49" y="476" class="label">Output: time-varying discharge at a reach</text>
+  <text x="819" y="464" class="label">Output: hydraulic response for Q*</text>
+  <text x="819" y="491" class="small">depth, WSE, extent, storage diagnostics</text>
+  <text x="819" y="518" class="tiny">One steady scenario is a sample, not the full event.</text>
+</svg>

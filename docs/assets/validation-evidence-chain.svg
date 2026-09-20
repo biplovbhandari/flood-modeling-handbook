@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="860" viewBox="0 0 1400 860" role="img" aria-labelledby="title desc">
+  <title id="title">Validation evidence chain for a hydraulic-model decision</title>
+  <desc id="desc">Six separate linked stages move from input verification to numerical evidence, hydraulic or benchmark evidence, uncertainty characterization, an acceptance-criteria decision gate, and operational monitoring. A question and intended-use box controls the chain. Feedback arrows return failed or ambiguous evidence to a hypothesis and next check. Each stage lists what it establishes and what it cannot establish alone.</desc>
+  <defs>
+    <marker id="arrow-dark" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 z" fill="#243447"/>
+    </marker>
+    <marker id="arrow-feedback" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 z" fill="#9a3412"/>
+    </marker>
+    <style>
+      .title { font: 700 28px system-ui, sans-serif; fill: #102a43; }
+      .subtitle { font: 16px system-ui, sans-serif; fill: #334e68; }
+      .stage-title { font: 700 17px system-ui, sans-serif; fill: #102a43; }
+      .stage-body { font: 14px system-ui, sans-serif; fill: #243b53; }
+      .stage-limit { font: 700 13px system-ui, sans-serif; fill: #7c2d12; }
+      .gate-title { font: 700 17px system-ui, sans-serif; fill: #ffffff; }
+      .gate-body { font: 14px system-ui, sans-serif; fill: #ffffff; }
+      .lane-label { font: 700 15px system-ui, sans-serif; fill: #334e68; }
+      .feedback { font: 700 14px system-ui, sans-serif; fill: #9a3412; }
+      .small { font: 13px system-ui, sans-serif; fill: #486581; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="860" fill="#f7fafc"/>
+  <text x="70" y="52" class="title">Hydraulic adequacy requires a linked, use-specific evidence chain</text>
+  <text x="70" y="82" class="subtitle">Each stage answers a different question, and no stage can substitute for a missing predecessor.</text>
+
+  <rect x="70" y="112" width="1260" height="88" rx="14" fill="#e6f0ff" stroke="#2457a7" stroke-width="3"/>
+  <text x="95" y="143" class="stage-title">Question and decision context</text>
+  <text x="95" y="170" class="stage-body">Name the intended use, quantity, units, domain, scenario range, consequence of error, revisions, and acceptance authority.</text>
+  <path d="M700 200 V238" stroke="#243447" stroke-width="4" fill="none" marker-end="url(#arrow-dark)"/>
+
+  <text x="70" y="243" class="lane-label">Development and assessment evidence</text>
+
+  <g transform="translate(70 268)">
+    <rect width="190" height="210" rx="14" fill="#e0f2fe" stroke="#0369a1" stroke-width="3"/>
+    <text x="18" y="34" class="stage-title">1. Input verification</text>
+    <text x="18" y="67" class="stage-body">Forcing and provenance</text>
+    <text x="18" y="91" class="stage-body">Network and source data</text>
+    <text x="18" y="115" class="stage-body">Terrain and roughness</text>
+    <text x="18" y="139" class="stage-body">CRS, datum, geometry</text>
+    <text x="18" y="174" class="stage-limit">Not hydraulic adequacy</text>
+    <text x="18" y="196" class="small">Correct inputs can feed a weak model.</text>
+  </g>
+
+  <path d="M260 373 H284" stroke="#243447" stroke-width="4" fill="none" marker-end="url(#arrow-dark)"/>
+
+  <g transform="translate(292 268)">
+    <rect width="190" height="210" rx="14" fill="#dcfce7" stroke="#15803d" stroke-width="3"/>
+    <text x="18" y="34" class="stage-title">2. Numerical evidence</text>
+    <text x="18" y="67" class="stage-body">Software verification</text>
+    <text x="18" y="91" class="stage-body">Grid and time-step checks</text>
+    <text x="18" y="115" class="stage-body">Convergence and balance</text>
+    <text x="18" y="139" class="stage-body">Edge and initial state</text>
+    <text x="18" y="174" class="stage-limit">Not real-world validation</text>
+    <text x="18" y="196" class="small">A solved equation can be the wrong one.</text>
+  </g>
+
+  <path d="M482 373 H506" stroke="#243447" stroke-width="4" fill="none" marker-end="url(#arrow-dark)"/>
+
+  <g transform="translate(514 268)">
+    <rect width="214" height="210" rx="14" fill="#fef3c7" stroke="#b45309" stroke-width="3"/>
+    <text x="18" y="34" class="stage-title">3. Hydraulic evidence</text>
+    <text x="18" y="67" class="stage-body">Independent observations</text>
+    <text x="18" y="91" class="stage-body">or controlled benchmark</text>
+    <text x="18" y="115" class="stage-body">Comparable support and datum</text>
+    <text x="18" y="139" class="stage-body">Calibration kept separate</text>
+    <text x="18" y="174" class="stage-limit">Not universal transfer proof</text>
+    <text x="18" y="196" class="small">One comparison has one domain.</text>
+  </g>
+
+  <path d="M728 373 H752" stroke="#243447" stroke-width="4" fill="none" marker-end="url(#arrow-dark)"/>
+
+  <g transform="translate(760 268)">
+    <rect width="190" height="210" rx="14" fill="#f3e8ff" stroke="#7e22ce" stroke-width="3"/>
+    <text x="18" y="34" class="stage-title">4. Uncertainty</text>
+    <text x="18" y="67" class="stage-body">Input and parameter</text>
+    <text x="18" y="91" class="stage-body">Model form and numerical</text>
+    <text x="18" y="115" class="stage-body">Observation and transfer</text>
+    <text x="18" y="139" class="stage-body">Decision consequence</text>
+    <text x="18" y="174" class="stage-limit">Not a passing criterion</text>
+    <text x="18" y="196" class="small">Uncertainty informs the gate.</text>
+  </g>
+
+  <path d="M950 373 H974" stroke="#243447" stroke-width="4" fill="none" marker-end="url(#arrow-dark)"/>
+
+  <g transform="translate(982 268)">
+    <rect width="166" height="210" rx="14" fill="#2457a7" stroke="#163d76" stroke-width="3"/>
+    <text x="18" y="34" class="gate-title">5. Acceptance gate</text>
+    <text x="18" y="67" class="gate-body">Predeclared criteria</text>
+    <text x="18" y="91" class="gate-body">Authorized reviewer</text>
+    <text x="18" y="115" class="gate-body">Ready, restricted,</text>
+    <text x="18" y="137" class="gate-body">not ready, or</text>
+    <text x="18" y="159" class="gate-body">insufficient evidence</text>
+    <text x="18" y="190" class="gate-body">Decision, not output</text>
+  </g>
+
+  <path d="M1148 373 H1172" stroke="#243447" stroke-width="4" fill="none" marker-end="url(#arrow-dark)"/>
+
+  <g transform="translate(1180 268)">
+    <rect width="150" height="210" rx="14" fill="#ffe4e6" stroke="#be123c" stroke-width="3"/>
+    <text x="15" y="34" class="stage-title">6. Monitoring</text>
+    <text x="15" y="67" class="stage-body">Input drift</text>
+    <text x="15" y="91" class="stage-body">Identity and assets</text>
+    <text x="15" y="115" class="stage-body">Run distributions</text>
+    <text x="15" y="139" class="stage-body">Reassessment triggers</text>
+    <text x="15" y="174" class="stage-limit">Not retroactive proof</text>
+    <text x="15" y="196" class="small">Quiet operation is bounded.</text>
+  </g>
+
+  <rect x="70" y="548" width="1260" height="128" rx="14" fill="#fff7ed" stroke="#c2410c" stroke-width="3"/>
+  <text x="95" y="582" class="feedback">Hypothesis and diagnostic question panel</text>
+  <text x="95" y="612" class="stage-body">State competing explanations, predict the observation under each, and select the smallest check that best separates them.</text>
+  <text x="95" y="640" class="stage-body">Do not let a later plausible result cover missing provenance, numerical evidence, materialization, uncertainty, or authority.</text>
+
+  <path d="M387 478 C387 504 387 522 387 548" stroke="#9a3412" stroke-width="4" fill="none" marker-end="url(#arrow-feedback)"/>
+  <path d="M620 478 C620 504 620 522 620 548" stroke="#9a3412" stroke-width="4" fill="none" marker-end="url(#arrow-feedback)"/>
+  <path d="M855 478 C855 504 855 522 855 548" stroke="#9a3412" stroke-width="4" fill="none" marker-end="url(#arrow-feedback)"/>
+  <path d="M1065 478 C1065 504 1065 522 1065 548" stroke="#9a3412" stroke-width="4" fill="none" marker-end="url(#arrow-feedback)"/>
+
+  <rect x="70" y="718" width="1260" height="88" rx="14" fill="#ffffff" stroke="#9fb3c8" stroke-width="2"/>
+  <text x="95" y="750" class="stage-title">Evidence labels stay visible across the chain</text>
+  <text x="95" y="779" class="stage-body">Scientific foundation | Selected methodology | Current implementation | Target design | Evidence or experiment | Open question</text>
+</svg>

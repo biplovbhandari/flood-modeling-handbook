@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="840" viewBox="0 0 1200 840" role="img" aria-labelledby="title desc">
+  <title id="title">Five independent evidence lanes leading to a hydraulic acceptance gate</title>
+  <desc id="desc">Five separate evidence cards show numerical stability, process or exit status, storage convergence, true inflow-outflow mass balance, and hydraulic adequacy. Five straight vertical arrows run from the separate cards to distinct ports on one acceptance gate without crossing, merging, or passing through another card.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#334155"/>
+    </marker>
+    <pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#0f766e" stroke-width="2" opacity="0.22"/>
+    </pattern>
+    <style>
+      .title { font: 700 30px Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 17px Arial, sans-serif; fill: #334155; }
+      .cardTitle { font: 700 18px Arial, sans-serif; fill: #0f172a; }
+      .body { font: 400 13px Arial, sans-serif; fill: #1e293b; }
+      .small { font: 400 12px Arial, sans-serif; fill: #334155; }
+      .number { font: 700 14px Arial, sans-serif; fill: #ffffff; }
+      .gateTitle { font: 700 24px Arial, sans-serif; fill: #ffffff; }
+      .gateText { font: 400 16px Arial, sans-serif; fill: #ffffff; }
+      .arrow { fill: none; stroke: #334155; stroke-width: 3; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1200" height="840" fill="#f8fafc"/>
+  <text x="600" y="46" text-anchor="middle" class="title">Acceptance requires five independent evidence lanes</text>
+  <text x="600" y="78" text-anchor="middle" class="subtitle">Each lane asks a different question and reaches the gate on its own route.</text>
+
+  <rect x="25" y="110" width="210" height="360" rx="16" fill="#e0f2fe" stroke="#0369a1" stroke-width="3"/>
+  <circle cx="52" cy="143" r="18" fill="#0369a1"/>
+  <text x="52" y="148" text-anchor="middle" class="number">1</text>
+  <text x="78" y="139" class="cardTitle">Numerical</text>
+  <text x="78" y="161" class="cardTitle">stability</text>
+  <text x="43" y="205" class="body">Evidence:</text>
+  <text x="43" y="229" class="body">Internal-step diagnostics.</text>
+  <text x="43" y="251" class="body">Oscillation checks.</text>
+  <text x="43" y="273" class="body">Limiter activity.</text>
+  <text x="43" y="295" class="body">Space-time sensitivity.</text>
+  <text x="43" y="329" class="small">Question:</text>
+  <text x="43" y="351" class="small">Did numerical error remain</text>
+  <text x="43" y="371" class="small">controlled under the tested</text>
+  <text x="43" y="391" class="small">method and settings?</text>
+  <text x="43" y="431" class="small">Not an exit-status test.</text>
+
+  <rect x="255" y="110" width="210" height="360" rx="16" fill="#fef3c7" stroke="#b45309" stroke-width="3"/>
+  <circle cx="282" cy="143" r="18" fill="#b45309"/>
+  <text x="282" y="148" text-anchor="middle" class="number">2</text>
+  <text x="308" y="139" class="cardTitle">Process or</text>
+  <text x="308" y="161" class="cardTitle">exit status</text>
+  <text x="273" y="205" class="body">Evidence:</text>
+  <text x="273" y="229" class="body">Raw return code.</text>
+  <text x="273" y="251" class="body">Termination request.</text>
+  <text x="273" y="273" class="body">Recorded termination reason.</text>
+  <text x="273" y="295" class="body">Timeout, failure, and logs.</text>
+  <text x="273" y="329" class="small">Question:</text>
+  <text x="273" y="351" class="small">Why did the process end,</text>
+  <text x="273" y="371" class="small">and was that ending expected</text>
+  <text x="273" y="391" class="small">and recorded?</text>
+  <text x="273" y="431" class="small">Not a stability test.</text>
+
+  <rect x="485" y="110" width="210" height="360" rx="16" fill="#ecfdf5" stroke="#047857" stroke-width="3"/>
+  <circle cx="512" cy="143" r="18" fill="#047857"/>
+  <text x="512" y="148" text-anchor="middle" class="number">3</text>
+  <text x="538" y="139" class="cardTitle">Storage</text>
+  <text x="538" y="161" class="cardTitle">convergence</text>
+  <text x="503" y="205" class="body">Evidence:</text>
+  <text x="503" y="229" class="body">Consecutive depth grids.</text>
+  <text x="503" y="251" class="body">Cell area and save interval.</text>
+  <text x="503" y="273" class="body">Inflow and ratio history.</text>
+  <text x="503" y="295" class="body">Threshold and local changes.</text>
+  <text x="503" y="329" class="small">Question:</text>
+  <text x="503" y="351" class="small">Is modeled storage changing</text>
+  <text x="503" y="371" class="small">slowly by the stated</text>
+  <text x="503" y="391" class="small">criterion?</text>
+  <text x="503" y="431" class="small">Not full balance closure.</text>
+
+  <rect x="715" y="110" width="210" height="360" rx="16" fill="#fff7ed" stroke="#c2410c" stroke-width="3"/>
+  <circle cx="742" cy="143" r="18" fill="#c2410c"/>
+  <text x="742" y="148" text-anchor="middle" class="number">4</text>
+  <text x="768" y="139" class="cardTitle">True mass</text>
+  <text x="768" y="161" class="cardTitle">balance</text>
+  <text x="733" y="205" class="body">Evidence:</text>
+  <text x="733" y="229" class="body">Boundary inflow and</text>
+  <text x="733" y="251" class="body">outflow.</text>
+  <text x="733" y="273" class="body">Sources, sinks, and storage.</text>
+  <text x="733" y="295" class="body">Residual and normalization.</text>
+  <text x="733" y="329" class="small">Question:</text>
+  <text x="733" y="351" class="small">Do all material water-volume</text>
+  <text x="733" y="371" class="small">terms close for one interval</text>
+  <text x="733" y="391" class="small">and control volume?</text>
+  <text x="733" y="431" class="small">Not hydraulic validation.</text>
+
+  <rect x="945" y="110" width="210" height="360" rx="16" fill="#f5f3ff" stroke="#6d28d9" stroke-width="3"/>
+  <circle cx="972" cy="143" r="18" fill="#6d28d9"/>
+  <text x="972" y="148" text-anchor="middle" class="number">5</text>
+  <text x="998" y="139" class="cardTitle">Hydraulic</text>
+  <text x="998" y="161" class="cardTitle">adequacy</text>
+  <text x="963" y="205" class="body">Evidence:</text>
+  <text x="963" y="229" class="body">Boundaries and edges.</text>
+  <text x="963" y="251" class="body">Local-state sensitivity.</text>
+  <text x="963" y="273" class="body">Initial-state sensitivity.</text>
+  <text x="963" y="295" class="body">Observations and uncertainty.</text>
+  <text x="963" y="329" class="small">Question:</text>
+  <text x="963" y="351" class="small">Is the result defensible</text>
+  <text x="963" y="371" class="small">for the stated FIM use</text>
+  <text x="963" y="391" class="small">and evidence standard?</text>
+  <text x="963" y="431" class="small">Not granted by another lane.</text>
+
+  <path d="M130 470 L130 655" class="arrow"/>
+  <path d="M360 470 L360 655" class="arrow"/>
+  <path d="M590 470 L590 655" class="arrow"/>
+  <path d="M820 470 L820 655" class="arrow"/>
+  <path d="M1050 470 L1050 655" class="arrow"/>
+
+  <rect x="25" y="655" width="1130" height="135" rx="18" fill="#0f766e" stroke="#115e59" stroke-width="3"/>
+  <rect x="25" y="655" width="1130" height="135" rx="18" fill="url(#hatch)"/>
+  <text x="590" y="702" text-anchor="middle" class="gateTitle">Acceptance gate</text>
+  <text x="590" y="733" text-anchor="middle" class="gateText">Apply explicit criteria for the intended use and record missing evidence.</text>
+  <text x="590" y="761" text-anchor="middle" class="gateText">No passing lane substitutes for another lane, and process completion is not scientific acceptance.</text>
+</svg>
