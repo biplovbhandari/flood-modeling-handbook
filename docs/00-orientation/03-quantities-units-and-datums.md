@@ -207,4 +207,4 @@ A complete answer should name the missing vertical reference, stage zero, compat
 - **Scientific foundation:** Stable definitions and equations are in [Glossary](../reference/glossary.md) and [Equations and Units](../reference/equations-and-units.md).
 - **Scientific foundation:** Stage-discharge context is supported by [SCI-007](../reference/bibliography.md#sci-007-streamgaging-and-stage-discharge-ratings).
 - **Design principle:** Quantity compatibility requires both numerical units and the spatial, temporal, and vertical references that give the values meaning.
-- **Evidence note:** Figure VIS-001 is original handbook teaching material registered in the [Visual Source Register](../assets/source-register.md#vis-001-stage-depth-and-datum).
+- **Evidence note:** Figure VIS-001 is original handbook teaching material registered in the [Visual Source Register](../assets/source-register.md).

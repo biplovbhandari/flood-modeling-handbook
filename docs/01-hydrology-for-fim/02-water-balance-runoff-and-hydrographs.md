@@ -200,5 +200,5 @@ Using the applied hydrograph, answer the following questions:
 
 - **Scientific foundation:** Catchment water balance is supported by [SCI-003](../reference/bibliography.md#sci-003-watersheds-and-drainage-basins).
 - **Scientific foundation:** Infiltration, baseflow, and runoff response are supported by [SCI-005](../reference/bibliography.md#sci-005-infiltration-and-baseflow) and [SCI-006](../reference/bibliography.md#sci-006-surface-runoff-and-catchment-response).
-- **Evidence note:** Figure VIS-002 is original handbook teaching material registered in the [Visual Source Register](../assets/source-register.md#vis-002-hydrology-to-hydraulics).
+- **Evidence note:** Figure VIS-002 is original handbook teaching material registered in the [Visual Source Register](../assets/source-register.md).
 - **Evidence note:** The `R-200` hydrograph and volume calculation are synthetic and do not describe an observed or deployed event.
