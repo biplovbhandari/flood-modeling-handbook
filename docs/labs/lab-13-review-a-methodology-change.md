@@ -1,229 +1,240 @@
 # Lab 13: Review a Methodology Change
 
-This lab asks you to lead a complete scientific change review for a hypothetical convergence-threshold proposal.
-The packet is synthetic except where it explicitly cites a current project source.
-It does not authorize a Decision Register, code, configuration, artifact, deployment, or production change.
+This lab reviews a synthetic proposal to replace a uniform specified stage with a transferred spatial stage field for R-100.
+The proposal is generic teaching material and does not authorize a software, artifact, operational, or scientific change.
 
 ## Prerequisites
 
-Complete Stage 7 and all three Stage 8 chapters.
-Read [Source Authority](../reference/source-authority.md), [XW-002](../reference/decision-code-artifact-crosswalk.md#xw-002-quasi-steady-termination), [XW-017](../reference/decision-code-artifact-crosswalk.md#xw-017-scenario-identity-publication-and-materialization), [XW-018](../reference/decision-code-artifact-crosswalk.md#xw-018-intended-use-validation-and-acceptance), [XW-020](../reference/decision-code-artifact-crosswalk.md#xw-020-sensitivity-and-uncertainty-evidence), and [XW-021](../reference/decision-code-artifact-crosswalk.md#xw-021-scientific-methodology-change-contract-and-readiness).
+Complete [Scientific Methodology Review](../07-system-design/03-scientific-methodology-review.md), [Scientific Software Contracts](../07-system-design/01-scientific-software-contracts.md), [Evidence Boundaries in Scientific Software](../07-system-design/02-current-target-and-evidence-boundaries.md), and [Applied Evidence Catalog](../06-validation-and-qc/04-case-issue-and-experiment-catalog.md).
+Read [MX-016](../reference/decision-code-artifact-crosswalk.md#mx-016-methodology-change), [CQ-002](../reference/conflicts-and-open-questions.md#cq-002-incomplete-identity), [CQ-006](../reference/conflicts-and-open-questions.md#cq-006-unsafe-reuse), [CQ-007](../reference/conflicts-and-open-questions.md#cq-007-partial-publication), [CQ-009](../reference/conflicts-and-open-questions.md#cq-009-validation-gaps), and [CQ-010](../reference/conflicts-and-open-questions.md#cq-010-acceptance-authority).
 
-## Execution label
+## Execution boundary
 
-**Core inspection:** Complete the review from the supplied packet and cited sources.
-Do not edit project sources, run a solver, mutate storage, or treat the solution as production authorization.
+Complete the review from the supplied packet and neutral handbook references.
+Do not implement the proposal, change storage, run a solver, or infer an assignment that the packet does not make.
 
-## Scenario
+## Learning objectives
 
-An internal proposal asks to change the volume-convergence tolerance from the selected and current default value \(10^{-3}\) to the hypothetical value \(5 \times 10^{-4}\).
-The stated goal is to reduce the chance that an upstream transfer scenario stops while local WSE is still changing.
-The proposed value is synthetic and has no project authority.
+After completing this lab, the learner should be able to:
 
-The requested rollout would apply the new tolerance to all new ND and KWSE requests and would allow existing scenarios to remain in selected libraries unless a consumer happens to request them again.
-The proposal calls this a backward-compatible configuration change because the public job inputs already accept the value.
+- frame a methodology change around one stated use;
+- distinguish capability, proposal, evidence, and approval;
+- identify affected contracts and consumers;
+- analyze identity, address, reuse, publication, and compatibility risks;
+- replace a weak validation plan with a bounded one;
+- define migration, rollout, monitoring, and rollback requirements;
+- preserve responsibility gaps; and
+- issue one generic methodology-change verdict.
 
-## Supplied evidence packet
+## Change and intended use
 
-### A. Decision and scientific evidence
+The existing synthetic R-100 method applies one uniform specified stage of 102.5 m in VD-1 at ten downstream interface points.
+The proposed method would instead interpolate a spatial stage field from accepted R-200 scenarios at 175 and 200 m3/s.
+It would use source-stage coordinates 102.4 and 102.7 m, lower and upper weights of two-thirds and one-third, strict common-wet support, and a minimum coverage of 90 percent.
 
-| Item | Supplied evidence |
+The requested first use is a shadow comparison for WSE and depth within one kilometre upstream of the R-100 downstream boundary at discharge 100 m3/s.
+The shadow result must not enter a selected library, supply a transfer to another reach, enter a composite, replace an accepted generation, or support an external decision.
+
+The stated rationale is that one constant stage cannot represent lateral variation in the downstream water surface.
+Two exploratory synthetic comparisons reported maximum absolute WSE differences of 0.12 m and 0.18 m near the boundary.
+Their raw fields, masks, locations, time support, numerical evidence, and provenance are not supplied.
+
+## Method status and responsibility packet
+
+| Item | Supplied status |
 | --- | --- |
-| Current selected method | DR-022 ALT-G selects volume convergence and DR-028 ALT-A selects \(10^{-3}\), both with Alternate Selected status in the reviewed Decision Register. |
-| Decision record basis | DR-028 describes the selection as preliminary and cites Case-018 work under EXP-014. |
-| Proposed decision | No approved Decision Register update exists for \(5 \times 10^{-4}\). |
-| Proposed rationale | Two synthetic transfer scenarios had local WSE changes that a reviewer considered material after their domain-total storage-change ratio first fell below \(10^{-3}\). |
-| Proposed evidence | No exact manifests, grids, local histories, full-balance terms, edge details, observations, uncertainty analysis, or representative-reach sample is supplied for those two synthetic scenarios. |
-| Intended use | New ND and KWSE libraries used for stage transfer and composite FIM production. |
-| Acceptance policy | No authorized intended-use policy or tolerance for the proposed comparison is supplied. |
+| Existing method | Method revision E1 is the currently recorded method for the synthetic selected R-100 family. |
+| Proposed method | Draft method revision P2 has not been approved. |
+| Method decision responsibility | Unassigned |
+| Implementation responsibility | A functional assignment is proposed, but no accountable assignee or authority record is supplied. |
+| Validation responsibility | Unassigned |
+| Operational and halt responsibility | Unassigned |
+| Migration responsibility | Unassigned |
+| Rollback responsibility | Unassigned |
+| Independent acceptance responsibility | Unassigned |
+| Evidence cutoff | Proposal text, two summary differences, a draft interface, and unexecuted control descriptions |
 
-### B. Current implementation evidence
+No supplied evidence grants any responsibility function authority to approve the change or accept its use.
 
-| Item | Supplied evidence |
-| --- | --- |
-| Public input | Current ND and KWSE input models expose `volume_convergence_tolerance` and default it to `0.001`. |
-| Solver logic | The watcher terminates when the final storage-change ratio is strictly less than the supplied tolerance. |
-| Metric scope | The ratio compares positive-depth storage at consecutive saved outputs with inflow volume over the output interval and does not include outflow or all source and sink terms. |
-| Simultaneous condition | When convergence and a disallowed edge violation are both true on one saved grid, the stored reason is `volume_convergence`. |
-| Run identity | The current run identity contains the solver enum and baked Decision Register revision, but not convergence tolerance, executable build, image digest, full run configuration, or hardware. |
-| Address | Scenario addresses include reach, model identity portion, run identity hash, boundary realization, and discharge, but not convergence tolerance. |
-| Exact target reuse | At the predicted address, current exact reuse requires equality of complete `RunScenarioInputs` and therefore rejects an old-tolerance manifest for a new-tolerance request. |
-| ND caller-supplied adoption | The separate `existing_scenarios` path adopts a schema-valid manifest when reach ID, full model ID, run identity hash, and discharge within the inclusive requested range match. It does not compare convergence tolerance, other run settings, boundary geometry or slope, hot start, or referenced-asset existence. |
-| ND adoption effects | An adopted manifest enters the `done` set without rerunning. It can become the minimum-discharge reference, contribute to proposal and re-judgment calculations, become an accepted or current search position, and supply depth provenance for a later hot start. |
-| Publication | A new run copies depth, inundation, STL, optional Zarr when available, and then the manifest into final locations without directory-level staging, atomic promotion, or rollback. Each successful copy can make another output externally observable, so failure can leave partial publication. |
-| Manifest evidence | The manifest records complete inputs, final ratio, termination reason, assets, and checksum prefixes, but not complete convergence history, full balance, simultaneous suppressed edge detail, raw return code, or complete environment identity. |
+## Existing contract and proposed contract
 
-### C. Target and checked-in prototype evidence
+| Area | Existing E1 method | Proposed P2 method |
+| --- | --- | --- |
+| Boundary quantity | One specified WSE value | Ordered spatial WSE values |
+| Datum | VD-1 | VD-1 required for target and sources |
+| Boundary support | Ten named points | Same intended points, subject to common wet support |
+| Source provenance | Nominal stage and method revision | Exact R-200 source generations, depth and terrain identities, transformations, masks, and interpolation |
+| Coverage | Ten values required | At least 90 percent of the ten-point intended interface |
+| Input interface | Scalar stage, units, datum | Scalar nominal stage plus source identities, field integrity, points, mapping, masks, nodata, coverage, and omission reasons |
+| Scenario record | Uniform stage and existing scenario identity | Realized field, source lineage, weights, masks, coverage, omissions, and all existing scenario evidence |
 
-| Item | Supplied evidence |
-| --- | --- |
-| Target identity principle | The target system design says a change important enough to invalidate an object should generally move identity and address. |
-| Target materialization | The target design requires storage observation rather than a job return value to establish materialization. |
-| Checked-in reconciler | An unpinned local reconciler setting sends one convergence tolerance to both ND and KWSE payloads and predicts run identity without that tolerance. |
-| Evidence boundary | The unpinned local code does not prove deployment, current runtime configuration, complete checksum verification, hydraulic acceptance, or safe migration. |
+The proposal calls the change backward compatible because a draft input parser can accept the added fields.
+No executed verification is supplied for validation, rejection behavior, identity change, serialization, observation, or old-reader behavior.
 
-### D. Hypothetical validation proposal
+## Identity, address, reuse, and publication packet
 
-The proposal offers this synthetic study:
+The existing scenario identity includes the R-100 model generation, 100 m3/s discharge, nominal stage 102.5 m, datum VD-1, initial state, numerical settings, method revision E1, and producer build.
 
-1. Run the current and proposed thresholds on three convenient reaches.
-2. Compare final maximum depth and runtime.
-3. Pass if the proposed threshold changes maximum depth by less than a synthetic reviewer-chosen limit and increases runtime by less than a synthetic reviewer-chosen percentage.
-4. Reuse current terrain, boundaries, hot starts, save intervals, and grid resolutions without testing interactions.
-5. Use the same results both to tune the proposed limit and to declare validation success.
+The draft P2 identity keeps the same fields and changes only the readable method label.
+It omits:
 
-No downstream-stage, domain, terrain, topobathymetry, roughness, resolution, inflow-distribution, wet-dry, hot-start, save-interval, solver-build, local-WSE, full-balance, edge, extent, or observation comparison is proposed.
+- both R-200 source generations;
+- source depth and terrain integrity values;
+- source-stage coordinates and interpolation weights;
+- transfer geometry and point mapping;
+- source masks and common-wet mask;
+- coverage denominator, threshold, result, and omission reasons; and
+- realized boundary-field integrity.
 
-### E. Hypothetical rollout and ownership proposal
+The readable scenario address contains R-100, model label, discharge 100, and nominal stage 102.5.
+It does not contain the method revision, source generations, mask, coverage result, or field integrity.
 
-| Item | Supplied proposal |
-| --- | --- |
-| Rollout | Change the controller setting for all new work after the three-reach study. |
-| Existing artifacts | Leave old and new scenarios together because exact target reuse will detect unequal inputs. The proposal does not analyze the separate limited ND `existing_scenarios` adoption path. |
-| Migration | Recompute only scenarios requested again. |
-| Monitoring | Count completed jobs and average runtime. |
-| Rollback | Restore the old controller setting. |
-| Decision owner | Not named. |
-| Acceptance authority | Not named. |
-| Migration owner | Not named. |
-| Rollback owner | Not named. |
-| Retention | No requirement preserves the prior accepted artifact generation. |
+The current reuse description compares the readable address, model label, discharge, and nominal stage before adopting an existing generation.
+It does not compare the omitted P2 fields.
 
-## Part A: Frame the change and authority
+The proposed publisher writes the transferred boundary, final depth, inundation, diagnostics, and scenario record sequentially to the live address.
+The scenario record is written last.
+No isolated generation, atomic promotion, concurrent-reader test, idempotent retry proof, retained prior pointer, or independent observer result is supplied.
 
-State:
+## Consumer and migration inventory
 
-1. The current selected method and status.
-2. The hypothetical proposed method.
-3. The intended use and excluded uses.
-4. The decision that must be approved before code or configuration rollout.
-5. The decision owner, acceptance authority, implementation owner, operational owner, migration owner, and rollback owner, using `Unassigned` where the packet supplies no authority.
+A read-only draft inventory reports:
 
-## Part B: Identify every affected contract and consumer
+| Consumer or artifact class | Count | Supplied compatibility evidence |
+| --- | ---: | --- |
+| Existing R-100 generations with nominal stage 102.5 m | 18 | Method revision is recorded for 12 and absent for 6. |
+| Selected-library memberships | 7 | All point to E1 generations. |
+| Composite products | 2 | Both name selected R-100 generations but do not record boundary-field identity. |
+| Screening exports | 4 | Each records source generation but no method-compatibility decision. |
+| Pending requests at the readable 102.5 m address | 3 | Requested method revision is not recorded. |
+
+The proposed migration would apply P2 only to new requests.
+It would leave E1 generations, P2 generations, memberships, composites, exports, and pending requests together under the same nominal label.
+No mixed-method compatibility rule, complete-inventory reconciliation, selected-membership guard, or consumer update is defined.
+
+## Proposed validation study
+
+The draft study would:
+
+1. Run E1 and P2 at R-100 discharges 60 and 100 m3/s on one model generation.
+2. Compare maximum depth and runtime.
+3. Choose a WSE-difference threshold after reviewing the two results.
+4. Use the same runs to tune interpolation details and declare validation.
+5. Keep terrain, roughness, domain, grid, time step, initial state, and source scenarios fixed without testing interactions.
+
+The study omits:
+
+- the 140 m3/s R-100 scenario;
+- nominal stages 102.0 and 103.0 m;
+- cases near the 90 percent coverage boundary;
+- alternate wet-mask and nodata patterns;
+- local WSE histories, full balance, edge behavior, flux, and extent;
+- grid, time-step, domain, initial-state, terrain, roughness, and source-stage sensitivity;
+- immutable source, producer, and solver provenance;
+- independent observations or a defined benchmark;
+- datum-transformation uncertainty;
+- separation of tuning and validation evidence;
+- predeclared metrics, thresholds, uncertainty allowances, and failure rules; and
+- representative failure and ambiguous results.
+
+## Proposed operations, monitoring, and rollback
+
+The proposal describes isolated staging, integrity verification, atomic promotion, independent materialization observation, and a shadow-only pointer as future controls.
+It supplies no implementation or executed evidence for those controls.
+
+Monitoring would count completed scenarios and average runtime.
+It would not monitor source identity, coverage, masks, field integrity, local WSE, balance, edge contact, output distributions, selected membership, consumer compatibility, or materialization retraction.
+No alert threshold, retained diagnostic packet, response responsibility, or reassessment trigger is supplied.
+
+Rollback would restore the E1 configuration value.
+The proposal does not guarantee retention of the prior accepted generation, restore pointers or selected memberships, retract P2 dependencies, rebuild affected composites or exports, cancel pending requests, or demonstrate that restored consumers can read the restored generation.
+
+## Part A: Frame the change and responsibility
+
+State the existing and proposed methods, intended shadow use, prohibited uses, decision status, and evidence cutoff.
+List every responsibility function and retain Unassigned where the packet supplies no accountable authority.
+Explain why parser capability does not constitute scientific approval or backward compatibility.
+
+## Part B: Audit affected contracts and consumers
 
 Create a table with these columns:
 
-| Area | Current or supplied evidence | Required change or evidence | Failure if omitted |
+| Area | Supplied state | Required change or evidence | Failure if omitted |
 | --- | --- | --- | --- |
 
 Include at least:
 
-- Decision Register authority.
-- Public ND and KWSE inputs and defaults.
-- Controller configuration.
-- Run identity and scenario address.
-- Exact target reuse predicate.
-- ND caller-supplied `existing_scenarios` adoption predicate.
-- Manifest and convergence evidence.
-- Publication and asset checksums.
-- Materialization observer.
-- Selected ND and KWSE membership.
-- Stage-transfer dependencies.
-- Composite products and exports.
-- Validation and acceptance records.
-- Monitoring, retry, and failure semantics.
+- method authority;
+- input validation and record schema;
+- scenario identity and address;
+- exact reuse and broader compatibility;
+- source provenance, masks, datum, and coverage;
+- publication, retry, and materialization;
+- selected memberships and pending requests;
+- composites and exports;
+- verification, validation, sensitivity, and uncertainty;
+- monitoring and failure meaning; and
+- responsibility, migration, halt, acceptance, and rollback.
 
-## Part C: Analyze identity, compatibility, and reuse
+## Part C: Analyze identity and compatibility
 
-Answer these questions:
+Explain how E1 and P2 can collide at one readable address.
+State why changing only a readable method label is insufficient.
+Identify the minimum P2 identity and generation fields.
+Define what must be observed before reuse.
+Classify the 6 generations with no method revision and the 3 pending requests without inventing compatibility.
 
-1. Is the proposal scientifically backward compatible merely because the schema accepts the new value?
-2. What does exact target reuse do when the manifest at the predicted address contains the old tolerance and the new request contains the proposed tolerance?
-3. What does the separate ND `existing_scenarios` path compare, and why can it re-adopt that old-tolerance manifest directly?
-4. How can an old-tolerance adopted scenario affect the minimum reference, proposal curves, re-judgment, current search position, hot start, and eventual selected-membership reasoning?
-5. Why can exact input inequality prevent exact reuse without preventing same-address overwrite or mixed-generation publication?
-6. Which fields should be considered for run identity or another immutable generation key?
-7. Which old and new consumers can safely share artifacts, and what evidence would establish that compatibility?
-8. What must a retry or caller-supplied adoption path observe before it can return or use an existing generation idempotently?
+## Part D: Replace the validation study
 
-Label direct facts as **Current implementation** or **Target design**.
-Label the collision consequence as an **Inference from current implementation**.
+Explain why the two-run post hoc study cannot support even the stated shadow comparison.
+Design the smallest defensible program for the stated use.
+Include predeclared criteria, representative stages and discharges, coverage and mask cases, numerical evidence, local and spatial outputs, sensitivity and interactions, independent comparison, provenance, failed results, and a separate acceptance decision.
+Do not invent a universal threshold.
 
-## Part D: Critique and replace the validation plan
+## Part E: Design migration, rollout, monitoring, and rollback
 
-Explain why the supplied three-reach study cannot establish readiness.
-Then propose the smallest defensible validation program for the stated stage-transfer and composite use.
+Provide an ordered, fail-closed plan.
+It must inventory and classify all affected generations and consumers before mutation.
+It must use collision-safe identity, isolated publication, independent observation, a nonselectable shadow stage, explicit promotion and halt criteria, complete monitoring, retained prior evidence, and rollback of artifacts and consumers as well as configuration.
+Assign no responsibility that the packet leaves unassigned.
 
-Your program must include:
+## Part F: Issue the methodology-change verdict
 
-- predeclared acceptance criteria and authorized acceptance authority;
-- representative reach, boundary, data-quality, and scenario classes;
-- local WSE, depth, extent, flux, full-balance, edge, and convergence-history evidence;
-- cold-start or alternative-hot-start evidence where initial-condition sensitivity is material;
-- downstream-condition and domain sensitivity before lower-priority convergence controls unless evidence justifies another order;
-- terrain, topobathymetry, roughness, resolution, inflow, wet-dry, save-interval, and solver-build controls or interactions;
-- independent observation or a clearly scoped benchmark with datum, support, timing, and uncertainty;
-- separation of tuning data from validation evidence;
-- operational, identity, publication, and materialization checks; and
-- retained failed and ambiguous results.
+Choose one verdict from [Scientific Methodology Review](../07-system-design/03-scientific-methodology-review.md):
 
-Do not invent a universal pass threshold.
-
-## Part E: Design rollout, migration, and rollback
-
-Provide an ordered plan that includes:
-
-1. Decision approval and contract versioning.
-2. Collision-safe identity or generation behavior.
-3. Producer, schema, observer, planner, consumer, and monitoring changes.
-4. A read-only inventory of affected models, scenarios, every `existing_scenarios` input, selected memberships, transfer dependencies, and composites, classified by recorded convergence tolerance and compatibility evidence.
-5. A bounded shadow or canary comparison that cannot become a production transfer source before acceptance.
-6. Recalculation, revalidation, or exclusion rules for old artifacts, including a rule that prevents limited ND adoption from admitting an old-tolerance manifest into new-tolerance adaptive state without authorized compatibility evidence.
-7. Atomic publication and idempotent retry behavior.
-8. Materialization observation with required asset and checksum verification.
-9. Promotion criteria, halt triggers, and monitoring.
-10. Rollback of decision, configuration, code, identities or pointers, selected memberships, transfer dependencies, and composites.
-11. Retention and compatibility evidence for the prior generation.
-12. Named owners for every irreversible or production-affecting step.
-
-The plan is a review artifact only.
-Do not write commands that change production.
-
-## Part F: Issue the direct verdict
-
-Choose one verdict from [Team-Lead Review Checklist](../07-system-design/03-team-lead-review-checklist.md):
-
-- `READY`;
-- `READY WITH CONDITIONS`; or
-- `NOT READY`.
+- READY
+- READY WITH CONDITIONS
+- NOT READY
 
 State the verdict first.
-Then state:
+Then list each blocking gap, its impact, the unassigned or assigned responsibility, the smallest evidence or change needed for another review, and the uses that remain prohibited.
 
-1. The blocking or conditioning evidence.
-2. Why the verdict applies to the intended use.
-3. The smallest evidence and ownership set that could change the verdict.
-4. The uses that remain prohibited.
-
-Do not use `READY WITH CONDITIONS` to defer missing methodology authority, collision-safe identity, representative validation, rollback, acceptance criteria, or ownership.
+Do not use READY WITH CONDITIONS to defer missing authority, ambiguous identity, absent rollback, undefined acceptance criteria, incomplete validation, or unassigned material responsibility.
 
 ## Deliverable
 
 Submit a review with these sections:
 
 1. Verdict and intended use.
-2. Change, decision status, and owners.
+2. Change status and responsibility table.
 3. Contract and consumer impact table.
-4. Identity, compatibility, reuse, and provenance analysis.
-5. Validation and sensitivity plan.
-6. Rollout, migration, monitoring, and rollback plan.
-7. Unresolved risks and prohibited uses.
+4. Identity, compatibility, reuse, and publication analysis.
+5. Replacement validation program.
+6. Migration, rollout, monitoring, and rollback plan.
+7. Blocking gaps and prohibited uses.
 
 ## Competency criteria
 
 The lab is complete when the answer:
 
-- preserves DR-022 and DR-028 status and does not treat the hypothetical value as selected;
-- traces the proposal through code, inputs, artifacts, consumers, identities, provenance, validation, rollout, rollback, and ownership;
-- distinguishes exact target reuse from limited ND caller-supplied adoption;
-- explains how limited ND adoption can directly reuse an old-tolerance manifest and influence reference, proposal, re-judgment, hot-start, or membership reasoning;
-- explains why exact input inequality and same-address collision can coexist;
-- rejects schema acceptance as proof of scientific backward compatibility;
-- separates publication, materialization, selected membership, and acceptance;
-- applies the established sensitivity heuristic and uncertainty taxonomy;
-- defines collision-safe migration, atomic publication, idempotent retry, and complete rollback requirements;
-- names unassigned owners rather than inventing authority;
-- issues a direct verdict with evidence requirements; and
-- does not authorize a production change.
+- distinguishes E1 from the unapproved P2 proposal;
+- preserves every responsibility gap;
+- rejects parser capability as evidence of scientific compatibility;
+- identifies same-address collision, unsafe reuse, and partial-publication risks;
+- inventories selected memberships, composites, exports, and pending requests;
+- replaces post hoc tuning and validation with predeclared independent evidence;
+- defines a nonselectable shadow stage and complete rollback;
+- uses only READY, READY WITH CONDITIONS, or NOT READY; and
+- issues NOT READY because authority, identity, validation, migration, rollback, monitoring, and responsibility evidence are missing.
 
 After completing the lab, compare the reasoning with [Lab 13 Solution](solutions/lab-13-review-a-methodology-change-solution.md).

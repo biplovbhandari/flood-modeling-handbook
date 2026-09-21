@@ -1,8 +1,7 @@
-# Lab 8: Inspect a Built-Model Fixture
+# Lab 8: Inspect a Synthetic Model Record
 
-This lab uses a checked-in test fixture to practice model-manifest and geospatial-artifact inspection without running `build_model`.
-The directory is test data in the reviewed checkout.
-Its presence and timestamp do not establish that it came from a current production job, that it matches the current schema exactly, that its remote sources are still identical, or that it is hydraulically adequate.
+This lab uses a complete synthetic model record and supplied metadata tables.
+No binary raster or external artifact is required.
 
 ## Prerequisites
 
@@ -12,180 +11,216 @@ Complete these chapters before starting:
 - [Terrain, Topobathymetry, and Structures](../04-model-development/02-terrain-topobathymetry-and-structures.md)
 - [Roughness and Land Cover](../04-model-development/03-roughness-and-land-cover.md)
 - [Domain and Boundary Geometry](../04-model-development/04-domain-and-boundary-geometry.md)
-- [The Build-Model Job](../04-model-development/05-build-model-job.md)
+- [The Model-Building Operation](../04-model-development/05-build-model-job.md)
 
-Read [Source Authority](../reference/source-authority.md) and [Lab Conventions](README.md).
+Read [Source Authority](../reference/source-authority.md), [Lab Conventions](README.md), [MX-005](../reference/decision-code-artifact-crosswalk.md#mx-005-model-development), [MX-008](../reference/decision-code-artifact-crosswalk.md#mx-008-identity), and [MX-011](../reference/decision-code-artifact-crosswalk.md#mx-011-materialization).
 
 ## Execution boundary
 
-The required work is **Core inspection**.
-Commands explicitly labeled below are **User-run optional** and inspect checked-in files only.
-No build, solver, test, infrastructure, deployment, or production access is required.
+All required evidence is embedded below.
+Optional tools may be used only for generic arithmetic.
+Do not infer information from a file, service, or model run that is not in this prompt.
 
 ## Learning objectives
 
 After completing this lab, the learner should be able to:
 
-- inspect a model manifest as an inventory and provenance record;
-- compare manifest grid fields with raster dimensions, transform, bounds, resolution, and CRS;
-- compare vector geometry roles, CRS, extents, and attributes;
-- verify output checksums without confusing integrity with scientific validity;
-- identify identity coverage and missing identity dimensions;
-- identify the anchor versus `reach_centroid` mismatch and the downstream-reach assignment issue;
-- separate implemented warnings from missing checks; and
-- state what artifact presence cannot establish.
+- distinguish requested inputs, realized settings, identity, artifacts, publication, and storage observation;
+- verify grid dimensions, transforms, bounds, references, and raster compatibility from metadata;
+- distinguish source identity from a mutable source label;
+- determine whether model identity covers output-affecting settings;
+- interpret structured warnings within their implemented scope;
+- distinguish matching integrity values from scientific adequacy; and
+- issue a bounded evidence verdict.
 
-## Checked-in fixture
+## Complete synthetic model record
 
-Use this directory relative to the `twod-fim-jobs` repository root:
+The record describes one constructed generation for reach R-200.
+All names and values in the record are teaching data.
 
-```text
-tests/test_data/models/reach=1257410937935512/10850311_N48S45E47W42/
-```
+### Record and lineage
 
-The expected files are:
+| Field | Recorded value |
+| --- | --- |
+| Record type | Model record |
+| Record version | 2 |
+| Model label | R-200-M2 |
+| Generation | G-02 |
+| Prepared network | N-1 |
+| Target reach | R-200 |
+| Immediate upstream reaches | R-100 and R-300 |
+| Downstream relation | Terminal modeling reach |
+| Creation time | 2030-04-12 15:00 UTC |
+| Producer build | PB-7 |
+| Model-building method | MB-2 |
 
-```text
-anchor.geojson
-dem.tif
-domain.geojson
-inflow.geojson
-model_manifest.json
-outflow_area.geojson
-reach.geojson
-roughness.tif
-```
+### Requested inputs and realized settings
 
-Treat this list as a fixture inventory, not as a list of current `build_model` manifest assets.
+| Field | Requested value | Realized value |
+| --- | --- | --- |
+| Terrain source | Synthetic terrain collection | Content T-200-A |
+| Roughness source | Synthetic land-cover collection | Content M-200-A |
+| Roughness lookup | Lookup RL-3 | Lookup RL-3, with no unmapped classes |
+| Grid resolution | 10 m | 10 m square cells |
+| Horizontal reference | SP-1 | SP-1, projected metres |
+| Vertical reference | VD-1 | VD-1, metres |
+| Domain method | Computed and snapped outward | Bbox \([21020,48100,22640,49620]\) m |
+| Structure treatment | No explicit adjustments | No explicit adjustments |
+| Required artifact roles | Terrain, roughness, domain, inflows, outflow, and model record | Same roles |
 
-## Part A: Inspect the manifest contract
+The resolved terrain content checksum is 1d50d412ceafcf530804bdf4c39498d42690c19d78bd486ab85d96a90dbbf1d8.
+The resolved roughness content checksum is 5b602f93fb5589ca7f356e26e8344f53d7dd7064cf9dabd944f53d13a871650f.
 
-**Core inspection:** Read `model_manifest.json` and record the following fields.
+### Grid and domain
 
-1. Record `type`, `twod_fim_version`, `created_at`, `reach_id`, `identity_hash`, `domain_code`, and `model_id`.
-2. Record the requested network path, source strings, grid resolution, EPSG code, upstream IDs, inflow placement values, and output base path under `inputs`.
-3. Record the bbox, anchor, offsets, rows, and columns.
-4. Record all identity fields and state which request values are absent from identity.
-5. Record every manifest asset role and filename.
-6. Record the warning list.
-7. Identify fixture files that are not named by the manifest.
-8. Compare the serialized `inputs` keys with the current `BuildModelInputs` model and identify any current fields omitted by this fixture.
+| Field | Recorded value |
+| --- | --- |
+| Grid origin | Upper-left corner at \((21020,49620)\) m |
+| Affine transform | \((21020,10,0,49620,0,-10)\) |
+| Columns | 162 |
+| Rows | 152 |
+| Active cells | 22,944 |
+| Domain bbox | \([21020,48100,22640,49620]\) m |
+| Domain geometry identity | DOMAIN-R200-G2 |
+| Grid anchor | \((21020,49620)\) m |
 
-Do not fill an omitted serialized field with a current default without labeling that operation as schema reconstruction rather than an observed fixture value.
+### Boundary record
 
-## Part B: Inspect raster alignment
+| Boundary role | Geometry identity | Realized description |
+| --- | --- | --- |
+| R-100 inflow | INFLOW-R100-G2 | Six selected north-edge faces, kept separate from the other inflow. |
+| R-300 inflow | INFLOW-R300-G2 | Four selected west-edge faces, kept separate from the other inflow. |
+| Local contribution | LOCAL-R200-G2 | One interior source region with its own allocation record. |
+| Terminal outflow | OUTFLOW-R200-G2 | Twenty-six selected south-edge faces. |
 
-**Core inspection:** Inspect `dem.tif` and `roughness.tif` and make one comparison table with these fields.
+### Canonical identity object
 
-- Record driver, data type, nodata value, width, height, horizontal CRS, affine transform, and bounds.
-- Calculate x and y cell size from bounds and dimensions.
-- Compare dimensions with `properties.grid`.
-- Compare bounds with `domain.bbox` and `domain.geojson`.
-- Compare resolution and CRS with manifest inputs.
+The canonical identity object includes:
 
-State whether the two rasters are horizontally aligned.
-Then state whether the same evidence identifies a vertical datum or proves appropriate resampling, terrain quality, roughness calibration, or complete lookup coverage.
+- target reach R-200, prepared network N-1, and reach lineage;
+- terrain content identity and checksum;
+- roughness content identity and checksum;
+- horizontal reference SP-1 and vertical reference VD-1;
+- 10 m resolution, the exact transform, dimensions, active mask identity, and domain bbox;
+- all four boundary geometry identities and their selected-cell identities;
+- structure treatment;
+- model-building method MB-2; and
+- producer build PB-7.
 
-**User-run optional:** From the `twod-fim-jobs` repository root, the learner may run these read-only inspection commands.
+The canonical identity object does not include roughness lookup RL-3.
+Its recorded full SHA-256 digest is 543f1d5a28ea6a7e22a99b8d80a90b9c88829375b03f4f59d6d3d132b029c0eb.
 
-```bash
-gdalinfo -json tests/test_data/models/reach=1257410937935512/10850311_N48S45E47W42/dem.tif
-gdalinfo -json tests/test_data/models/reach=1257410937935512/10850311_N48S45E47W42/roughness.tif
-```
+### Structured warnings
 
-These commands inspect checked-in files and do not run a model.
+| Warning | Severity | Observation | Review threshold | Recommended check |
+| --- | --- | --- | --- | --- |
+| East-side domain clearance | Review | The connected terrain corridor is 30 m from the east domain edge. | 50 m | Inspect connected wet components and edge gradients across the planned scenario range. |
 
-## Part C: Inspect vector roles and geometry
+The warning list contains no other entries.
 
-**Core inspection:** For `anchor.geojson`, `domain.geojson`, `inflow.geojson`, `reach.geojson`, and `outflow_area.geojson`, record geometry type, feature count, CRS, extent, and attribute names.
+### Artifact inventory recorded before promotion
 
-Answer these questions.
+| Role | Artifact identity | Size | Recorded SHA-256 |
+| --- | --- | ---: | --- |
+| Terrain | TERRAIN-R200-G2 | 98,496 bytes | 1d50d412ceafcf530804bdf4c39498d42690c19d78bd486ab85d96a90dbbf1d8 |
+| Roughness | ROUGHNESS-R200-G2 | 98,496 bytes | 5b602f93fb5589ca7f356e26e8344f53d7dd7064cf9dabd944f53d13a871650f |
+| Domain | DOMAIN-R200-G2 | 2,140 bytes | 9f47fe3004ee2b9a261442124aa4aff5f2dced178a0dcc0b515ff2bd464d51f0 |
+| Inflows | INFLOWS-R200-G2 | 3,010 bytes | 0fd0ac78a1da7ad90d83eb15b145715cae765a211fc59a6fc6aada46f0615eb4 |
+| Outflow | OUTFLOW-R200-G2 | 1,420 bytes | 1b294e3dd1d20aeca625f423c2a3b7930ad59f7c78c076ad152e1366cc0eb1d4 |
+| Model record | MODEL-RECORD-R200-G2 | 8,220 bytes | 4d558a0265927e27d19cf8ebd71cbea3d4c89cf91eb9f91d74cc8f4eda722332 |
 
-1. Does `domain.geojson` match the manifest bbox and domain code fields?
-2. Does `anchor.geojson` match `domain.anchor`, and why is the manifest role `reach_centroid` incomplete as a description?
-3. Does the inflow line lie inside the domain?
-4. Does the inflow line intersect the target `reach.geojson`, and is that enough to decide whether it intersects the intended upstream mainstem?
-5. What does `reach.geojson.properties.reach_to_id` say, and how does it compare with `properties.downstream_reach_id` in the manifest?
-6. Is `outflow_area.geojson` named by the current model manifest?
-7. Does the outflow-area extent remain inside the domain, and what would be needed to establish its production history and scenario role?
+### Publication and observation
 
-**User-run optional:** The learner may inspect vector summaries with:
+The publication record says that all six roles were staged, their staged checks passed, and generation G-02 was promoted at 15:02 UTC.
+An independent observation at 15:05 UTC produced this table.
 
-```bash
-ogrinfo -ro -so -al tests/test_data/models/reach=1257410937935512/10850311_N48S45E47W42/domain.geojson
-ogrinfo -ro -so -al tests/test_data/models/reach=1257410937935512/10850311_N48S45E47W42/reach.geojson
-ogrinfo -ro -so -al tests/test_data/models/reach=1257410937935512/10850311_N48S45E47W42/inflow.geojson
-ogrinfo -ro -so -al tests/test_data/models/reach=1257410937935512/10850311_N48S45E47W42/anchor.geojson
-ogrinfo -ro -so -al tests/test_data/models/reach=1257410937935512/10850311_N48S45E47W42/outflow_area.geojson
-```
+| Role | Observed generation | Observed size | Observed SHA-256 | Observation result |
+| --- | --- | ---: | --- | --- |
+| Terrain | G-02 | 98,496 bytes | 1d50d412ceafcf530804bdf4c39498d42690c19d78bd486ab85d96a90dbbf1d8 | Match |
+| Roughness | G-02 | 98,496 bytes | 5b602f93fb5589ca7f356e26e8344f53d7dd7064cf9dabd944f53d13a871650f | Match |
+| Domain | G-02 | 2,140 bytes | 9f47fe3004ee2b9a261442124aa4aff5f2dced178a0dcc0b515ff2bd464d51f0 | Match |
+| Inflows | G-02 | 3,010 bytes | 0fd0ac78a1da7ad90d83eb15b145715cae765a211fc59a6fc6aada46f0615eb4 | Match |
+| Outflow | G-02 | 1,420 bytes | f5a3c79ba365e87959f6339d14547b1c793316925695806d5ca3673d7c01e67d | Checksum mismatch |
+| Model record | G-02 | 8,220 bytes | 4d558a0265927e27d19cf8ebd71cbea3d4c89cf91eb9f91d74cc8f4eda722332 | Match |
 
-## Part D: Verify integrity and assess identity
+### Supplied raster metadata
 
-**Core inspection:** Compare the first 16 hexadecimal characters of SHA-256 for every manifest asset with its recorded checksum.
-Classify each conclusion below as **Supported by fixture**, **Requires current code**, **Missing evidence**, or **Unsupported conclusion**.
+| Property | Terrain raster | Roughness raster |
+| --- | --- | --- |
+| Artifact identity | TERRAIN-R200-G2 | ROUGHNESS-R200-G2 |
+| Width | 162 columns | 162 columns |
+| Height | 152 rows | 152 rows |
+| Data type | 32-bit floating point | 32-bit floating point |
+| Nodata | -9999 | -9999 |
+| Affine transform | \((21020,10,0,49620,0,-10)\) | \((21020,10,0,49620,0,-10)\) |
+| Bounds | \([21020,48100,22640,49620]\) m | \([21020,48100,22640,49620]\) m |
+| Horizontal reference | SP-1, projected metres | SP-1, projected metres |
+| Quantity and units | Terrain elevation in metres | Manning roughness, dimensionless |
+| Vertical reference | VD-1 | Not applicable to roughness |
+| Resampling record | Bilinear from the resolved terrain source | Nearest category before lookup RL-3 |
+| Realized range | 99.40 to 106.20 m | 0.030 to 0.085 |
 
-1. The checked-in bytes of every named asset match the checksum recorded by the fixture manifest.
-2. `identity_hash=10850311` can be understood only from the fields recorded under `identity` and the current canonical hash recipe.
-3. The identity pins the exact DEM and LULC source bytes used in 2026.
-4. The identity includes inflow offset, inflow width, upstream-mainstem ID, `other_geometries`, and authored domain.
-5. The output checksums can detect a later byte change to the checked-in assets.
-6. Matching checksums prove the DEM, roughness, domain, and boundaries are scientifically adequate.
+## Part A: Check the record structure
 
-**User-run optional:** The learner may calculate full checksums with:
+Separate requested inputs, realized settings, identity fields, artifacts, warning evidence, publication claims, and observation results.
+State why those categories cannot be collapsed into one completion claim.
 
-```bash
-shasum -a 256 tests/test_data/models/reach=1257410937935512/10850311_N48S45E47W42/dem.tif tests/test_data/models/reach=1257410937935512/10850311_N48S45E47W42/roughness.tif tests/test_data/models/reach=1257410937935512/10850311_N48S45E47W42/reach.geojson tests/test_data/models/reach=1257410937935512/10850311_N48S45E47W42/inflow.geojson tests/test_data/models/reach=1257410937935512/10850311_N48S45E47W42/anchor.geojson tests/test_data/models/reach=1257410937935512/10850311_N48S45E47W42/domain.geojson
-```
+## Part B: Check spatial compatibility
 
-## Part E: Interpret warnings and missing evidence
+Calculate the expected number of columns and rows from the bbox and 10 m resolution.
+Confirm whether the recorded transform, dimensions, raster bounds, horizontal reference, and cell sizes agree.
+State what this metadata can and cannot establish about terrain quality, roughness suitability, vertical compatibility, and hydraulic adequacy.
 
-**Core inspection:** The fixture warning list is empty.
-Create a table with one row for each condition below and state whether an empty current build-warning list proves that condition passed.
+## Part C: Assess provenance and identity
 
-- The inflow intersects the intended channel exactly once.
-- The domain contains the largest relevant floodplain.
-- The domain does not require expansion.
-- The DEM has a known and compatible vertical datum.
-- Every roughness value is positive and mapped from a valid source class.
-- Roughness variability is hydraulically plausible.
-- The prepared topology and downstream assignment are correct.
-- Every named asset remains present in durable storage.
-- The model is ready for ND and KWSE scenario use.
+Identify which source evidence is immutable and which values are only readable labels.
+Determine whether the canonical identity covers every output-affecting realized setting in the record.
+Explain the consequence of omitting RL-3 from identity.
 
-For each row, identify the next evidence needed.
+## Part D: Interpret the warning
+
+State exactly what the east-side warning establishes.
+State what the absence of other warnings establishes.
+List the smallest scenario evidence needed to disposition the warning.
+
+## Part E: Assess publication and materialization
+
+Classify the staged verification, promotion event, and independent observation as separate evidence.
+Determine whether generation G-02 satisfies the complete materialization contract.
+Explain why matching checksums would still not prove scientific adequacy.
 
 ## Part F: Issue an evidence verdict
 
-**Core inspection:** Choose exactly one verdict.
+Choose exactly one verdict.
 
-- `FIXTURE INSPECTED, MODEL ADEQUACY NOT ESTABLISHED` means the checked-in files support a bounded artifact and contract inspection, but missing scientific and operational evidence prevents acceptance.
-- `MODEL ADEQUATE` means the supplied fixture alone establishes topology, data quality, datum compatibility, domain and boundary adequacy, source immutability, storage materialization, and intended-use validation.
+- MODEL RECORD INSPECTED; SCENARIO READINESS NOT ESTABLISHED
+- MODEL READY FOR SCENARIO USE
 
 State the verdict first.
-Then list the smallest evidence set that would move the fixture from artifact inspection toward a scientifically reviewable model.
+Then list the smallest evidence or correction set that could change it.
 
 ## Deliverable
 
-Submit a short answer with these sections:
+Submit a short review with these sections:
 
-1. Manifest and schema observations.
-2. Raster-alignment table.
-3. Vector-role and geometry table.
-4. Checksum and identity classification.
-5. Warning and missing-evidence table.
+1. Record categories.
+2. Spatial-compatibility calculation.
+3. Provenance and identity assessment.
+4. Warning assessment.
+5. Publication and materialization assessment.
 6. Direct evidence verdict.
 
 ## Competency criteria
 
 The lab is complete when the answer:
 
-- labels the directory as a checked-in fixture rather than current-job production evidence;
-- identifies EPSG:5070, a 100 m square grid, 89 columns, 93 rows, and matching raster and domain bounds;
-- identifies `anchor.geojson` as the grid-snapped anchor exposed under `reach_centroid`;
-- identifies the fixture manifest downstream ID as the modeled reach while `reach.geojson` records a different `reach_to_id`;
-- identifies `outflow_area.geojson` as present but absent from the model manifest;
-- distinguishes source-string identity from source-content identity;
-- does not interpret empty warnings or matching checksums as scientific adequacy; and
-- issues `FIXTURE INSPECTED, MODEL ADEQUACY NOT ESTABLISHED`.
+- derives 162 columns and 152 rows;
+- finds the two raster grids horizontally aligned with the record and domain;
+- distinguishes terrain elevation metadata from the dimensionless roughness quantity;
+- identifies RL-3 as an output-affecting setting omitted from identity;
+- treats the east-side warning as a review trigger rather than proof of clipping;
+- identifies the outflow checksum mismatch as a materialization failure;
+- keeps integrity, materialization, and scientific adequacy separate; and
+- issues MODEL RECORD INSPECTED; SCENARIO READINESS NOT ESTABLISHED.
 
 After completing the lab, compare the reasoning with [Lab 8 Solution](solutions/lab-08-inspect-a-built-model-solution.md).

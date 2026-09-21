@@ -5,8 +5,8 @@ Water is partitioned among evapotranspiration, infiltration, storage, event runo
 
 ## Why this topic matters
 
-The hydraulic jobs begin after this partitioning has been represented by prepared forcing.
-Understanding the upstream processes is still necessary because the magnitude, timing, duration, and uncertainty of the supplied discharge control which hydraulic conditions a scenario can represent.
+A hydraulic model often begins after catchment partitioning and routing have been represented by prepared forcing.
+The magnitude, timing, duration, and uncertainty of that forcing still control which hydraulic conditions a scenario can represent.
 
 ## Prerequisites
 
@@ -21,7 +21,7 @@ After this chapter, the reader should be able to:
 - explain how infiltration, evapotranspiration, storage, baseflow, and event runoff affect streamflow;
 - identify the rising limb, peak, recession, duration, and volume of a discharge hydrograph;
 - explain why antecedent conditions alter runoff response; and
-- state the exact boundary between rainfall-runoff processes and the current hydraulic jobs.
+- state the boundary between rainfall-runoff processes and a reach-scale hydraulic scenario.
 
 ## A bounded catchment water balance
 
@@ -37,10 +37,10 @@ A useful catchment-scale form is
 - \(V_{in}\) is water volume entering from outside the catchment through represented surface or subsurface pathways.
 - \(V_{ET}\) is water volume returned to the atmosphere by evapotranspiration.
 - \(V_{out}\) is water volume leaving through the catchment outlet.
-- \(V_L\) represents other explicitly defined export or loss volume, such as a diversion that crosses the catchment boundary.
+- \(V_L\) represents another explicitly defined export or loss volume, such as a diversion that crosses the catchment boundary.
 
 The terms must use compatible volumes, or every term must be converted consistently to equivalent depth over the same area and interval.
-The equation is an accounting framework, not a complete model of how quickly water moves between stores.
+The equation is an accounting framework rather than a complete model of how quickly water moves between stores.
 The [USGS watershed overview](https://www.usgs.gov/water-science-school/science/watersheds-and-drainage-basins) describes a watershed water budget and explains why not all precipitation leaves immediately as streamflow.
 
 ## How precipitation is partitioned
@@ -48,11 +48,11 @@ The [USGS watershed overview](https://www.usgs.gov/water-science-school/science/
 ### Infiltration
 
 **Scientific foundation:** Infiltration is water entering soil or rock from the land surface.
-Some infiltrated water remains in the soil, some moves deeper to groundwater, some returns to the atmosphere through evapotranspiration, and some later reaches a stream.
-Infiltration rate depends on precipitation characteristics, soil and geologic properties, antecedent wetness, land cover, slope, and surface condition.
+Some infiltrated water remains in soil, some moves deeper to groundwater, some returns to the atmosphere through evapotranspiration, and some later reaches a stream.
+Infiltration depends on precipitation characteristics, soil and geologic properties, antecedent wetness, land cover, slope, and surface condition.
 
 When rainfall intensity exceeds the surface's ability to accept water, or when the soil is already saturated, a larger portion can become rapid runoff.
-This statement describes a mechanism, not a universal runoff formula.
+This statement describes a mechanism rather than a universal runoff formula.
 
 ### Evapotranspiration
 
@@ -68,15 +68,15 @@ Two storms with similar precipitation can therefore produce different hydrograph
 
 ### Event runoff and baseflow
 
-**Scientific foundation:** Event runoff is the portion of streamflow response associated with a particular precipitation or melt event over the chosen analysis window.
+**Scientific foundation:** Event runoff is the portion of streamflow response associated with a particular precipitation or melt event over a chosen analysis window.
 It can include rapid surface and near-surface pathways and delayed contributions whose separation depends on the analysis method.
 
 Baseflow is the relatively sustained component of streamflow supplied by delayed catchment storage, often including groundwater discharge.
-Baseflow and event runoff are conceptual components of the observed hydrograph rather than two streams that can always be measured independently.
+Baseflow and event runoff are conceptual components of an observed hydrograph rather than two streams that can always be measured independently.
 Hydrograph-separation results depend on the selected method and assumptions.
 
 The [USGS infiltration overview](https://www.usgs.gov/water-science-school/science/infiltration-and-water-cycle) connects infiltration, groundwater storage, baseflow, soil properties, saturation, land cover, and runoff.
-The [USGS surface-runoff overview](https://www.usgs.gov/water-science-school/science/surface-runoff-and-water-cycle) shows how reduced infiltration and faster drainage can increase runoff volume and flood peaks.
+The [USGS surface-runoff overview](https://www.usgs.gov/water-science-school/science/surface-runoff-and-water-cycle) explains how reduced infiltration and faster drainage can increase runoff volume and flood peaks.
 
 ## From catchment response to a hydrograph
 
@@ -104,7 +104,6 @@ The interval must be fine enough for the intended use, and missing peaks or gaps
 
 ## What controls hydrograph shape
 
-Hydrograph shape reflects more than precipitation total.
 Material controls include:
 
 - precipitation intensity, duration, timing, spatial pattern, and phase;
@@ -123,44 +122,28 @@ Interpretation requires catchment and event evidence.
 ![Diagram showing catchment processes producing a hydrograph, selection of one discharge, and application to a reach-scale hydraulic model](../assets/hydrology-to-hydraulics.svg)
 
 **Figure VIS-002: From catchment response to a steady hydraulic scenario.**
-Read the figure from left to right.
 Precipitation is partitioned and routed to form a time-varying hydrograph on the hydrology side.
 One discharge is then selected with its reach, units, and time or scenario meaning before it crosses the boundary as prepared forcing.
 The hydraulic model applies that discharge to a defined inflow geometry with terrain, roughness, and downstream controls.
 The selected point preserves a magnitude but does not preserve the complete event hydrograph.
 
-## Current project boundary
+**Design principle:** Preserve the hydrologic source record when a hydrograph is reduced to one or more steady hydraulic scenarios.
+The reduction should record why each discharge was selected and which event properties it no longer represents.
 
-**Current implementation:** The checked-out `build_model` job consumes a prepared reach network and geospatial source data to construct a reach-scale hydraulic model.
-It has no precipitation, infiltration, evapotranspiration, or rainfall-runoff input contract.
+## Applied hydrograph example
 
-**Current implementation:** The checked-out ND job receives a caller-provided minimum discharge, maximum discharge, and discharge step in whole m3/s.
-The checked-out KWSE job receives caller-provided scenarios, each with one positive whole-number `upstream_discharge` in m3/s.
-Both jobs apply a `QFIX` boundary with one discharge value to the model's inflow line.
-
-The solver can evolve a time-dependent hydraulic state while it approaches the job's termination condition, but the supplied `QFIX` discharge remains a steady scenario value.
-Model simulation time in that run is therefore not a rainfall-runoff event clock.
-
-**Current implementation:** The current hydraulic jobs consume prepared forcing and do not simulate rainfall-runoff.
-They do not partition precipitation, estimate infiltration or evapotranspiration, calculate event runoff, or route a precipitation-driven hydrograph through a catchment model.
-
-**Open question:** The hydrologic source, uncertainty, and event or probability meaning of a supplied discharge remain external to the three current modeling jobs.
-A valid positive number in a typed input does not establish that provenance.
-
-## Worked hydrograph example
-
-Assume a reach hydrograph is sampled every three hours.
+**Applied example:** Assume a synthetic hydrograph for `R-200` is sampled every three hours.
 
 | Time after start, h | Discharge, m3/s |
 | ---: | ---: |
-| 0 | 10 |
-| 3 | 25 |
-| 6 | 60 |
-| 9 | 40 |
-| 12 | 20 |
+| 0 | 40 |
+| 3 | 120 |
+| 6 | 250 |
+| 9 | 160 |
+| 12 | 70 |
 
 The rising limb spans the samples from 0 through 6 hours.
-The sampled peak is 60 m3/s at 6 hours.
+The sampled peak is 250 m3/s at 6 hours.
 The recession spans the samples after 6 hours.
 
 Using trapezoids and converting hours to seconds, the approximate volume is
@@ -168,16 +151,19 @@ Using trapezoids and converting hours to seconds, the approximate volume is
 \[
 V \approx 3{,}600 \times 3 \times
 \left[
-\frac{10+25}{2} +
-\frac{25+60}{2} +
-\frac{60+40}{2} +
-\frac{40+20}{2}
+\frac{40+120}{2} +
+\frac{120+250}{2} +
+\frac{250+160}{2} +
+\frac{160+70}{2}
 \right]
-= 1{,}512{,}000\ \text{m3}
+= 6{,}318{,}000\ \text{m3}
 \]
 
-A steady scenario of 60 m3/s samples the hydraulic response near the observed peak magnitude.
-It does not carry the 12-hour duration, the 1,512,000 m3 event volume, the rising or falling history, or the possibility that the same 60 m3/s could occur under a different downstream state.
+A steady scenario of 250 m3/s samples a hydraulic response near the sampled peak magnitude.
+It does not carry the 12-hour duration, the 6,318,000 m3 approximate event volume, the rising or falling history, or the possibility that the same discharge could occur under a different downstream state.
+
+**Evidence note:** The computed volume follows from the five synthetic samples and trapezoidal interpolation only.
+It does not establish an observed event volume or the adequacy of the sampling interval.
 
 ## Common misconceptions
 
@@ -188,34 +174,31 @@ Water can infiltrate, evaporate, transpire, remain in storage, cross another bou
 ### Baseflow means constant flow
 
 Baseflow can vary over time.
-The term identifies a relatively sustained contribution, not a requirement that discharge remain constant.
+The term identifies a relatively sustained contribution rather than a requirement that discharge remain constant.
 
 ### The hydrograph peak contains the event volume
 
 Peak discharge is one magnitude.
 Volume depends on discharge over the full integration interval.
 
-### Hydraulic simulation time is event time
+### Hydraulic calculation time is event time
 
-The current jobs use simulation time to evolve a hydraulic scenario under steady imposed discharge.
+A calculation can evolve toward a stable hydraulic state under steady imposed discharge.
 That elapsed model time does not reproduce the source catchment's precipitation and runoff timing.
 
 ## Competency check
 
-Using the worked hydrograph, answer the following questions:
+Using the applied hydrograph, answer the following questions:
 
 1. Which samples belong to the rising limb and recession?
 2. What is the sampled peak discharge and its time?
 3. Which assumptions enter the trapezoidal volume estimate?
-4. What hydrologic information is missing if 60 m3/s is passed to a steady hydraulic scenario?
-5. Which current job input proves the rainfall-runoff method that produced 60 m3/s?
-
-The answer to the final question is none.
-The hydrologic provenance must be carried by an upstream forcing or planning record outside the current job contract.
+4. What hydrologic information is missing if 250 m3/s is passed to a steady hydraulic scenario?
+5. What provenance should accompany the selected value when it is associated with `R-200`?
 
 ## Source notes
 
-- **Scientific foundation:** Catchment water balance is supported by [SCI-003](../reference/bibliography.md#sci-003-watersheds-and-drainage-basins), while infiltration, baseflow, and runoff response are supported by [SCI-005](../reference/bibliography.md#sci-005-infiltration-and-baseflow) and [SCI-006](../reference/bibliography.md#sci-006-surface-runoff-and-catchment-response).
-- **Current implementation:** The absence of rainfall-runoff inputs and the steady discharge contracts are mapped under [JOB-004](../reference/bibliography.md#job-004-reach-topology-and-steady-forcing-contracts).
-- **Original visual:** Figure VIS-002 is registered in [Visual Source Register](../assets/source-register.md#vis-002-hydrology-to-hydraulics).
-- **Supporting reference:** *Applied Hydrology* remains a supporting hard-copy reference under SCI-002, but it was not directly inspected and no chapter or page citation is asserted.
+- **Scientific foundation:** Catchment water balance is supported by [SCI-003](../reference/bibliography.md#sci-003-watersheds-and-drainage-basins).
+- **Scientific foundation:** Infiltration, baseflow, and runoff response are supported by [SCI-005](../reference/bibliography.md#sci-005-infiltration-and-baseflow) and [SCI-006](../reference/bibliography.md#sci-006-surface-runoff-and-catchment-response).
+- **Evidence note:** Figure VIS-002 is original handbook teaching material registered in the [Visual Source Register](../assets/source-register.md#vis-002-hydrology-to-hydraulics).
+- **Evidence note:** The `R-200` hydrograph and volume calculation are synthetic and do not describe an observed or deployed event.

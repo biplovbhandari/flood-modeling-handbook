@@ -88,7 +88,7 @@
     <path d="M865 169 C912 187 916 239 959 248 C1005 258 1034 231 1098 321" fill="none" stroke="#6d8a3a" stroke-width="28" opacity="0.55"/>
     <path d="M865 169 C912 187 916 239 959 248 C1005 258 1034 231 1098 321" fill="none" stroke="#1976a3" stroke-width="11" stroke-linecap="round"/>
     <line x1="888" y1="151" x2="870" y2="198" stroke="#d84315" stroke-width="7"/>
-    <text x="871" y="139" class="small">QFIX inflow line</text>
+    <text x="871" y="139" class="small">fixed-discharge inflow</text>
     <path d="M899 202 L930 222" class="arrow"/>
     <text x="861" y="381" class="small">Terrain + roughness +</text>
     <text x="861" y="404" class="small">downstream controls</text>

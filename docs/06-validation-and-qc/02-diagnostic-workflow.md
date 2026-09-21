@@ -3,298 +3,236 @@
 Diagnosis should reduce uncertainty about the next decision rather than maximize the number of inspected artifacts.
 Begin with competing hypotheses, then choose the next observation most likely to separate them.
 
-## Why this matters
+## Why this topic matters
 
-Hydraulic symptoms are rarely unique to one cause.
-A high WSE can result from roughness, terrain, a blocked structure, downstream control, inflow error, boundary placement, unresolved transient behavior, or datum mismatch.
+Hydraulic symptoms rarely identify one cause.
+High water-surface elevation can result from terrain, roughness, a blocked pathway, downstream control, forcing, boundary placement, unresolved transients, or datum mismatch.
 Changing a parameter before distinguishing those explanations can hide the original defect and create a compensating error.
 
 ## Prerequisites
 
 Complete [Validation Framework](01-validation-framework.md) and review the model-development and scenario-library chapters.
-Use the project mappings in [Decision-Code-Artifact Crosswalk](../reference/decision-code-artifact-crosswalk.md) and the unresolved policies in [Conflicts and Open Questions](../reference/conflicts-and-open-questions.md).
+Use [Applied Evidence Catalog](04-case-issue-and-experiment-catalog.md) for bounded synthetic practice records.
 
 ## Learning objectives
 
 After this chapter, the reader should be able to:
 
-- follow the complete diagnostic order without skipping authority, provenance, or materialization checks;
+- follow an ordered diagnostic process without skipping provenance or materialization;
 - form at least three materially different hypotheses for an ambiguous symptom;
-- select a next check by discriminatory value, cost, and reversibility;
-- map known project failure signatures to evidence and bounded next checks; and
-- stop or escalate without converting an unresolved diagnosis into acceptance.
+- choose a next check by discriminatory value, directness, cost, and reversibility;
+- distinguish a symptom record from evidence of cause; and
+- stop or escalate without turning an unresolved diagnosis into acceptance.
 
-## 1. Use a hypothesis-driven next-check loop
+## Use a hypothesis-driven loop
 
-For each symptom, write a compact hypothesis table before inspecting more evidence.
+Write a compact hypothesis table before inspecting more evidence.
 
 | Field | Required content |
 | --- | --- |
-| Symptom | The observed quantity, location, scenario, time, units, and comparison basis. |
-| Hypotheses | At least three causes that imply materially different corrective actions. |
-| Predictions | The observation expected if each hypothesis is true and the observation expected if it is false. |
-| Candidate next checks | Bounded observations that can be obtained without changing the model first. |
-| Selection rule | Prefer the check that most cleanly separates the leading hypotheses at acceptable cost and risk. |
-| Stop condition | State what evidence supports a bounded diagnosis or readiness verdict. |
-| Escalation condition | State which missing authority, data, or policy prevents a responsible conclusion. |
+| Symptom | State the observed quantity, location, scenario, time, units, datum, and comparison basis. |
+| Competing hypotheses | Include at least three causes that imply different corrective actions. |
+| Predictions | State the observation expected if each hypothesis is true and if it is false. |
+| Candidate checks | Prefer bounded observations that do not change the model first. |
+| Selection rule | Choose the check that best separates the leading hypotheses at acceptable cost and risk. |
+| Stop condition | State what evidence supports a bounded diagnosis. |
+| Escalation condition | State which missing data, contract, or decision prevents a responsible conclusion. |
 
-Do not start with an unrestricted review of every map, log, file, and parameter.
-Do not tune roughness, expand the domain, alter a boundary, or change terrain until evidence identifies the category that the change is meant to test.
+**Design principle:** Observe before changing.
+Do not tune roughness, expand the domain, alter terrain, or replace a boundary until the change is tied to a testable hypothesis.
 
-### A simple discrimination example
+## Follow the dependency order
 
-Suppose WSE is high upstream of a road.
-The leading hypotheses are a missing culvert pathway, roughness that is too high, and a downstream boundary that imposes excessive backwater.
+The order below prevents a downstream symptom from hiding an earlier identity, input, or geometry error.
+When a stage fails, record the failure before deciding whether later inspection can still add bounded evidence.
 
-- A terrain and connectivity profile through the road can distinguish a blocked structure from the other two causes.
-- A longitudinal WSE comparison upstream and downstream of the boundary-influence zone can distinguish a localized blockage from broad downstream control.
-- A bounded roughness sensitivity run can assess resistance only after source class, lookup, terrain, structure, and boundary evidence are credible.
+### 1. Define the question and decision context
 
-The first check should inspect the represented pathway and local head discontinuity because it can rule in or rule out the structure hypothesis without using a parameter change to compensate for missing conveyance.
+State the blocked decision and the suspicious result.
+Identify the quantity, units, datum, location, time or scenario, intended use, referent, and consequence of error.
 
-## 2. Follow the ordered diagnostic workflow
+Ask whether the observed difference matters within the actual decision domain.
+A striking anomaly outside the area or quantity of interest may require documentation without controlling the immediate decision.
 
-The order is deliberate.
-Later stages depend on evidence established by earlier stages.
-When a stage fails, record the failure and decide whether later inspection can still add useful bounded evidence without implying readiness.
+### 2. Confirm object identity and provenance
 
-### Step 1: Question and decision context
+Verify model and scenario identity, source versions, transformation history, method version, solver build, and artifact generation.
+Distinguish requested values from realized values and a planned object from a materialized object.
 
-State what decision is blocked and what result is suspicious.
-Identify the quantity, units, datum, location, time or scenario, intended use, comparison basis, and consequence of error.
-Confirm whether the review concerns a model, one scenario, a selected library, a transfer dependency, a composite, or an operational product.
+Ask whether the symptom remains after comparing the exact realized objects rather than labels, filenames, or rounded addresses.
 
-**Discriminating question:** Would the same numerical difference matter for the actual decision, or is the symptom outside the intended use and review domain?
+### 3. Check coordinate reference systems and datums
 
-### Step 2: Forcing and provenance
+Verify horizontal reference, axis order, projected units, transform, bounds, resolution, cell registration, vertical datum, vertical units, epoch when relevant, and transformation uncertainty.
+Complete this gate before any spatial profile, sampling, resampling, nodata comparison, cross-source geometry comparison, elevation arithmetic, or raster combination.
 
-Verify discharge or stage values, units, source version, reach identity, time or frequency basis, bounds, rounding, and transformation history.
-Confirm that a planned target, a submitted job, a returned path, a published trial, and a selected library member have not been treated as interchangeable.
-Trace immutable or content-based source identity when available.
+Ask whether a horizontal shift, vertical offset, unit conversion, or out-of-range index explains the difference.
 
-**Discriminating question:** Does the suspicious response remain after comparing the exact realized forcing and provenance rather than a label or folder name?
+### 4. Check forcing and source data
 
-### Step 3: Network and source data
+Verify discharge, stage, timing, duration, units, spatial allocation, frequency interpretation, and source identity.
+After the reference gate passes, check whether target geometry, topology, terrain, roughness, and observations come from compatible source realizations.
 
-Verify directed prepared-network topology, source-to-prepared identifier lineage, upstream and downstream adjacency, lake or coast tags, removed or merged reaches, and source versions.
-Check whether the target geometry and related reaches belong to the same prepared-network revision.
-Inspect source-data completeness, quality metadata, and changed remote content.
+Ask whether the apparent anomaly follows a forcing, topology, lineage, or source-version mismatch.
 
-**Discriminating question:** Is the apparent hydraulic anomaly consistent with the intended network relationship, or does it follow a topology, identifier, or source-version error?
+### 5. Check terrain, bathymetry, structures, and roughness
 
-### Step 4: Terrain and roughness
+Inspect longitudinal and cross-channel profiles, controlling cells, submerged-channel treatment, surface conditioning, bridges, culverts, resampling, and nodata only after reference compatibility is established.
+Verify categorical roughness conversion, lookup coverage, positive values, spatial patterns, and the scope of any calibration.
 
-Inspect the longitudinal and cross-channel terrain profiles, controlling high and low cells, bathymetry treatment, hydroflattening, drainage enforcement, bridges, culverts, and resampling.
-Verify source LULC classes, categorical reprojection, lookup coverage, positive roughness values, spatial patterns, and whether any calibration applies to this setting.
+Ask whether the symptom aligns with a terrain barrier, class boundary, omitted pathway, nodata artifact, or changed source.
 
-**Discriminating question:** Does the symptom align spatially with a terrain or roughness transition, obstruction, nodata artifact, or changed source realization?
+### 6. Check geometry and boundaries
 
-### Step 5: CRS and datums
+Inspect the realized domain, active mask, inflow and outflow geometry, transfer support, model edges, and rasterized cell mappings.
+Trace every inflow, slope-based outflow, specified stage, closed edge, and initial condition using mathematical meaning rather than a short label.
 
-Verify horizontal CRS, axis order, projected units, affine transform, bounds, resolution, cell registration, vertical datum, vertical units, and any transformation.
-Do this before adding depth to terrain, comparing WSE, sampling a transfer raster, or compositing grids.
+Ask whether the selected cells and realized boundary values represent the intended hydraulic connection.
 
-**Discriminating question:** Does the anomaly disappear when quantities are compared on the same horizontal support and vertical reference, or does a half-cell, index, unit, or datum offset explain it?
+### 7. Check solver state and numerical evidence
 
-### Step 6: Geometry
+Record the executable identity, settings, initial state, saved-output schedule, process status, termination reason, and any ignored input.
+Inspect local and global time histories for depth, water-surface elevation, wet extent, storage, inflow, outflow, sources, sinks, and residuals.
 
-Inspect the realized domain, active-cell mask, inflow lines, outflow areas, stage-transfer lines, reach endpoints, centerlines, buffers, extra geometries, and rasterized cell mappings.
-Check intersections, coverage, connected components, index bounds, and unintended negative-index wrap or out-of-range sampling.
+Ask whether the suspicious state is stable and conserved enough for the stated use or remains affected by filling, draining, oscillation, cancellation, or initialization.
 
-**Discriminating question:** Do the vector features select the intended active cells and hydraulic pathways under the realized grid?
+### 8. Check perimeter evidence
 
-### Step 7: Boundaries
+Inspect each connected wet perimeter component with terrain, depth, water-surface elevation, assigned boundary, flux, and intended role.
+Separate an intended outlet or transfer edge from artificial clipping or leakage.
 
-Trace every inflow, slope-based outflow, fixed or transferred stage, closed edge, and initial condition.
-Use the actual mathematical and implemented behavior rather than substituting the labels `FREE`, freefall, and normal depth.
-Confirm boundary values, geometry, sign, orientation, source scenario, and intended role.
+Ask whether perimeter water represents a valid connection, an immaterial fringe, a closed-edge pileup, or unintended loss.
 
-**Discriminating question:** Would the observed WSE, flow direction, or edge behavior follow from the realized boundary even if terrain and roughness were correct?
+### 9. Check scenario membership and dependencies
 
-### Step 8: Solver state
+Identify simulated trials, selected members, source scenarios, interpolation or selection rules, skips, and superseded objects.
+Verify that storage presence is not being used as proof of membership.
 
-Record executable and build identity, image digest when available, run configuration, hardware when relevant, process exit, watcher action, saved-output schedule, initial state, hot-start source, and any ignored or unsupported input.
-Distinguish a solver-declared completion from watcher termination, wall time, edge termination, convergence termination, and post-processing success.
+For connected models, trace upstream and downstream dependencies, confluence assumptions, transfer direction, and source bindings.
+Ask whether the suspicious object belongs to the intended family or only to an old trial, proposal, or incompatible dependency.
 
-**Discriminating question:** Did the intended solver and configuration evolve the intended initial-boundary problem, or did execution state alter or truncate the experiment?
+### 10. Check compositing and derived products
 
-### Step 9: Convergence and balance
+Verify source membership, quantity, units, datum, grid, resampling, nodata, overlap, and combination rule.
+Inspect source results before the composite so that a source anomaly is not misdiagnosed as a combination defect.
 
-Inspect time histories of decision-relevant local and global quantities.
-Include depth, WSE, velocity or flux where available, wet extent, storage, inflow, outflow, sources and sinks, and residuals.
-Treat the current volume-convergence ratio as a storage-change proxy, not full mass balance.
-Compare cold and compatible alternative hot starts where initial-condition dependence is material.
+Ask whether the symptom already exists in a source or is created by selection, registration, overlap, or the combination rule.
 
-**Discriminating question:** Is the symptom stationary and conserved enough for the use, or is it a residual filling, draining, oscillation, cancellation, or initial-state effect?
+### 11. Check publication, materialization, and reuse
 
-### Step 10: Edge evidence
+Verify the manifest, every required artifact, schema, identity, checksum, generation consistency, and compatibility at the final address.
+Distinguish complete publication from independent observation and scientific acceptance.
 
-Inspect every wet perimeter component with side, cell index, terrain, depth, WSE, intended role, connectivity, and boundary assignment.
-Record whether the edge check activated, why it was withheld, whether edge water was allowed, and whether a simultaneous event was suppressed by termination priority.
-Separate an intended outlet or transfer edge from an artificial clipping edge.
+Ask whether a partial, stale, mixed, or incompatible generation was adopted through an incomplete reuse rule.
 
-**Discriminating question:** Is water at the perimeter an intended hydraulic connection, an isolated immaterial fringe, a closed-edge pileup, or unintended leakage?
+### 12. Check uncertainty and method limits
 
-### Step 11: Scenario membership
+List forcing, terrain, parameter, model-form, numerical, observation, transfer, composite, and operational uncertainties that can affect the decision.
+Compare the requested interpretation with the equations, grid scale, source resolution, structure treatment, forcing abstraction, boundary method, and demonstrated validation domain.
 
-Identify the full set of simulated and published trials, the selected members, adaptive references and positions, re-judgments, endpoints, skips, and off-grid values.
-Verify that a manifest's presence is not being used as proof of selected membership.
-Check reuse compatibility and the authority of the selection rule.
+Ask whether more evidence can resolve the symptom or whether the method cannot support the requested claim.
 
-**Discriminating question:** Is the suspicious scenario part of the intended library, or only a trial, reused input, proposal state, or unobserved plan target?
-
-### Step 12: Network continuity
-
-Compare adjacent reach models across overlaps and transfer lines using compatible WSE, depth, flux, forcing, datum, grid, and scenario provenance.
-Trace downstream-to-upstream dependency direction separately from physical river-flow direction.
-Check confluences, divergent paths, lakes, coasts, and source-scenario bindings.
-
-**Discriminating question:** Does the discontinuity originate within one model, at a transfer or topology boundary, or from incomparable scenarios?
-
-### Step 13: Compositing
-
-Verify the producing component, scenario selection, source manifests, quantity, units, datum, grid, resampling, nodata, overlap, and pixel rule.
-DR-004 ALT-D selects pixelwise maximum, but the selected rule does not establish source compatibility or product validation.
-
-**Discriminating question:** Is the anomaly present in each source model, or is it created by scenario selection, registration, overlap, nodata, or the compositing rule?
-
-### Step 14: Uncertainty
-
-List input, parameter, model-form, numerical, observation, transfer, and compositing uncertainties that can affect the decision-relevant output.
-Use sensitivity evidence to identify influential sources without treating sensitivity as uncertainty quantification.
-State when no quantitative or justified qualitative uncertainty estimate is available.
-
-**Discriminating question:** Is the observed difference larger than the combined, decision-relevant uncertainty under comparable support?
-
-### Step 15: Method limitations
-
-Compare the intended use with the shallow-water assumptions, grid scale, source resolution, missing structures, steady-forcing abstraction, boundary method, reach decomposition, transfer method, and validation domain.
-Identify where the requested interpretation exceeds the evidence or the model's permissible use.
-
-**Discriminating question:** Would better data or settings solve the problem, or is the method itself unable to support the requested claim?
-
-## 3. Map project failure signatures to next checks
-
-The issue records below are **Evidence or experiment**.
-Most state a symptom without establishing a cause.
-The diagnostic mapping therefore preserves competing explanations and asks for the next observation rather than prescribing a universal fix.
-
-| Failure signature | Project evidence | Competing hypotheses | High-value next check |
-| --- | --- | --- | --- |
-| Low downstream WSE | ISU-001 | Excessive drainage at an edge, weak downstream control, wrong datum, low terrain, low roughness, forcing mismatch, or continued draining. | Use the bounded longitudinal evidence bundle below to compare realized boundary values, edge flux, terrain, datum, roughness, forcing, balance, and recent WSE change through the overlap. |
-| High downstream WSE | ISU-004 and ISU-010 | Excessive downstream control, closed-edge pileup, obstruction, high roughness, terrain bias, forcing mismatch, or residual filling. | Use the bounded longitudinal evidence bundle below to compare boundary influence, wet-edge roles, local conveyance, terrain, roughness, forcing, complete balance, recent WSE change, and benchmark comparability. |
-| Confluence narrowing | ISU-002 | Missing tributary forcing, wrong topology, incompatible stages, clipped lateral extent, transfer mismatch, or composite selection. | Trace both tributary and mainstem scenarios, topology, forcing, WSE, wet-component continuity, and source membership across the confluence. |
-| Unintended edge leakage | ISU-003 | Incorrectly open edge, boundary span bridging dry gaps, wrong outflow geometry, divergent path, or grid registration error. | Persist cell-level edge roles and fluxes, then trace each leaking component to the intended outlet and boundary construction. |
-| Divergent flow path | ISU-005 | Real bifurcation, wrong network direction, terrain saddle, culvert or structure omission, inflow placement, or domain overlap. | Compare prepared topology with terrain-controlled connectivity and face-level flow direction through the split. |
-| Arbitrary edge cutoff | ISU-006 | Domain clipping, invalid active mask, dry-cell threshold, missing source coverage, or post-processing crop. | Overlay connected wet components, domain and active mask, source coverage, terrain, and output crop on the same grid. |
-| Culvert blockage | ISU-007 | Missing or raised terrain pathway, absent structure relation, debris or capacity assumption, grid under-resolution, or wrong datum. | Inspect a longitudinal terrain and WSE profile through the crossing with represented connectivity and structure evidence. |
-| WSE anomalies | ISU-008 | Inflow artifacts, mismatched DEMs, boundary transition, transfer smoothing, compositing maximum, or unresolved transient. | Determine whether the anomaly exists in source WSE grids before transfer and compositing and whether it aligns with an inflow, grid, or source transition. |
-| Oversized domains | ISU-009 | Excessive buffer, topology or length error, unrelated extra geometry, unit mismatch, or deliberate floodplain coverage. | Decompose the final bbox contribution by each input geometry and verify units, snapping, and intended source area. |
-| DEM differences | ISU-011 and Case-018 | Mutable remote bytes, retrieval timing, reprojection, resampling, nodata, or transform differences. | Compare immutable source versions or checksums and transformation provenance before attributing depth residuals to hydraulics. |
-| Failure to reach quasi-steady state | ISU-012 | Insufficient duration, slow storage exchange, boundary reflection, hot-start dependence, oscillation, or metric insensitivity. | Inspect local and global time histories, inflow-outflow balance, storage, edge flux, and alternative initial conditions beyond the reported trigger. |
-| Transfer misregistration | XW-009 and CONF-016 | Half-cell shift, CRS mismatch, vertical-datum mismatch, shape-only array addition, wrong index, negative-index wrap, or partial STL coverage. | Compare manifests and rasters cell by cell for shape, transform, bounds, CRS, units, datum, masks, registration, and bounded indices. |
-| Identity collision | XW-015, XW-017, CONF-013, and CONF-016 | Omitted output-affecting inputs, lossy boundary naming, truncated identity, mutable source address, or same-address rebuild. | Reconstruct identity and target address from complete realized inputs, then compare stored manifest and asset generation metadata. |
-| Missing materialization evidence | XW-015, XW-017, CONF-013, and CONF-016 | Returned path mistaken for observation, partial sequential publication, missing asset, stale manifest, checksum mismatch, or undeployed observer. | Independently observe the manifest and every required asset at the expected address and verify schema, identity, checksum, and one-generation consistency. |
-
-### Low downstream-WSE prediction bundle
-
-Use one aligned longitudinal evidence packet so the observations remain comparable rather than opening seven unrelated investigations.
-
-- **Excessive edge drainage is supported** when unintended perimeter cells carry outward flux connected to the low-WSE reach segment, and it is weakened when every outward flux belongs to an intended boundary and no unintended connected loss exists.
-- **Weak downstream control is supported** when the realized downstream stage or slope is lower or more freely draining than the intended comparable condition and the low profile lies within its influence, and it is weakened when the correct control is realized and the profile remains insensitive outside its influence.
-- **Wrong datum is supported** when a consistent vertical offset appears between otherwise matching elevations or when metadata show incompatible references, and it is weakened when terrain, transferred WSE, and comparison data share a verified datum and transformation.
-- **Low terrain is supported** when the realized bed or floodplain is lower than an immutable, co-registered source or survey in the same locations, and it is weakened when source checksums, transformations, and profiles agree within their stated uncertainty.
-- **Low roughness is supported** when verified coefficients are lower than the authorized realization in the affected conveyance and a bounded sensitivity raises WSE in the expected zone, and it is weakened when the realized coefficients are correct and the response is materially insensitive.
-- **Forcing mismatch is supported** when realized inflow or tributary contribution is lower than the intended scenario after units, reach, and time or frequency basis are reconciled, and it is weakened when provenance shows exact comparable forcing at every inlet.
-- **Continued draining is supported** when local WSE and storage continue to fall or outflow exceeds inflow over the final intervals, and it is weakened when local state is stable and the complete balance closes under the authorized criterion.
-
-### High downstream-WSE prediction bundle
-
-Use the same aligned profile, edge, balance, and source packet so that a local obstruction can be separated from broad backwater or unresolved filling.
-
-- **Excessive downstream control is supported** when the realized stage is higher or the slope condition is more restrictive than the intended comparable condition and the upstream profile shows a coherent backwater response, and it is weakened when the control is correct and the high band lies outside its influence.
-- **Closed-edge pileup is supported** when a connected wet component reaches an unintended closed perimeter with rising local storage and little outward flux, and it is weakened when cell-level roles show intended discharge paths and no connected accumulation at a closed edge.
-- **Obstruction is supported** when the WSE rise and head difference localize across a represented terrain barrier, missing culvert, bridge, or constriction, and it is weakened when verified conveyance and structure evidence show an open pathway without a localized head discontinuity.
-- **High roughness is supported** when verified coefficients exceed the authorized realization in the affected conveyance and a bounded coefficient reduction lowers WSE in the expected zone, and it is weakened when coefficients are correct and the result is materially insensitive.
-- **Terrain bias is supported** when co-registered immutable source or survey evidence shows the realized bed, bank, or barrier is too high, and it is weakened when checksums, transformations, profiles, and stated uncertainty agree.
-- **Forcing mismatch is supported** when realized inflow or tributary contribution is higher than the intended comparable scenario after units, reach, and time or frequency basis are reconciled, and it is weakened when provenance shows exact forcing at every inlet.
-- **Residual filling is supported** when local WSE and storage continue to rise or inflow exceeds outflow over the final intervals, and it is weakened when local state is stable and the complete balance closes under the authorized criterion.
-- **Benchmark incomparability remains a separate explanation for ISU-010** when DEM bytes, roughness, boundaries, grids, initial state, or comparison time differ, and it is weakened only when those dimensions and their uncertainty are demonstrably comparable.
-
-## 4. Choose among candidate checks
+## Choose the next check deliberately
 
 Rank each candidate check using four questions:
 
-1. **Discrimination:** Will opposite outcomes favor different hypotheses?
-2. **Directness:** Does it observe the suspected mechanism instead of a distant proxy?
-3. **Cost and risk:** Can it be performed without a broad rerun, irreversible change, or new ambiguity?
-4. **Authority:** Can its result answer the decision, or would a missing policy still block interpretation?
+1. **Discrimination.**
+Will opposite outcomes favor different hypotheses?
+2. **Directness.**
+Does the check observe the suspected mechanism instead of a distant proxy?
+3. **Cost and reversibility.**
+Can the check preserve the current packet and avoid creating new ambiguity?
+4. **Decision value.**
+Can the result change the immediate disposition, or would another missing decision still block it?
 
 A cheap check with no discriminatory value is not the best first check.
-A costly experiment can be justified when it is the only way to distinguish high-consequence explanations.
-When two checks have similar value, prefer the one that preserves the current evidence and changes nothing.
+A costly controlled experiment can be justified when it is the only way to separate high-consequence explanations.
+When two checks have similar value, prefer the one that changes nothing and preserves the evidence.
 
-## 5. Stopping and escalation
+## Map common signatures to competing causes
 
-Stop the diagnostic loop when one of these conditions is met:
+Every spatial check in this table assumes that horizontal and vertical references, transforms, registration, and units passed the reference gate first.
 
-- evidence supports one bounded explanation and the remaining alternatives would not change the immediate action;
-- the result meets or fails predeclared criteria under the authorized intended use;
-- a missing source, policy, observation, or owner prevents meaningful discrimination;
-- the requested use exceeds the method's demonstrated domain; or
-- the next required action is a controlled experiment, code change, or methodology decision outside the diagnostic scope.
+| Signature | Competing hypotheses | High-value first check |
+| --- | --- | --- |
+| High upstream water-surface elevation at a road | Missing conveyance, terrain bias, high roughness, downstream backwater, or unresolved filling. | Inspect a co-registered terrain and water-surface profile through the crossing with pathway and time-history evidence. |
+| Low downstream water-surface elevation | Excessive drainage, weak downstream control, low terrain, low roughness, forcing error, datum mismatch, or continued draining. | Compare the realized boundary, perimeter flux, terrain, datum, forcing, and recent local water-surface history in one aligned packet. |
+| Abrupt inundation at a model edge | Domain clipping, active-mask error, source-coverage gap, boundary error, or output crop. | Overlay connected wet components, domain, mask, source coverage, and output extent on one grid. |
+| Confluence discontinuity | Incompatible flows, topology error, transferred-stage mismatch, grid mismatch, or source-selection error. | Trace both tributary and downstream scenario identities, flow accounting, stages, topology, and overlap compatibility. |
+| Different terrain from the same source name | Mutable source bytes, retrieval timing, transformation, resampling, nodata, or grid-snap difference. | Compare immutable source identities and complete transformation provenance before interpreting hydraulic residuals. |
+| Apparent steady state with continuing local change | Insensitive global metric, cancellation, slow storage exchange, oscillation, or incompatible hot start. | Inspect local histories, full balance terms, perimeter flux, and an appropriate alternate initial state. |
+| Missing artifact after a successful response | Partial publication, stale manifest, incorrect address, failed copy, or incomplete observer contract. | Observe the expected generation and verify every required artifact and integrity value independently. |
 
-Escalate with a compact record containing the decision blocked, evidence labels, hypotheses, completed discriminatory checks, unresolved observations, authority gap, and exact evidence that could change the verdict.
-Do not escalate a folder of unprioritized screenshots and logs without explaining which hypothesis each item supports or challenges.
+## Applied diagnostic packet
 
-## 6. Readiness verdict after diagnosis
+**Applied example:** The [unexpected upstream ponding signature](04-case-issue-and-experiment-catalog.md#issue-signature-unexpected-upstream-ponding) reports a 0.45 m water-surface step across a synthetic road crossing during one scenario.
+The packet gives four competing explanations but no established cause.
 
-A diagnosis and a readiness verdict answer different questions.
-The diagnosis can state, "Terrain obstruction is the leading explanation for upstream ponding."
-The readiness verdict can still be **NOT READY** because the structure treatment, validation evidence, and acceptance authority remain unresolved.
+First verify horizontal and vertical references, transforms, registration, and units for the terrain and water-surface inputs.
+After that gate passes, inspect a co-registered terrain and water-surface profile through the road because it directly tests whether represented conveyance is blocked.
+Include recent water-surface history so continuing fill is not mistaken for a structure effect.
 
-Use **INSUFFICIENT EVIDENCE TO ASSESS** when the packet cannot distinguish the leading hypotheses.
-Use **NOT READY** when a material required condition is contradicted or missing for the stated use.
-Use a ready verdict only under the criteria and authority described in [Validation Framework](01-validation-framework.md).
+**Evidence note:** The issue signature establishes that the symptom was recorded in the synthetic packet.
+It does not establish that a missing culvert caused the symptom.
 
-## Practical exercise
+If the profile shows a continuous terrain barrier and a localized head step at the same cells, the missing-pathway hypothesis gains support.
+If the terrain pathway is open and the elevated profile extends through the downstream influence zone, the downstream-boundary hypothesis gains support instead.
+If the final local water-surface series is still rising, a cause conclusion should wait for numerical evidence.
 
-[Lab 12: Validate and Triage](../labs/lab-12-validate-and-triage.md) provides a bounded synthetic packet with competing terrain, transfer, and materialization hypotheses.
-The exercise requires one immediate next check, predicted discriminatory observations, a stopping or escalation condition, evidence labels, and a direct readiness verdict.
+## Stop and escalate at explicit boundaries
+
+Stop the diagnostic loop when one of these conditions applies:
+
+- evidence supports one bounded explanation and remaining alternatives would not change the immediate action;
+- the result meets or fails predeclared criteria for the stated use;
+- a missing source, contract, observation, responsibility, or decision prevents meaningful discrimination;
+- the requested use exceeds the demonstrated method domain; or
+- the next step is a controlled experiment, software change, or methodology decision outside diagnosis.
+
+Escalate with the blocked decision, evidence labels, hypotheses, completed checks, unresolved observations, decision gap, and exact evidence that could change the disposition.
+Do not send an unstructured collection of maps and logs without stating which hypothesis each item supports or challenges.
+
+## Separate diagnosis from acceptance
+
+A diagnosis can state that a represented terrain barrier is the leading explanation for ponding.
+The result can still fail acceptance because structure treatment, validation, uncertainty, or artifact integrity remains unresolved.
+
+Use **Insufficient evidence to assess** when the packet cannot distinguish the leading explanations.
+Use **Does not meet the stated criteria** when a material required condition is contradicted or missing.
+Use an accepting conclusion only under the criteria and responsibility described in [Validation Framework](01-validation-framework.md).
 
 ## Common misconceptions
 
-### "Start with the most visible anomaly"
+### Start with the most visible anomaly
 
-The most visible map feature may be downstream of an earlier forcing, identity, datum, or geometry error.
-Follow the ordered dependency chain.
+The most visible feature can be downstream of an earlier identity, forcing, datum, or geometry error.
+Follow the dependency order.
 
-### "Try a few parameters and see what looks better"
+### Try parameters until the map looks better
 
-Unstructured tuning can create equifinality, where different erroneous parameter combinations fit the same observation.
-Test the suspected mechanism and preserve independent evaluation evidence.
+Unstructured tuning can create equifinality, where different erroneous parameter combinations match the same observation.
+Test the suspected mechanism and protect independent evaluation evidence.
 
-### "Every issue has a standard fix"
+### Every signature has a standard correction
 
-The project issue records name signatures, not universal causes or remedies.
-The same signature can require different action under different topology, terrain, boundaries, and intended uses.
+The same symptom can arise from different mechanisms in different settings.
+A signature routes investigation but does not prescribe a universal fix.
 
-### "More evidence always reduces uncertainty"
+### More evidence always reduces uncertainty
 
 Incomparable, untraceable, or redundant evidence can increase review burden without separating hypotheses.
-Choose the next check for its expected discriminatory value.
+Choose each next check for expected decision value.
 
 ## Competency check
 
-1. Place transfer-raster registration, scenario membership, edge evidence, and uncertainty in the correct diagnostic order.
-2. Give three competing causes of high downstream WSE and one check that separates at least two of them.
-3. Explain why checking the composite before source scenario identity can lead to a false diagnosis.
-4. State when diagnosis should stop and policy escalation should begin.
-5. Explain why an independently observed complete artifact set can still be scientifically not ready.
+1. Place datum compatibility, scenario membership, numerical histories, compositing, and materialization in diagnostic order.
+2. Give three competing causes of high downstream water-surface elevation and one check that separates at least two.
+3. Explain why inspecting a composite before its source identities can produce a false diagnosis.
+4. State one diagnostic stop condition and one escalation condition.
+5. Explain why a complete artifact set can still fail scientific acceptance.
 
 ## Further reading and source notes
 
-- [Validation Framework](01-validation-framework.md) defines the evidence lanes and readiness terms used here.
-- [SDR-004](../reference/bibliography.md#sdr-004-cases-issues-and-experiments) registers the project cases, issue signatures, and experiment plans.
 - [SCI-043](../reference/bibliography.md#sci-043-nasa-standard-for-models-and-simulations) supports intended-use, provenance, uncertainty, verification, and validation distinctions.
-- [SCI-045](../reference/bibliography.md#sci-045-epa-environmental-model-guidance) supports decision-specific model evaluation, corroboration, sensitivity, and uncertainty review.
+- [SCI-044](../reference/bibliography.md#sci-044-nist-assessment-of-accuracy-and-reliability) supports the separation of numerical accuracy, software correctness, and physical validation.
+- [SCI-045](../reference/bibliography.md#sci-045-epa-environmental-model-guidance) supports decision-specific evaluation, corroboration, sensitivity, and uncertainty review.

@@ -1,158 +1,139 @@
 # Lab 2 Solution: Catchment to Discharge
 
-This solution shows one evidence-disciplined interpretation of the synthetic network and hydrographs.
-It does not validate a production forcing source, model, scenario, or reach library.
+This solution gives one supported interpretation of the packet in [Lab 2](../lab-02-catchment-to-discharge.md).
+Use it only after attempting the prompt.
 
-## Use conditions
+## 1. Network and drainage areas
 
-The prerequisites, goal, inputs, ordered steps, expected deliverable, and stopping criteria are defined in [Lab 2](../lab-02-catchment-to-discharge.md).
-Use this solution only after attempting that prompt.
-The reasoning uses only the prompt and cited local sources, requires no command or production access, and keeps synthetic calculations outside project authority.
-Stop when the answer satisfies the prompt's competency criteria or records the exact evidence gap that prevents a supported forcing choice.
-
-## 1. Network and mainstem table
-
-| Reach | Immediate upstream reaches | All transitive upstream reaches | Headwater? | Project-specific `upstream_mainstem_reach_id` |
+| Reach | Immediate upstream reaches | Transitive upstream reaches | Headwater? | Terminal? |
 | --- | --- | --- | --- | --- |
-| A | None | None | Yes | null |
-| B | None | None | Yes | null |
-| C | A, B | A, B | No | A |
-| D | None | None | Yes | null |
-| E | C, D | A, B, C, D | No | C |
+| `R-100` | None | None | Yes | No |
+| `R-300` | None | None | Yes | No |
+| `R-200` | `R-100`, `R-300` | `R-100`, `R-300` | No | Yes |
 
-A is selected for C because A has the larger drainage area among C's immediate upstream neighbors, 24 km2 compared with 16 km2 for B.
-C is selected for E because C has the larger drainage area among E's immediate upstream neighbors, 40 km2 compared with 30 km2 for D.
-A, B, and D use null because they are headwaters in the represented network.
+The stated rule selects `R-100` as the main inflow path because \(84 \text{km2}>51 \text{km2}\).
+The rule applies to this confluence role.
+It does not rename an entire river or establish a universal mainstem definition.
 
-**Current implementation:** [`BuildModelInputs`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/models/build_model.py) defines `upstream_mainstem_reach_id` as the upstream reach with the largest drainage area and null for a headwater.
-[`BuildModelJob`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/jobs/build_model.py) reads the supplied identifier and queries that reach.
-The generated [build-model documentation](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/docs/jobs/build_model/build_model.md) states that the caller supplies `upstream_reach_ids` and `upstream_mainstem_reach_id` because the file is queried by `reach_id` rather than traversed by `reach_to_id` in this job.
+The local incremental area is:
 
-The upstream-mainstem result is project-contract reasoning rather than a universal rule for naming a river's mainstem.
-It selects one immediate upstream reach for the current model input.
+\[
+A_{local}=142-(84+51)=7 \text{km2}
+\]
 
-E's hydrologic watershed includes land draining through A, B, C, and D to E's outlet.
-A hydraulic model domain for E is the numerical area over which terrain, roughness, water state, and boundaries are represented.
-The two areas can overlap but answer different questions and need not share a boundary.
+The 142 km2 catchment represents land contributing to the `R-200` outlet under the supplied network delineation.
+A hydraulic model domain represents the area over which terrain, roughness, state, and boundaries are calculated.
+The two areas answer different questions and need not share a boundary.
 
-## 2. Peak table
+## 2. Peaks and aligned sums
 
-| Reach | Sampled peak discharge, m3/s | Peak time, h after start |
+| Reach | Sampled peak | Peak time |
 | --- | ---: | ---: |
-| A | 30 | 6 |
-| B | 25 | 9 |
-| C | 48 | 9 |
-| D | 28 | 6 |
-| E | 68 | 9 |
+| `R-100` | 160 m3/s | 6 h |
+| `R-300` | 90 m3/s | 9 h |
+| `R-200` | 250 m3/s | 9 h |
 
-A and D peak at 6 hours.
-B, C, and E peak at 9 hours.
+The aligned sums are:
 
-Adding C's peak of 48 m3/s and D's peak of 28 m3/s gives 76 m3/s, but those peaks do not occur at the same time.
-At 9 hours, the aligned table gives 48 m3/s for C and 20 m3/s for D.
-Their sum is 68 m3/s, which equals the listed E value at that sample, but this equality does not establish the routing mechanism.
-The table explicitly allows unlisted storage and lateral inflow, and it provides only five discrete samples.
+| Time | Upstream plus local sum | `R-200` discharge | Downstream minus aligned sum |
+| ---: | ---: | ---: | ---: |
+| 0 h | \(24+12+3=39 \text{m3/s}\) | 40 m3/s | +1 m3/s |
+| 3 h | \(92+44+6=142 \text{m3/s}\) | 130 m3/s | -12 m3/s |
+| 6 h | \(160+72+10=242 \text{m3/s}\) | 215 m3/s | -27 m3/s |
+| 9 h | \(148+90+12=250 \text{m3/s}\) | 250 m3/s | 0 m3/s |
+| 12 h | \(76+64+9=149 \text{m3/s}\) | 170 m3/s | +21 m3/s |
 
-## 3. Routing interpretation and missing evidence
+Adding the separate peak magnitudes gives \(160+90=250 \text{m3/s}\), but those peaks occur at different times.
+That number therefore does not represent an aligned upstream state.
+At 9 h, the aligned contributions including the local estimate equal the supplied `R-200` value, but one matching row does not establish the routing mechanism.
 
-**Inference from the synthetic table:** The shift from A's 6-hour peak and B's 9-hour peak to C's 9-hour peak is consistent with tributary confluence timing plus travel time and storage between the upstream and downstream sample locations.
-The reduction from the aligned C-plus-D total of 70 m3/s at 6 hours to 55 m3/s at E is consistent with attenuation or delay of the earlier combined pulse.
-The later E peak could reflect release of stored water as C peaks, and unlisted lateral inflow could also change the result, but the table does not establish either mechanism.
+## 3. Routing interpretation
 
-The word inference is necessary because the exercise provides no routing equations, reach-storage record, continuous hydrographs, lateral-inflow time series, downstream-stage record, or travel-time observations.
+**Inference:** The lower `R-200` value relative to the aligned 6 h sum is consistent with travel time, attenuation, or temporary storage between the upstream locations and the outlet.
+The 9 h peak is consistent with confluence timing that combines a still-high `R-100` flow, the `R-300` peak, and local inflow.
+The 12 h downstream excess over the same-time sum is consistent with delayed release from storage or travel time.
 
-Useful discriminating observations include:
+These interpretations are not observations of cause.
+The table also permits measurement error, unrepresented inflow, or different time support.
 
-1. Continuous inflow and outflow hydrographs at C, D, and E on one clock.
-2. Reach storage or water-level observations between the C-D confluence and E.
-3. A lateral-inflow time series for the local catchment between the sampled sections.
-4. Channel geometry, roughness, slope, and downstream-stage observations for a routing or hydraulic analysis.
-5. A stated routing model with calibrated or independently supported parameters.
+Useful discriminating evidence includes:
 
-## 4. Selected steady discharge and scenario context
+1. Continuous hydrographs on one clock at all three reach locations.
+2. Water-level or storage histories between the confluence and outlet.
+3. A time-varying local-inflow record.
+4. Channel geometry, roughness, and downstream-stage observations.
+5. A stated routing model with supported parameters.
+6. Observation methods and uncertainty covariance across the series.
 
-A defensible selection is **68 m3/s for reach E**.
-The value comes from E's synthetic hydrograph at 9 hours and is the sampled event peak.
-It matches the bounded objective of examining the reach-scale hydraulic response near the sampled peak under one downstream condition.
+## 4. Selected steady discharge
 
-This selection does not assert that 68 m3/s is a selected production scenario, frequency-based bound, forecast, or validated design flow.
-It is only a plausible educational choice for the stated objective.
+A defensible selection for the bounded objective is **250 m3/s for `R-200`**.
+It is the supplied sampled peak at 9 h.
+The prompt gives an illustrative interval of 225 to 275 m3/s around that value.
 
-Before the number becomes a scientifically interpretable hydraulic scenario, the scenario needs at least:
+The selection does not make 250 m3/s a frequency estimate, forecast, or accepted design flow.
+It is one applied-example forcing for the stated near-peak comparison.
 
-1. The exact reach and model identity for E.
-2. The inflow-line geometry, CRS, direction convention, and confirmation that 68 m3/s is applied there as intended.
-3. A stated downstream boundary condition, including its value, units, source, and vertical reference when it uses WSE.
-4. Terrain, roughness, domain, and grid provenance for the model realization.
-5. Initial conditions or hot-start provenance.
-6. Solver environment, run settings, termination rule, and output interval.
-7. The hydrologic source, time meaning, uncertainty, and reason for selecting the value.
-8. Checks for edge effects, convergence evidence, quantity units, and hydraulic plausibility.
+An interpretable hydraulic scenario also needs:
 
-**Current implementation:** The current scenario jobs bind one discharge value to the model manifest's inflow line as `QFIX`.
-The typed positive value and geometry establish part of the hydraulic input, but they do not establish the hydrologic source or scientific suitability of the selected scenario.
+1. Complete model identity.
+2. Allocation of the total among the two upstream inflow lines and local geometry.
+3. Boundary geometry, sign convention, and unit checks.
+4. A stated downstream condition with value, units, source, and datum where relevant.
+5. An initial state or hot-start record.
+6. Terrain, roughness, domain, and grid provenance.
+7. Numerical settings and output intervals.
+8. Termination, balance, edge, and sensitivity evidence.
+9. The hydrologic source method, time support, and uncertainty treatment.
 
 ## 5. Information lost in the steady reduction
 
-Reducing E's hydrograph to 68 m3/s loses or alters at least the following information:
+Reducing the hydrograph to 250 m3/s loses or changes:
 
-1. The 9-hour timing of the sampled peak relative to the event start.
-2. The rising-limb sequence from 12 to 27 to 55 to 68 m3/s.
-3. The recession from 68 to 37 m3/s within the supplied record.
-4. The event duration and the discharge integrated over that duration.
-5. The rate of rise and rate of recession between samples.
-6. Travel time and attenuation between upstream reaches and E.
-7. The relative timing of C and D at their confluence.
-8. Any unlisted lateral inflow, withdrawal, or storage exchange.
-9. The antecedent hydraulic state produced by earlier discharges.
-10. The possibility that 68 m3/s under another downstream stage would produce a different response.
+1. The 9 h event-time coordinate.
+2. The rising sequence before the peak.
+3. The recession after the peak.
+4. Event duration.
+5. Hydrograph volume.
+6. Rate of rise and recession.
+7. Travel time and attenuation.
+8. Confluence timing.
+9. The time-varying local contribution.
+10. Dependence among source uncertainties.
+11. The antecedent water state created by earlier flows.
+12. The interaction between discharge history and downstream stage.
 
-The hydraulic solver can run for many model seconds under a constant 68 m3/s boundary.
-That time allows the modeled water state to evolve toward the run's termination condition.
-It does not replay the event clock, rising limb, peak arrival, or recession in the synthetic table.
+Simulation time under constant forcing describes evolution of the hydraulic calculation.
+It does not replay the event clock or its changing discharges.
 
-## 6. Evidence-label classification
+## 6. Uncertainty review
 
-### Statement 1
+The relative component uncertainties cannot be added directly because the quantities have different magnitudes and their errors may be correlated.
+Routing, time alignment, local contribution, and measurement methods also affect the relationship between upstream and downstream estimates.
 
-> The synthetic table gives E a sampled peak of 68 m3/s at 9 hours.
+A quantitative propagation would need probability distributions or defensible bounds for each input, covariance or dependence information, a routing relationship, common time support, and a stated output metric.
+The prompt explicitly says that the correlations are unknown.
 
-This is an instructional given outside the project authority hierarchy.
-It does not receive one of the six evidence labels and must not be presented as production, experiment, or project-case evidence.
-The calculation and inference drawn from it still need explicit reasoning and limits.
+A bounded sensitivity comparison can calculate otherwise identical scenarios at 225, 250, and 275 m3/s.
+That comparison would show response sensitivity across the supplied interval.
+It would not assign probabilities to the three results.
 
-### Statement 2
+## 7. Evidence labels
 
-> `BuildModelInputs.upstream_mainstem_reach_id` is defined as the immediate upstream reach with the largest drainage area.
+| Statement | Label | Reason |
+| --- | --- | --- |
+| A hydrograph relates discharge to time at a stated location. | **Scientific foundation** | This is the general definition supported by the handbook and [SCI-006](../../reference/bibliography.md#sci-006-surface-runoff-and-catchment-response). |
+| The table gives `R-200` a sampled peak of 250 m3/s at 9 h. | **Applied example** and **Evidence note** | The value is supplied synthetic evidence and supports only the bounded table claim. |
+| A forcing record should preserve reach, time support, units, source, and uncertainty. | **Design principle** | The rule makes the input interpretable and traceable. |
+| The smaller 6 h value at `R-200` proves that channel storage caused the difference. | **Evidence note** rejecting the claimed scope | The table shows a difference but does not identify its cause. |
+| Error correlation among the uncertainty descriptions is unknown. | **Open question** | The prompt states that the dependence information is absent. |
 
-**Current implementation:** The checked-out input model defines the field this way and the job consumes the caller-supplied identifier.
+An accurate rewrite of statement 4 is:
 
-### Statement 3
+> **Inference from the applied example:** The 6 h difference is consistent with travel time, attenuation, or storage, but the supplied packet does not discriminate among those explanations or measurement error.
 
-> DR-013 selects a line inflow on the highest-drainage upstream reach.
+## Readiness statement
 
-**Selected methodology:** DR-013 ALT-A has status Alternate Selected.
-The status and scope must remain attached to the claim.
-
-### Statement 4
-
-> The target orchestrator propagates changed downstream hydraulic dependencies upstream.
-
-**Target design:** The system-design material assigns this responsibility to target orchestration.
-The statement does not prove deployed behavior.
-
-### Statement 5
-
-> The current jobs route a rainfall-driven hydrograph from A through E.
-
-The claim is unsupported as written, and **Current implementation** evidence establishes the opposite boundary.
-An accurate rewrite is:
-
-> **Current implementation:** The current modeling jobs consume prepared steady discharge values and do not simulate rainfall-runoff or route a rainfall-driven discharge hydrograph through the network.
-
-The target orchestrator's upstream dependency propagation does not change this conclusion because dependency propagation is not hydrologic routing.
-
-## Remaining limitations
-
-**Open question:** The exercise contains no real hydrofabric, precipitation record, routing configuration, rating curve, downstream condition, hydraulic model, or validation artifact.
-It demonstrates reasoning and evidence boundaries, not operational adequacy.
+**NOT READY for operational forcing selection.**
+The exercise supports network arithmetic, peak identification, one conditional steady value, and a sensitivity interval.
+It lacks the source, routing, dependence, model, boundary, numerical, and validation evidence needed for operational use.

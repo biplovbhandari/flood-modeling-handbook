@@ -152,8 +152,8 @@ A dry active cell can become wet after net inflow raises its stored depth or WSE
 A wet cell can become dry after net outflow, drainage, infiltration, or another represented sink lowers it below the drying logic.
 
 Numerical methods commonly use small depth thresholds, flux limiters, regularized friction, or related controls near zero depth.
-These controls prevent negative depth, division by nearly zero depth, extreme friction terms, and transfer of more water than a cell stores.
-The wetting and drying thresholds can differ to prevent a cell from switching state repeatedly around one value.
+These controls are intended to limit negative depth, division by nearly zero depth, extreme friction terms, and transfer of more water than a cell stores.
+Different wetting and drying thresholds can reduce repeated switching around one value.
 
 No universal wetting or drying threshold is physically correct for all solvers and grids.
 A documented solver default is solver-specific evidence, not a constant of shallow-water physics.
@@ -187,14 +187,12 @@ Resolution, alignment, aggregation, and face placement must therefore be reviewe
 
 ## Solver documentation examples do not define one universal grid
 
-**Scientific foundation with solver-specific examples:** Official HEC-RAS documentation describes cell centers, faces, terrain-derived elevation-volume relationships, and face hydraulic-property tables.
-Official SFINCS documentation describes a rectilinear grid, active-cell mask values, and optional subgrid tables.
+**Scientific foundation:** The cited HEC-RAS 6.6 documentation describes cell centers, faces, terrain-derived elevation-volume relationships, and face hydraulic-property tables.
+The SFINCS 2.0.6 documentation describes a rectilinear grid, active-cell mask values, and optional subgrid tables.
 These examples demonstrate that solvers can represent the same concepts differently.
-They do not establish the grid implementation or current support of either solver in this project.
 
-**Current implementation:** The reviewed model-building and solver paths are indexed by [JOB-003](../reference/bibliography.md#job-003-current-implementation-locations).
-Later model-development chapters will trace exactly how the current checkout constructs terrain, roughness, domain, and solver artifacts.
-This chapter does not infer that behavior from the external examples.
+**Evidence note:** The cited documentation establishes capability only for its stated solver and documentation scope.
+It does not establish that a separate workflow implements, configures, or validates either grid representation.
 
 ## Common misconceptions
 
@@ -238,4 +236,4 @@ Complete [Lab 6: Grid Stability and Wetting](../labs/lab-06-grid-stability-and-w
 - **Scientific foundation:** Grid cells, centers, faces, terrain representation, and cell-face hydraulic properties are supported by [SCI-028](../reference/bibliography.md#sci-028-hec-ras-2d-computational-mesh).
 - **Scientific foundation:** Grid-size, terrain-feature, face-orientation, and rapidly varying WSE guidance is supported by [SCI-029](../reference/bibliography.md#sci-029-hec-ras-grid-size-and-time-step-guidance).
 - **Scientific foundation:** The affine-transform equations and cell-center convention are supported by official GDAL documentation in [SCI-030](../reference/bibliography.md#sci-030-gdal-geotransform).
-- **Scientific foundation with solver-specific scope:** Rectilinear-grid, active-mask, roughness, subgrid, and wet-state examples are supported by [SCI-032](../reference/bibliography.md#sci-032-sfincs-user-manual).
+- **Scientific foundation:** Rectilinear-grid, active-mask, roughness, subgrid, and wet-state examples are supported for SFINCS documentation release 2.0.6 by [SCI-032](../reference/bibliography.md#sci-032-sfincs-user-manual).

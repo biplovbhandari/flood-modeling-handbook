@@ -1,5 +1,5 @@
 site_name: Flood Modeling Handbook
-site_description: An independently maintained handbook for learning hydrology, hydraulics, and flood-inundation modeling
+site_description: A handbook for learning hydrology, hydraulics, flood-inundation modeling, validation, and scientific software practice
 site_url: https://biplovbhandari.github.io/flood-modeling-handbook/
 repo_name: biplovbhandari/flood-modeling-handbook
 repo_url: https://github.com/biplovbhandari/flood-modeling-handbook
@@ -63,7 +63,7 @@ nav:
       - Watersheds, Reaches, and Hydrofabrics: 01-hydrology-for-fim/01-watersheds-reaches-and-hydrofabrics.md
       - Water Balance, Runoff, and Hydrographs: 01-hydrology-for-fim/02-water-balance-runoff-and-hydrographs.md
       - Discharge, Stage, and Routing: 01-hydrology-for-fim/03-discharge-stage-and-routing.md
-      - Flood Frequency, AEP, and Bounds: 01-hydrology-for-fim/04-flood-frequency-aep-and-bounds.md
+      - Flood Frequency, AEP, and Discharge Bounds: 01-hydrology-for-fim/04-flood-frequency-aep-and-bounds.md
       - Forcing Sources and Uncertainty: 01-hydrology-for-fim/05-forcing-sources-and-uncertainty.md
   - Open-Channel Flow:
       - Conservation, Discharge, and Storage: 02-open-channel-flow/01-conservation-discharge-and-storage.md
@@ -81,36 +81,36 @@ nav:
       - Terrain, Topobathymetry, and Structures: 04-model-development/02-terrain-topobathymetry-and-structures.md
       - Roughness and Land Cover: 04-model-development/03-roughness-and-land-cover.md
       - Domain and Boundary Geometry: 04-model-development/04-domain-and-boundary-geometry.md
-      - Build-Model Job: 04-model-development/05-build-model-job.md
+      - The Model-Building Operation: 04-model-development/05-build-model-job.md
   - Scenario Libraries:
-      - Normal-Depth Libraries: 05-scenario-libraries/01-normal-depth-libraries.md
+      - Discharge-Only Scenario Libraries: 05-scenario-libraries/01-normal-depth-libraries.md
       - Adaptive Discharge Selection: 05-scenario-libraries/02-adaptive-discharge-selection.md
-      - KWSE and Stage Transfer: 05-scenario-libraries/03-kwse-and-stage-transfer.md
+      - Downstream-Stage-Aware Libraries and Stage Transfer: 05-scenario-libraries/03-downstream-stage-and-transfer.md
       - Scenario Planning and Propagation: 05-scenario-libraries/04-scenario-planning-and-propagation.md
       - Compositing, Identity, and Provenance: 05-scenario-libraries/05-compositing-identity-and-provenance.md
   - Validation and Quality Control:
       - Validation Framework: 06-validation-and-qc/01-validation-framework.md
       - Diagnostic Workflow: 06-validation-and-qc/02-diagnostic-workflow.md
       - Sensitivity and Uncertainty: 06-validation-and-qc/03-sensitivity-and-uncertainty.md
-      - Case, Issue, and Experiment Catalog: 06-validation-and-qc/04-case-issue-and-experiment-catalog.md
-  - Scientific System Design:
+      - Applied Evidence Catalog: 06-validation-and-qc/04-case-issue-and-experiment-catalog.md
+  - Scientific Software Practice:
       - Scientific Software Contracts: 07-system-design/01-scientific-software-contracts.md
-      - Current, Target, and Evidence Boundaries: 07-system-design/02-current-target-and-evidence-boundaries.md
-      - Team-Lead Review Checklist: 07-system-design/03-team-lead-review-checklist.md
+      - Evidence Boundaries in Scientific Software: 07-system-design/02-current-target-and-evidence-boundaries.md
+      - Scientific Methodology Review: 07-system-design/03-scientific-methodology-review.md
   - Labs:
       - Lab Guide: labs/README.md
       - Exercises:
-          - Lab 1 - Trace the System: labs/lab-01-trace-the-system.md
+          - Lab 1 - Trace One Discharge Through the System: labs/lab-01-trace-the-system.md
           - Lab 2 - Catchment to Discharge: labs/lab-02-catchment-to-discharge.md
           - Lab 3 - AEP and Discharge Bounds: labs/lab-03-aep-and-discharge-bounds.md
           - Lab 4 - Flow Regime and Normal Depth: labs/lab-04-flow-regime-and-normal-depth.md
           - Lab 5 - Backwater and Boundaries: labs/lab-05-backwater-and-boundaries.md
           - Lab 6 - Grid Stability and Wetting: labs/lab-06-grid-stability-and-wetting.md
           - Lab 7 - Convergence and Solver Evidence: labs/lab-07-convergence-and-solver-evidence.md
-          - Lab 8 - Inspect a Built Model: labs/lab-08-inspect-a-built-model.md
+          - Lab 8 - Inspect a Synthetic Model Record: labs/lab-08-inspect-a-built-model.md
           - Lab 9 - Diagnose Domain and Boundaries: labs/lab-09-diagnose-domain-and-boundaries.md
-          - Lab 10 - Follow Adaptive ND Selection: labs/lab-10-follow-adaptive-nd-selection.md
-          - Lab 11 - Trace KWSE Stage Transfer: labs/lab-11-trace-kwse-stage-transfer.md
+          - Lab 10 - Follow Deterministic Discharge Selection: labs/lab-10-follow-adaptive-selection.md
+          - Lab 11 - Trace a Two-Reach Stage Transfer: labs/lab-11-trace-stage-transfer.md
           - Lab 12 - Validate and Triage: labs/lab-12-validate-and-triage.md
           - Lab 13 - Review a Methodology Change: labs/lab-13-review-a-methodology-change.md
       - Solutions:
@@ -123,15 +123,15 @@ nav:
           - Lab 7 Solution: labs/solutions/lab-07-convergence-and-solver-evidence-solution.md
           - Lab 8 Solution: labs/solutions/lab-08-inspect-a-built-model-solution.md
           - Lab 9 Solution: labs/solutions/lab-09-diagnose-domain-and-boundaries-solution.md
-          - Lab 10 Solution: labs/solutions/lab-10-follow-adaptive-nd-selection-solution.md
-          - Lab 11 Solution: labs/solutions/lab-11-trace-kwse-stage-transfer-solution.md
+          - Lab 10 Solution: labs/solutions/lab-10-follow-adaptive-selection-solution.md
+          - Lab 11 Solution: labs/solutions/lab-11-trace-stage-transfer-solution.md
           - Lab 12 Solution: labs/solutions/lab-12-validate-and-triage-solution.md
           - Lab 13 Solution: labs/solutions/lab-13-review-a-methodology-change-solution.md
   - Reference:
       - Source Register: assets/source-register.md
       - Bibliography: reference/bibliography.md
       - Conflicts and Open Questions: reference/conflicts-and-open-questions.md
-      - Decision-Code-Artifact Crosswalk: reference/decision-code-artifact-crosswalk.md
+      - Method-Evidence-Artifact Crosswalk: reference/decision-code-artifact-crosswalk.md
       - Equations and Units: reference/equations-and-units.md
       - Glossary: reference/glossary.md
       - Source Authority: reference/source-authority.md

@@ -1,153 +1,111 @@
-# Lab 8 Solution: Inspect a Built-Model Fixture
+# Lab 8 Solution: Inspect a Synthetic Model Record
 
-This solution records one bounded inspection of the checked-in fixture.
-It does not prove current production provenance, current-job execution, durable storage materialization, or hydraulic adequacy.
+This solution uses only the synthetic packet in [Lab 8](../lab-08-inspect-a-built-model.md) and the linked handbook references.
+It does not inspect a binary artifact or establish that another model is adequate.
 
-## Use conditions
+## 1. Record categories
 
-The prerequisites, goal, inputs, ordered steps, expected deliverable, optional user-run commands, and stopping criteria are defined in [Lab 8](../lab-08-inspect-a-built-model.md).
-Use this solution only after attempting that prompt.
-The reasoning uses only checked-in fixture evidence and cited local sources and requires no production access.
-No command is required to use the solution, and any optional prompt command remains user-run with results bounded to the inspected checkout.
-Stop when the answer satisfies the prompt's competency criteria or retains the bounded fixture verdict with the missing evidence stated.
+The requested inputs state the recipe before realization.
+The realized settings state the exact sources, references, grid, domain, lookup, structure treatment, and artifact roles that the operation used.
+The canonical identity object states which output-affecting values are intended to distinguish the model.
+The artifact inventory records expected roles, sizes, and integrity values before promotion.
+The warning record reports one implemented check.
+The publication record reports staging and promotion events.
+The independent observation reports what was present after promotion.
 
-## 1. Manifest and schema observations
+These categories answer different questions.
+A valid request does not prove the realized sources, a complete record does not prove artifact presence, publication does not prove materialization, and materialization does not prove scientific adequacy.
+That separation follows [MX-005](../../reference/decision-code-artifact-crosswalk.md#mx-005-model-development) and [MX-011](../../reference/decision-code-artifact-crosswalk.md#mx-011-materialization).
 
-The artifact is a checked-in test fixture at:
+## 2. Spatial-compatibility calculation
 
-```text
-twod-fim-jobs/tests/test_data/models/reach=1257410937935512/10850311_N48S45E47W42/
-```
+The domain width is:
 
-The main top-level observations are:
+\[
+22640-21020=1620\ \text{m}
+\]
 
-| Field | Fixture value |
-| --- | --- |
-| `type` | `model`. |
-| `twod_fim_version` | `0.1.0`. |
-| `created_at` | `2026-09-04T13:59:29.233581`. |
-| `reach_id` | `1257410937935512`. |
-| `identity_hash` | `10850311`. |
-| `domain_code` | `N48S45E47W42`. |
-| `model_id` | `10850311_N48S45E47W42`. |
+At 10 m per column:
 
-The serialized request names the checked-in reach-network fixture, one upstream reach, that same upstream reach as mainstem, a reach-partitioned output base path, the 3DEP seamless VRT string, a checked-in coarse LULC raster, an empty extra-geometry list, zero domain buffer, a 100 m grid, a 0.1 upstream-walk fraction, EPSG:5070, a bankfull-width multiplier of 1.0, and the complete lookup dictionary.
+\[
+N_x=\frac{1620\ \text{m}}{10\ \text{m}}=162
+\]
 
-The serialized fixture does not contain current `BuildModelInputs` keys `domain`, `ds_of_lake`, or `centerline_buffer_bankfull_multiplier`.
-A current schema parser can reconstruct omitted optional fields from current defaults, but those reconstructed values are not serialized fixture observations.
-The fixture may therefore represent an earlier contract shape even when current default reconstruction makes it readable.
+The domain height is:
 
-The domain block records bbox `[-2062400, 2804600, -2053500, 2813900]`, anchor `[-2058200, 2809100]`, and offsets `[48, 45, 47, 42]`.
-The properties block records 93 rows and 89 columns.
+\[
+49620-48100=1520\ \text{m}
+\]
 
-The identity contains only the baked SDR revision, reach-geometry hash, grid resolution, EPSG code, DEM source-string hash, LULC source-string hash, and realized lookup hash.
-It omits upstream IDs, inflow offset and width parameters, the network path, `other_geometries`, domain buffer, centerline buffer, lake-outlet flag, and authored domain.
+At 10 m per row:
 
-The six manifest asset roles are `terrain`, `roughness`, `centerline`, `inflow_line`, `reach_centroid`, and `domain`.
-`outflow_area.geojson` is present in the fixture directory but is not named by the model manifest.
-The warning list is empty.
+\[
+N_y=\frac{1520\ \text{m}}{10\ \text{m}}=152
+\]
 
-## 2. Raster-alignment table
+The calculated dimensions match the model record and both raster tables.
+The transform starts at the upper-left corner \((21020,49620)\) m, advances 10 m east by column, and advances 10 m south by row.
+With 162 columns and 152 rows, it reaches the supplied bounds exactly.
 
-| Property | `dem.tif` | `roughness.tif` | Comparison |
-| --- | --- | --- | --- |
-| Driver | GeoTIFF. | GeoTIFF. | Same. |
-| Data type | Float32. | Float32. | Same. |
-| Width by height | 89 by 93. | 89 by 93. | Both match 89 manifest columns and 93 rows. |
-| Horizontal CRS | EPSG:5070, NAD83 / Conus Albers. | EPSG:5070, NAD83 / Conus Albers. | Both match the manifest input. |
-| Transform | `[-2062400, 100, 0, 2813900, 0, -100]`. | `[-2062400, 100, 0, 2813900, 0, -100]`. | Exactly aligned. |
-| Bounds | West -2062400, south 2804600, east -2053500, north 2813900 m. | Same. | Both match the manifest and domain polygon. |
-| Cell size | 100 m by 100 m. | 100 m by 100 m. | Both match `grid_resolution=100`. |
-| Nodata | -999999. | 250. | Different role-specific sentinels. |
+Both rasters have the same dimensions, transform, bounds, nodata value, and horizontal reference.
+They are horizontally aligned with each other and with the recorded domain.
 
-The x calculation is \(({-2053500}-({-2062400}))/89=8900/89=100\) m.
-The y calculation is \((2813900-2804600)/93=9300/93=100\) m.
+The terrain table identifies elevation in metres on VD-1.
+The roughness table identifies a dimensionless Manning coefficient, so a vertical datum does not apply to that quantity.
+The metadata supports grid and reference compatibility for the two supplied tables.
+It does not prove that the terrain source is accurate, bilinear resampling is adequate for the intended use, the categorical conversion is scientifically suitable, RL-3 is calibrated, structures are represented, or the domain and boundaries are hydraulically adequate.
 
-This evidence establishes horizontal alignment for the two checked-in rasters and the rectangular domain.
-It does not identify the DEM vertical datum, prove that no vertical transformation was needed, show which resampling operation produced this fixture, validate terrain or structures, prove all original classes were mapped correctly, or establish roughness calibration.
+## 3. Provenance and identity assessment
 
-## 3. Vector-role and geometry table
+The readable labels Synthetic terrain collection and Synthetic land-cover collection are not immutable provenance by themselves.
+The resolved content identities and full SHA-256 values are content-level evidence in the record.
+The packet does not independently reproduce those source checksums from source bytes, so it supports inspection of the recorded provenance rather than independent source verification.
 
-| File | Geometry | Features | EPSG | Extent or point | Important fields or interpretation |
-| --- | --- | ---: | ---: | --- | --- |
-| `anchor.geojson` | Point. | 1 | 5070 | `(-2058200, 2809100)`. | Fields `x` and `y` reproduce `domain.anchor`. |
-| `domain.geojson` | Polygon. | 1 | 5070 | `[-2062400, 2804600, -2053500, 2813900]`. | Fields reproduce bbox, offsets, and `N48S45E47W42`. |
-| `inflow.geojson` | LineString. | 1 | 5070 | `[-2056111.157, 2806982.317, -2055874.146, 2807182.296]`. | Field `ind`; the line is inside the domain. |
-| `reach.geojson` | LineString. | 1 | 5070 | `[-2059232.444, 2807794.481, -2056698.910, 2810758.509]`. | Fields include reach ID, downstream ID, drainage area, and stream order. |
-| `outflow_area.geojson` | Polygon. | 1 | 5070 | `[-2062600, 2809873.145, -2057231.880, 2814100]`. | It is outside the current model-manifest asset contract. |
+The canonical identity covers reach lineage, resolved terrain and roughness content, references, grid, mask, domain, boundary geometry, structure treatment, method, and producer.
+It omits the realized roughness lookup RL-3.
+That omission is material because a different lookup can produce a different roughness raster from the same land-cover content.
 
-The domain polygon agrees with the manifest bbox and its fields agree with the offset code.
-The anchor point agrees with `domain.anchor`.
-It is a reach centroid floored to the 100 m grid, so the manifest role `reach_centroid` is incomplete and can be mistaken for the exact geometric centroid.
+Two model requests can therefore differ in an output-affecting setting while retaining the same stated canonical identity.
+The supplied digest cannot repair the omission because a digest distinguishes only the fields included in its canonical input.
+Under [MX-008](../../reference/decision-code-artifact-crosswalk.md#mx-008-identity), the model identity is incomplete.
 
-The inflow line lies inside the bbox.
-Its extent does not overlap the target reach extent, so it does not intersect `reach.geojson`.
-That is consistent with an inflow located on a separate upstream mainstem, but the fixture does not include the upstream-mainstem geometry as a model asset.
-The correct next check is to inspect reach `1257410962372414` in the exact prepared-network version and verify line intersection, coordinate direction, adjacency, and mainstem selection.
+## 4. Warning assessment
 
-`reach.geojson` records `reach_to_id=1257412149032946`, while the manifest records `properties.downstream_reach_id=1257410937935512`, which is the modeled reach itself.
-The prepared-network field is the relevant fixture evidence for downstream adjacency.
-The manifest field demonstrates the current assignment issue and must not be used as authoritative topology evidence.
+The warning establishes that one implemented comparison found only 30 m between a connected terrain corridor and the east edge, below a 50 m review threshold.
+It triggers a scenario-level edge and connectivity review.
+It does not prove that water reaches the edge, that clipping occurs, or that a larger domain changes the result.
 
-The outflow polygon extends 200 m west of the domain and 200 m north of the domain.
-That can be consistent with a later two-cell square buffer around selected domain edges at 100 m resolution, but spatial plausibility does not prove production history.
-The model manifest does not name the file.
-A producing scenario request or manifest, current derivation code, file checksum, and lineage record are needed before assigning it a current scenario role.
+The absence of other warnings establishes only that no other implemented reporting rule emitted an entry into this record.
+It does not establish that every relevant topology, datum, roughness, structure, domain, boundary, or integrity check ran and passed.
 
-## 4. Checksum and identity classification
+The smallest useful disposition packet would include the planned scenario range, connected wet components, edge roles, depth and WSE gradients near the east edge, local flow directions, alternate pathways, and a controlled expansion comparison where the original result is affected.
 
-The checked-in full SHA-256 values begin as follows.
+## 5. Publication and materialization assessment
 
-| Manifest role | Full checksum prefix observed | Recorded first 16 characters | Match? |
-| --- | --- | --- | --- |
-| `terrain` | `37f0d79d0c8eb3df...` | `37f0d79d0c8eb3df`. | Yes. |
-| `roughness` | `4492aa8baecc2cd6...` | `4492aa8baecc2cd6`. | Yes. |
-| `centerline` | `5cbb7e8aa6a6621f...` | `5cbb7e8aa6a6621f`. | Yes. |
-| `inflow_line` | `d7e12795c14a7ca0...` | `d7e12795c14a7ca0`. | Yes. |
-| `reach_centroid` | `6c17f9231162eb97...` | `6c17f9231162eb97`. | Yes. |
-| `domain` | `c8d6faba00c59582...` | `c8d6faba00c59582`. | Yes. |
+The staged verification states that the pre-promotion copies matched the recorded inventory.
+The promotion event states that generation G-02 became the intended visible generation.
+The later observer checked final storage and found five matching roles plus one checksum mismatch.
 
-Canonical JSON hashing of the recorded identity object begins with `10850311`, which agrees with `identity_hash` under the current recipe.
+The outflow bytes do not match the outflow integrity value in the promoted model record.
+Generation G-02 therefore fails the complete materialization contract even though the role exists and its size matches.
+The packet cannot show whether the mismatch came from replacement, corruption, or a record error.
 
-| Statement | Classification | Reason |
-| --- | --- | --- |
-| The checked-in bytes of every named asset match the fixture checksum. | **Supported by fixture.** | Fresh SHA-256 inspection agrees for all six named files. |
-| The identity hash can be reconstructed from the recorded identity fields and hash recipe. | **Requires current code.** | The fixture supplies fields, while the code supplies canonical serialization, SHA-256, and eight-character truncation behavior. |
-| Identity pins exact DEM and LULC source bytes. | **Unsupported conclusion.** | It hashes source strings, not source bytes or immutable object versions. |
-| Identity includes inflow, topology, extra-geometry, and authored-domain inputs. | **Unsupported conclusion.** | Those fields are absent from the identity object. |
-| Output checksums can detect a later byte change to checked-in assets. | **Supported by fixture.** | Recalculation can compare current bytes with the recorded digest prefix. |
-| Matching checksums prove scientific adequacy. | **Unsupported conclusion.** | Integrity proves byte agreement, not topology, datum, calibration, boundaries, clipping, or validation. |
+If every checksum matched, the observation would support artifact integrity and one-generation consistency.
+It still would not establish correct topology, terrain quality, roughness adequacy, boundary placement, domain containment, numerical behavior, validation, or acceptance.
 
-## 5. Warning and missing-evidence table
+## 6. Direct evidence verdict
 
-| Condition | Proved by empty warnings? | Next required evidence |
-| --- | --- | --- |
-| Inflow intersects intended channel exactly once. | No. | Inspect the exact upstream-mainstem geometry, rasterized forcing cells, and connected conveyance. |
-| Domain contains the largest relevant floodplain. | No. | Review the largest intended scenario's wet extent, WSE, terrain, edge roles, and domain sensitivity. |
-| Domain does not require expansion. | No. | Apply an authorized expansion diagnostic and stop rule to persisted scenario evidence. |
-| DEM has a known compatible vertical datum. | No. | Obtain source metadata and a model-level vertical-datum contract, then compare all WSE inputs and observations. |
-| Every roughness value is positive and mapped from a valid class. | No. | Validate pre-cast source values, nodata, lookup coverage, post-conversion values, and transformation provenance. |
-| Roughness variability is plausible. | No. | Review land-cover context, channel treatment, calibration, sensitivity, and scale. |
-| Prepared topology and downstream assignment are correct. | No. | Validate the versioned prepared network and resolve the manifest downstream assignment mismatch. |
-| Every named asset remains in durable storage. | No. | Observe the configured storage location and verify every asset against its manifest checksum. |
-| Model is ready for ND and KWSE use. | No. | Complete data, geometry, boundary, sensitivity, operational, and intended-use acceptance reviews. |
+**MODEL RECORD INSPECTED; SCENARIO READINESS NOT ESTABLISHED.**
 
-The empty list establishes only that no implemented build warning was recorded in this fixture.
-It does not show which current checks ran under a current job, and several required checks do not exist in current build code.
+The immediate blockers are the omitted roughness lookup in identity, the outflow checksum mismatch, and the unresolved east-side review warning.
+The complete record also contains no scenario-range domain evidence, hydraulic sensitivity, numerical verification, validation, or acceptance decision.
 
-## 6. Evidence verdict
+The smallest correction and evidence set that could support another review is:
 
-**FIXTURE INSPECTED, MODEL ADEQUACY NOT ESTABLISHED.**
+1. Add RL-3 to the canonical identity and publish a distinct protected generation if the identity changes.
+2. Determine why the outflow integrity value differs, restore a complete internally consistent generation, and repeat independent observation.
+3. Supply the scenario-level edge and controlled-expansion evidence needed to disposition the warning.
+4. Confirm topology, terrain, roughness, structures, references, and boundary geometry for the intended use.
+5. Supply numerical, hydraulic, sensitivity, validation, and acceptance evidence appropriate to the planned scenarios.
 
-The fixture supports a bounded conclusion that its six manifest-named files are present in the checkout, match recorded checksum prefixes, use horizontally aligned EPSG:5070 geometry and rasters, and agree with the recorded 100 m, 89 by 93 rectangular grid.
-It also exposes a stale serialized input shape, the anchor role mismatch, the downstream assignment issue, an unmanifested outflow-area file, mutable source identity, absent vertical-datum evidence, and an empty warning list with limited meaning.
-
-The smallest next evidence set includes:
-
-1. A versioned prepared-network record that validates direction, adjacency, mainstem selection, and reach lineage.
-2. Immutable terrain and LULC source identities plus source metadata, including vertical datum and units.
-3. Complete roughness source-value, nodata, lookup, output-value, calibration, and sensitivity checks.
-4. Inflow, outflow, STL, edge-cell, and largest-scenario domain-overlap review.
-5. Domain-expansion or domain-sensitivity evidence under authorized criteria.
-6. Independent observation of manifest and asset materialization at the intended storage address.
-7. Hydraulic scenario evidence, numerical and mass-balance review, comparison evidence, uncertainty, and intended-use acceptance criteria.
+Those additions would support another review rather than guarantee a ready verdict.

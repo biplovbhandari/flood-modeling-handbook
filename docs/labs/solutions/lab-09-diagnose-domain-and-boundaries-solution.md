@@ -1,146 +1,117 @@
 # Lab 9 Solution: Diagnose Domain and Boundaries
 
-This solution demonstrates evidence-disciplined diagnosis of the synthetic packet.
-It does not validate a project model, establish an expansion threshold, or authorize a methodology change.
+This solution uses only the packet in [Lab 9](../lab-09-diagnose-domain-and-boundaries.md) and the linked neutral handbook records.
+The diagnosis is bounded to the supplied synthetic scenario.
 
-## Use conditions
+## 1. Boundary audit
 
-The prerequisites, goal, inputs, ordered steps, expected deliverable, and readiness stopping condition are defined in [Lab 9](../lab-09-diagnose-domain-and-boundaries.md).
-Use this solution only after attempting that prompt.
-The reasoning uses only the prompt and cited local sources, requires no command or production access, and preserves competing diagnoses until a discriminating check resolves them.
-Stop when the answer satisfies the prompt's competency criteria or retains `NOT READY` with the smallest evidence set that could change the verdict.
-
-## 1. Domain-clipping diagnosis
-
-The packet directly observes one connected wet region that reaches both the unintended west perimeter and the intended south-edge outlet span.
-The west cells have no assigned outlet role in the packet.
-This observation is material evidence that the rectangular boundary may truncate a connected hydraulic pathway.
-
-The leading hypothesis is that the domain clips a laterally connected floodplain or backwater area on the west side.
-If that edge is closed, water that should spread farther west can accumulate inside the domain and raise local or upstream WSE.
-If that edge is incorrectly opened, the model can release water through a lateral boundary that is not a physical outlet and reduce flow or WSE elsewhere.
-
-The evidence is not yet sufficient to choose an expansion distance or to declare clipping as the only cause.
-Competing explanations include a shallow connected numerical fringe that is immaterial to the intended FIM, a terrain or datum error that makes the west corridor artificially low, a wrong inflow or outflow placement that redirects flow, an unintended opening in the boundary preprocessing, and residual transient behavior despite the stored domain-total convergence result.
-
-`volume_convergence` says only that net domain storage change was small relative to interval inflow under the current diagnostic.
-It does not show where water moved, whether west-edge cells continued changing, whether outflow balanced inflow, or whether the rectangle represented the connected floodplain.
-
-The immediate domain status is therefore unresolved and not acceptable for hydraulic interpretation.
-
-## 2. Edge-evidence assessment
-
-The target endpoint WSE range is inclusive from 102.7 m through 103.8 m.
-The wet west-edge values from 103.1 m through 103.4 m lie inside that range.
-Under the supplied description of the current classification, those values could satisfy the WSE portion of a flagged-edge rule.
-
-That arithmetic does not prove an `edge_error` should have been stored.
-The packet does not say whether convergence and a disallowed edge violation were both true on the same saved grid, whether the relevant check ran after the first-grid sentinel, whether the downstream endpoint was wet enough to activate it, whether `allow_water_on_edges` was false, which cells the code evaluated, or whether a `BoundaryCheckResult` was persisted.
-Current branch priority stores `volume_convergence` when convergence and an edge violation are simultaneous, so that persisted reason cannot exclude the violation.
-The lack of `edge_error` therefore cannot be interpreted as a clean check.
-
-At minimum, persisted boundary evidence should include:
-
-1. The model time and saved grid used by the check.
-2. A flag stating whether the check activated or why it was withheld.
-3. `allow_water_on_edges` and every threshold or classification setting.
-4. The upstream and downstream endpoint coordinates and sampled WSE values.
-5. Every wet perimeter cell with edge side, row, column, terrain, depth, WSE, and intended role.
-6. Connectivity from each wet component to inflow, target reach, intended outlet, and any transfer line.
-7. The rule outcome for each cell and the resulting termination or warning decision.
-
-These fields distinguish a completed clean check from a skipped, withheld, allowed, out-of-range, or incompletely persisted check.
-
-## 3. Inflow and slope calculations
-
-### Inflow
-
-The target reach segment runs from `(100, 700)` to `(900, 100)`.
-The inflow line lies at x=80 from y=660 through y=760.
-The target segment has x coordinates from 100 through 900 and therefore does not intersect the line at x=80.
-
-A zero target-reach intersection is not necessarily wrong because the request claims the line is on separate upstream mainstem `U-17`.
-The current build warning only reports more than one intersection with the target reach.
-An empty warning therefore establishes neither intersection with `U-17` nor hydraulic connectivity.
-
-The next geometry evidence must include the exact versioned `U-17` row, its coordinate order, its downstream adjacency to the target, evidence that it is the selected mainstem, and its intersection with the inflow line.
-The next numerical evidence must show which grid cells the inflow line rasterizes to, that those cells are active and hydraulically connected, and how the requested discharge is divided across them.
-
-### Slope
-
-Current code uses the absolute endpoint terrain difference divided by recorded length.
-The calculated scalar is:
+The realized additions are:
 
 \[
-S_{code}
-=\frac{|100.0\ \text{m}-100.8\ \text{m}|}{1000\ \text{m}}
-=\frac{0.8\ \text{m}}{1000\ \text{m}}
-=0.0008
+118+72+10=200\ \text{m3/s}
 \]
 
-This value exceeds the supplied \(10^{-4}\) minimum, so current code would use 0.0008.
-The synthetic m/m interpretation is valid because the packet states metre elevations, metre reach length, and a metre-based projected grid.
-For a real request, the current positive-EPSG validation alone would not prove projected metre units.
+The sum matches the scenario total.
+The packet also shows that the two upstream inflows remain separately identified and that all three additions connect to the main wet component.
+The final-interval integrated forcing is therefore internally consistent with the stated 200 m3/s total.
 
-The directed signed bed change from the first endpoint to the last is \(100.0-100.8=-0.8\) m.
-Under the supplied upstream-to-downstream direction, terrain rises rather than falls.
-Taking the absolute value removes that sign and presents a positive magnitude as if it were an ordinary downhill slope.
+The south-edge contact occurs on the twenty-six faces assigned the terminal-outflow role.
+It is intended boundary contact.
+The east-edge contact occurs on twenty-three cells with no assigned boundary role.
+It is unintended boundary contact.
+The four northwest cells belong to a separate shallow component with no connection to the modeled channel or forcing.
+They require review under the stated wet threshold, but they do not show that the main hydraulic pathway reaches that corner.
 
-The result can indicate reversed reach coordinates, a wrong topology assumption, endpoint sampling onto the wrong cells, terrain noise, a structure or embankment near an endpoint, a locally adverse bed, or an unsuitable use of endpoint terrain as water-surface slope.
-The next evidence should include prepared-network direction, a longitudinal terrain and channel profile, endpoint cell locations, nearby terrain samples, structure information, and any independent water-surface or channel-slope data.
+The integrated values do not reveal how flow is distributed among the selected faces.
+Face-level fluxes, depths, velocities, signs, and time histories would be required to establish that distribution.
 
-## 4. STL, datum, and identity assessment
+## 2. Edge-evidence classification
 
-The STL spans x=760 through x=1000, so its total length is (1000-760=240) m.
-The downstream raster provides x coverage only from 820 through 980, which overlaps the STL for (980-820=160) m.
-The uncovered parts total ((820-760)+(1000-980)=60+20=80) m.
-Only two-thirds of the line has supplied x coverage.
+The following statements are direct observations from the packet:
 
-Geometric overlap alone does not make the STL usable.
-The covered cells must also exist on the downstream grid, carry valid terrain and depth values, represent the intended downstream wet state, and map to the upstream transfer cells under compatible horizontal and vertical references.
+- the main component connects both inflows, the local source, the channel, and the intended outlet;
+- the same component reaches twenty-three unassigned east-edge cells;
+- those cells have depths from 0.08 to 0.31 m and WSE from 102.54 to 102.62 m;
+- nineteen local depth gradients point toward the east boundary;
+- the east edge is intended to be closed; and
+- the diagnostic executed and persisted cell roles and component identity.
 
-The downstream source labels WSE in meters and NAVD88.
-The upstream model supplies no vertical datum.
-A horizontal CRS match cannot show whether upstream terrain uses NAVD88, another orthometric datum, an ellipsoidal height, or an unknown offset.
-The required evidence is an explicit upstream terrain vertical datum and unit, the downstream terrain and depth datum contract, any transformation used, and a verification that transferred WSE and upstream terrain share one reference before computing depth or applying stage.
+It is a supported inference that the supplied scenario violates a criterion requiring no connected wet component at an unintended edge.
+The observation is materially stronger than a missing warning or a visually plausible map because the packet identifies connectivity and boundary role directly.
 
-The downstream manifest naming `D-09` is not enough to prove that it is the target's downstream neighbor.
-The review needs the same prepared-network version that built the target, a verified `reach_to_id` relationship, any modified-network lineage, and the downstream scenario's reach, model, run identity, discharge, boundary type, convergence, edge, and hydraulic evidence.
+It is not yet established that the finite domain is the cause.
+Terrain or roughness error, forcing or boundary error, and a physically real pathway that extends beyond the chosen domain remain competing explanations.
+The distinction matters for the corrective action.
 
-The model identity hashes DEM and LULC source strings rather than immutable content.
-The same URL or path can resolve to changed bytes while retaining the same identity hash.
-Immutable object versions or content checksums, retrieval provenance, and comparison with realized asset checksums are needed to detect that change.
+The isolated northwest cells are less consequential to the modeled pathway because they are not connected to the channel, forcing, or outlet.
+They still require a wetting, terrain, or initialization explanation if the acceptance contract covers every wet boundary cell.
 
-## 5. Selected next discriminating check
+## 3. Convergence and balance calculations
 
-**B. Map the connected wet component, cell-by-cell boundary roles, terrain, WSE, and flow direction along the west edge and trace that component back to the reach and intended outlet.**
+Only the ratios at 20,700 s and 21,600 s are below \(10^{-3}\).
+The 19,800 s value is 0.0012, so the three-consecutive-interval rule is not satisfied.
+Process success at the configured duration does not change that arithmetic.
 
-This check directly tests whether the west-edge water belongs to a connected floodplain or backwater pathway that the current rectangle truncates.
-It also shows whether terrain error, an unintended open edge, redirected inflow, or isolated shallow cells better explain the observation.
+The recorded net volume entering storage during the final interval is:
 
-Choice A commits to maximum expansion without identifying which edge or pathway needs space.
-Choice C substitutes a storage-change termination for boundary adequacy.
-Choice D changes resistance before resolving geometry, source, datum, and boundary causes, which can hide rather than discriminate among them.
+\[
+180000-169200+0-0=10800\ \text{m3}
+\]
 
-If check B confirms a connected physically plausible floodplain beyond the unintended edge, the next step is a bounded outward domain revision followed by the same scenario and comparison criteria.
-The expansion distance should follow an authorized method and the observed pathway rather than an arbitrary maximum.
+The signed residual is:
 
-## 6. Readiness verdict
+\[
+R_V=9900-10800=-900\ \text{m3}
+\]
 
-**NOT READY.**
+The percentage is:
 
-The packet contains material unresolved or contradictory evidence in every boundary category.
-It shows connected water on an unintended edge without persisted check details, an inflow that does not intersect the target and lacks its claimed upstream geometry, a positive slope magnitude that hides an adverse directed terrain difference, partial STL source coverage, an unknown upstream vertical datum, unproved downstream topology and scenario suitability, and mutable source identity.
+\[
+R_P=100\frac{-900}{180000}=-0.5\%
+\]
 
-The smallest follow-up evidence set that could change the verdict includes:
+The negative sign means the recorded storage increase is 900 m3 smaller than the recorded net input.
+Possible explanations include omitted removal, timing or aggregation mismatch, or numerical balance error.
+The one-interval packet does not choose among them.
 
-1. The connected-component and cell-level west-edge diagnostic selected in part 5.
-2. Persisted boundary-check activation, settings, endpoint values, cell classifications, and intended roles.
-3. Versioned `U-17`, target, and `D-09` topology and geometry with direction and lineage checks.
-4. Rasterized inflow cells, active-cell connectivity, and discharge allocation.
-5. A reviewed longitudinal terrain and water-surface profile for the slope boundary.
-6. Full STL coverage by valid downstream wet cells and exact downstream scenario provenance.
-7. Compatible vertical-datum and unit contracts for upstream terrain and transferred WSE.
-8. Immutable DEM and LULC source identities plus realized asset integrity.
-9. A bounded domain revision or sensitivity comparison if the connected clipping hypothesis is confirmed.
-10. Numerical, mass-balance, boundary, sensitivity, and hydraulic acceptance evidence for the intended scenario use.
+The magnitude is bounded evidence for the final 900 s interval only.
+It does not establish cumulative conservation.
+The east-edge WSE also changes by 0.033 m in the final interval, so a small domain-total storage ratio would not establish local steady behavior even if the consecutive rule had passed.
+[MX-002](../../reference/decision-code-artifact-crosswalk.md#mx-002-convergence) requires these evidence lanes to remain separate.
+
+## 4. Selected discriminating check
+
+**Check B is the immediate next check.**
+
+The controlled eastward expansion changes the suspected truncation while holding the other named factors fixed.
+Its possible outcomes have the following diagnostic value.
+
+| Hypothesis | Expected observation if supported | Expected observation if challenged |
+| --- | --- | --- |
+| Domain clips a connected pathway | The main component continues into the added area, contact moves away from the original east boundary, and WSE, storage, or flux in the original area changes materially. | The original-area component and hydraulic quantities remain insensitive to the added space. |
+| Terrain or roughness creates an artificial pathway | The wet tongue continues to follow the same suspect terrain or roughness feature in both domains, and source inspection identifies an incompatible or implausible feature. | The pathway disappears or the original-area result stabilizes solely because the artificial boundary moved. |
+| Forcing or boundary realization is wrong | The expanded run preserves a broader inconsistency tied to realized forcing or boundary fluxes, while an input audit finds a mismatch. | The realized forcing remains complete and the changed result is localized to relief from the original domain edge. |
+
+The expansion most directly tests the leading clipping explanation.
+It will not by itself distinguish every terrain error from every forcing error, so a result that challenges clipping should lead to the next source or boundary check rather than acceptance.
+
+Check A substitutes process completion for hydraulic evidence.
+Check C tunes a parameter before identifying the cause.
+Check D changes the physical boundary meaning without evidence that an outlet belongs there.
+
+## 5. Direct domain verdict
+
+**SCENARIO REJECTED FOR DOMAIN EVIDENCE.**
+
+The rejection follows from the observed main component at an unassigned edge.
+It does not assert that domain clipping is the proven cause of that contact.
+
+The smallest packet for a new review includes:
+
+1. The controlled eastward expansion comparison with the original-area component, WSE, depth, storage, and flux differences.
+2. Terrain, roughness, forcing, and face-level boundary checks sufficient to explain any persistent pathway.
+3. Complete convergence histories, local hydraulic histories, cumulative balance terms, and edge results.
+4. Equivalent containment evidence for the largest planned discharge and other boundary conditions in the intended scenario range.
+5. A recorded domain decision that either accepts the evidence, revises the domain, or excludes affected scenarios.
+
+Until those items are available, [CQ-004](../../reference/conflicts-and-open-questions.md#cq-004-domain-clipping) and [CQ-005](../../reference/conflicts-and-open-questions.md#cq-005-insufficient-convergence-evidence) remain open for the planned use.

@@ -29,7 +29,7 @@ After this chapter, the reader should be able to:
 ![Schematic cross-section showing terrain elevation, WSE, depth, a stage reference, and a vertical datum](../assets/stage-depth-datum.svg)
 
 **Figure VIS-001: Stage, depth, and datum at one cross-section.**
-Notice that WSE and terrain elevation are both elevations measured from the vertical datum, while depth is their local difference.
+WSE and terrain elevation are elevations measured from the vertical datum, while depth is their local difference.
 Stage is measured from a stated reference elevation, which may differ from the datum origin.
 The discharge arrow passes through the cross-section, while velocity varies within the wetted area and storage refers to water held over a spatial domain rather than at one line.
 The figure is schematic and not to scale.
@@ -38,19 +38,19 @@ The figure is schematic and not to scale.
 
 ### Terrain or bed elevation
 
-Terrain elevation, $z_b$, is the elevation of the modeled ground or bed relative to a stated vertical datum.
+Terrain elevation, \(z_b\), is the elevation of the modeled ground or bed relative to a stated vertical datum.
 Its SI unit is metres.
 The word terrain does not guarantee that below-water channel bathymetry is represented accurately.
 
 ### Water-surface elevation
 
-Water-surface elevation, $WSE$, is the elevation of the water surface relative to a stated vertical datum.
+Water-surface elevation, \(WSE\), is the elevation of the water surface relative to a stated vertical datum.
 Its SI unit is metres.
 WSE at two locations can be compared only after confirming compatible vertical references and units.
 
 ### Depth
 
-Depth, $h$, is the local vertical distance between the water surface and terrain or bed.
+Depth, \(h\), is the local vertical distance between the water surface and terrain or bed.
 For compatible inputs at the same horizontal location,
 
 \[
@@ -65,7 +65,7 @@ The value should be interpreted rather than silently clipped before the cause is
 
 Stage is water level relative to a stated reference.
 The reference can be a vertical datum, a gauge zero, a local benchmark, or another defined elevation.
-If a stage $s$ is measured from a reference elevation $z_r$, and both use the same vertical datum and units, then
+If a stage \(s\) is measured from a reference elevation \(z_r\), and both use the same vertical datum and units, then
 
 \[
 WSE = z_r + s
@@ -76,7 +76,7 @@ A stage of 3 m does not by itself mean a WSE of 3 m, a depth of 3 m, or 3 m abov
 
 ## Worked compatibility example
 
-Assume a terrain cell has $z_b = 101.4$ m and the colocated water surface has $WSE = 103.1$ m.
+**Applied example:** Assume a terrain cell has \(z_b=101.4\ \text{m}\) and the colocated water surface has \(WSE=103.1\ \text{m}\).
 Both values use the same vertical datum and are elevations in metres.
 
 \[
@@ -92,25 +92,25 @@ The correct result would be an unresolved compatibility check, not 1.7 m.
 ### Velocity
 
 Velocity describes the rate and direction of water motion.
-Horizontal velocity is commonly represented by components $u$ and $v$, each in m/s, or by a magnitude derived from those components.
+Horizontal velocity is commonly represented by components \(u\) and \(v\), each in m/s, or by a magnitude derived from those components.
 Velocity can vary across the cross-section and over time even when total discharge is unchanged.
 
 ### Discharge
 
-Discharge, $Q$, is the volume of water passing through a section or boundary per unit time.
-Its SI unit is m3/s, and project inputs commonly use `cms` for the same unit.
+Discharge, \(Q\), is the volume of water passing through a section or boundary per unit time.
+Its SI unit is m3/s.
 For a cross-section,
 
 \[
 Q = A\bar{V}
 \]
 
-where $A$ is wetted area in m2 and $\bar{V}$ is section-averaged normal velocity in m/s.
+Here, \(A\) is wetted area in m2 and \(\bar{V}\) is section-averaged normal velocity in m/s.
 Discharge is a flux through a boundary, not a volume stored in a domain.
 
 ### Storage
 
-Storage, $V$, is the volume of water held within a defined area or control volume.
+Storage, \(V\), is the volume of water held within a defined area or control volume.
 Its SI unit is m3.
 Storage changes when inflow, outflow, or internal sources and sinks do not balance over an interval.
 A small storage change does not by itself prove a complete mass balance because outflow and other terms must also be accounted for.
@@ -126,14 +126,14 @@ The intended slope must be named before it is used in a hydraulic boundary or eq
 
 | Quantity | Symbol | SI unit | Required reference or support | Common mistake |
 | --- | --- | --- | --- | --- |
-| Terrain or bed elevation | $z_b$ | m | Horizontal location and vertical datum | Treating a terrain surface as complete channel bathymetry. |
-| Water-surface elevation | $WSE$ | m | Horizontal location and vertical datum | Treating WSE as local depth. |
-| Depth | $h$ | m | Colocated compatible WSE and terrain | Subtracting elevations with incompatible datums. |
-| Stage | $s$ | m | Named zero or reference elevation | Reporting stage without its reference. |
-| Velocity | $u$, $v$, $|V|$ | m/s | Direction, location, time, and averaging support | Treating one cell value as section-average velocity. |
-| Discharge | $Q$ | m3/s | Section or boundary, direction, time or scenario | Treating discharge as stored volume. |
-| Storage | $V$ | m3 | Defined domain or control volume and time | Calling storage change a complete mass balance. |
-| Slope | $S_f$ | m/m | Named surface or energy reference and distance | Assuming all hydraulic slopes are interchangeable. |
+| Terrain or bed elevation | \(z_b\) | m | Horizontal location and vertical datum | Treating a terrain surface as complete channel bathymetry. |
+| Water-surface elevation | \(WSE\) | m | Horizontal location and vertical datum | Treating WSE as local depth. |
+| Depth | \(h\) | m | Colocated compatible WSE and terrain | Subtracting elevations with incompatible datums. |
+| Stage | \(s\) | m | Named zero or reference elevation | Reporting stage without its reference. |
+| Velocity | \(u\), \(v\), \(|V|\) | m/s | Direction, location, time, and averaging support | Treating one cell value as section-average velocity. |
+| Discharge | \(Q\) | m3/s | Section or boundary, direction, time or scenario | Treating discharge as stored volume. |
+| Storage | \(V\) | m3 | Defined domain or control volume and time | Calling storage change a complete mass balance. |
+| Slope | \(S_f\) | m/m | Named surface or energy reference and distance | Assuming all hydraulic slopes are interchangeable. |
 
 ## Horizontal CRS and vertical datum
 
@@ -141,18 +141,21 @@ A horizontal coordinate reference system, or horizontal CRS, locates features ac
 It defines coordinates, units, projection behavior, and a horizontal reference frame.
 
 A vertical datum defines the reference surface from which elevations are measured.
-Examples of vertical references include a geodetic vertical datum, an ellipsoidal height system, a tidal datum, a gauge zero, or a local project datum.
+Examples include a geodetic vertical datum, an ellipsoidal height system, a tidal datum, a gauge zero, or a local datum.
 
-A horizontal CRS can be valid while the vertical information is missing, mislabeled, or incompatible.
+A horizontal CRS can be valid while vertical information is missing, mislabeled, or incompatible.
 An EPSG code on a raster may describe only the horizontal component.
 It does not prove that two elevation rasters use the same vertical datum, height type, epoch, geoid model, or vertical unit.
 
-### Compatibility example
+## Applied trace for reach R-200
 
-Suppose a terrain raster and WSE raster both use the same projected horizontal CRS and align cell for cell.
-The terrain elevations use orthometric heights from one vertical datum, while the WSE values use ellipsoidal heights or an undocumented local zero.
-The horizontal alignment is valid, but the elevations do not yet share a proven reference.
-Computing depth requires a documented vertical transformation or confirmation that the references are already compatible.
+**Applied example:** A synthetic scenario for `R-200` applies \(Q=250\ \text{m3/s}\) and produces a WSE raster and a depth raster.
+The terrain and WSE rasters share a projected horizontal CRS, grid, resolution, vertical datum, and metre units.
+At one cell, \(z_b=104.6\ \text{m}\) and \(WSE=106.0\ \text{m}\), so the calculated depth is 1.4 m.
+
+The discharge value does not determine the cell depth by itself.
+The 1.4 m result also depends on the model realization, boundary controls, and compatibility of the elevation surfaces.
+If the vertical reference of either surface were unknown, the example would remain an **Open question** rather than a valid depth calculation.
 
 ## Minimum checks before combining surfaces
 
@@ -165,21 +168,7 @@ Before calculating depth, transferring WSE, or compositing elevation products, r
 5. Confirm nodata, dry-cell, and wetting conventions.
 6. Preserve the transformation and source provenance in the resulting artifact record.
 
-If any required reference is unknown, label the result as an **Open question** rather than assuming compatibility.
-
-## Project connections
-
-**Current implementation:** `build_model` records an EPSG integer and creates terrain and roughness rasters on a common model grid.
-The scenario manifest records the model inputs and final depth asset and has a nullable Zarr field intended for depth and WSE history.
-Current public ND and KWSE jobs do not forward `save_zarr`, and the generic true branch cannot complete manifest construction with its directory store and file-only hashing.
-These contracts support horizontal and provenance checks, but a horizontal EPSG code alone does not establish vertical compatibility.
-
-**Current implementation:** The scenario properties record upstream discharge in whole cubic metres per second, the achieved upstream-end `nominal_wse` computed during post-processing, flooded area, maximum depth, median depth, simulated time, and convergence information.
-The supplied KWSE `bc_value` is instead a nominal downstream-stage or stage-grid planning coordinate, and per-cell transferred `HFIX` values are separate imposed WSE boundary values.
-Each property must retain its documented unit and meaning when used for planning or diagnosis.
-
-**Open question:** A complete project-wide vertical-datum contract is not established merely by the fields inspected for this orientation chapter.
-Later model-development and scientific-contract chapters must trace the source elevation metadata and transformations explicitly.
+**Design principle:** Treat an unknown vertical reference as a blocking compatibility gap rather than as permission to subtract surfaces.
 
 ## Common misconceptions
 
@@ -216,6 +205,6 @@ A complete answer should name the missing vertical reference, stage zero, compat
 ## Source notes
 
 - **Scientific foundation:** Stable definitions and equations are in [Glossary](../reference/glossary.md) and [Equations and Units](../reference/equations-and-units.md).
-- **Current implementation:** Model and scenario fields are mapped under JOB-003 in [Bibliography and Source Map](../reference/bibliography.md).
-- **Original visual:** Figure VIS-001 is registered in [Visual Source Register](../assets/source-register.md#vis-001-stage-depth-and-datum).
-- **Open question:** Vertical compatibility must be proven from source metadata and transformations for each real artifact chain.
+- **Scientific foundation:** Stage-discharge context is supported by [SCI-007](../reference/bibliography.md#sci-007-streamgaging-and-stage-discharge-ratings).
+- **Design principle:** Quantity compatibility requires both numerical units and the spatial, temporal, and vertical references that give the values meaning.
+- **Evidence note:** Figure VIS-001 is original handbook teaching material registered in the [Visual Source Register](../assets/source-register.md#vis-001-stage-depth-and-datum).

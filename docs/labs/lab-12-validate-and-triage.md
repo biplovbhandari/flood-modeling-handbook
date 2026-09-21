@@ -1,184 +1,224 @@
 # Lab 12: Validate and Triage
 
-This lab uses a bounded synthetic evidence packet to practice hypothesis-driven diagnosis.
-Synthetic values are teaching inputs only and have no project authority.
+This lab evaluates a synthetic R-200 validation packet with favorable evidence, failed criteria, and intentional gaps.
+The exercise requires a bounded conclusion rather than a general readiness claim.
 
 ## Prerequisites
 
-Complete [Validation Framework](../06-validation-and-qc/01-validation-framework.md) and [Diagnostic Workflow](../06-validation-and-qc/02-diagnostic-workflow.md).
-Review [KWSE and Stage Transfer](../05-scenario-libraries/03-kwse-and-stage-transfer.md), [Compositing, Identity, and Provenance](../05-scenario-libraries/05-compositing-identity-and-provenance.md), and [Lab 11](lab-11-trace-kwse-stage-transfer.md).
+Complete [Validation Framework](../06-validation-and-qc/01-validation-framework.md), [Diagnostic Workflow](../06-validation-and-qc/02-diagnostic-workflow.md), [Sensitivity and Uncertainty](../06-validation-and-qc/03-sensitivity-and-uncertainty.md), and [Applied Evidence Catalog](../06-validation-and-qc/04-case-issue-and-experiment-catalog.md).
+Read [Evidence Boundaries in Scientific Software](../07-system-design/02-current-target-and-evidence-boundaries.md), [MX-013](../reference/decision-code-artifact-crosswalk.md#mx-013-validation), [MX-014](../reference/decision-code-artifact-crosswalk.md#mx-014-sensitivity), [MX-015](../reference/decision-code-artifact-crosswalk.md#mx-015-uncertainty), [CQ-003](../reference/conflicts-and-open-questions.md#cq-003-incompatible-datums), and [CQ-009](../reference/conflicts-and-open-questions.md#cq-009-validation-gaps).
 
-## Execution label
+## Execution boundary
 
-**No execution required.**
-Use only the supplied packet and handbook references.
-Do not run a solver, retrieve external data, or assume an unlisted artifact exists.
+All required evidence is in this prompt.
+Do not run a solver, inspect another record, or invent a missing threshold.
+Optional tools may be used only for generic arithmetic.
 
-## Scenario
+## Learning objectives
 
-A reviewer is asked whether a synthetic upstream KWSE scenario is ready to supply a reach-library composite.
-The final upstream WSE is about 0.35 m higher than a synthetic benchmark over a 160 m band near the transfer boundary.
-The map looks smooth, the job returned a manifest path, and the manifest records `volume_convergence`.
+After completing this lab, the learner should be able to:
 
-The immediate decision is whether the scenario can be accepted for hydraulic interpretation and downstream-to-upstream continuity review.
-The packet does not establish any project validation threshold.
+- frame validation around a stated use and predeclared criteria;
+- keep software verification, numerical verification, hydraulic validation, uncertainty, provenance, materialization, and monitoring distinct;
+- calculate convergence, balance, and observation residuals;
+- distinguish calibration data from independent validation data;
+- preserve an unavailable result when support or provenance is missing;
+- select a discriminating next check before tuning; and
+- issue one bounded validation conclusion.
 
-## Bounded evidence packet
+## Intended use and exclusions
 
-### A. Intended use and identities
+The packet asks whether scenario R200-Q200-G10 can support screening of areas where modeled maximum depth is at least 0.30 m for prioritizing later field review.
+The requested use is limited to the supplied R-200 domain, the 200 m3/s scenario, and the exact model and scenario generations in this packet.
 
-| Item | Supplied synthetic observation |
+The packet excludes structure design, regulatory mapping, evacuation decisions, property-level decisions, velocity claims, arrival-time claims, and transfer to another reach or discharge.
+Every threshold below is a synthetic predeclared exercise criterion.
+No threshold is presented as a universal hydraulic standard.
+
+## Predeclared criteria
+
+| Evidence lane | Criterion for the stated screening use |
 | --- | --- |
-| Intended use | Evaluate upstream reach `U-42` at discharge 420 m3/s with a downstream KWSE condition supplied by `D-42`, then include the accepted scenario in a diagnostic composite. |
-| Prepared network | One versioned row states that `U-42` drains to `D-42`, but source-to-prepared lineage is not supplied. |
-| Upstream model | Full model ID `u42hash_N20S20E18W18`, projected horizontal CRS EPSG:26918, 10 m grid. |
-| Downstream model | Full model ID `d42hash_N24S16E22W22`, projected horizontal CRS EPSG:26918, 10 m grid. |
-| Run identity | Both scenario manifests contain the same eight-character run identity. |
-| Methodology revision | The manifests contain the jobs image's baked revision, but the packet does not compare it with the review's authorized revision. |
+| Identity and provenance | The exact model, scenario, source, method, producer, solver, observation, and datum-transformation identities are recorded immutably. |
+| Software verification | Every named input, identity, mask, publication, and observer contract check passes on the represented producer build. |
+| Convergence | The storage-change ratio is below \(10^{-3}\) for three consecutive saved intervals, and absolute local WSE change is no greater than 0.02 m at every monitoring point in the final interval. |
+| Conservation | The absolute cumulative balance residual is no greater than 1.0 percent of cumulative inflow. |
+| Grid comparison | The 95th percentile absolute WSE difference between the 10 m result and a 5 m comparison is no greater than 0.05 m over a predeclared common mask. |
+| Edge containment | No connected wet component reaches an unintended edge. |
+| Independent hydraulic comparison | Absolute WSE residual is no greater than 0.10 m at every independent validation point after compatible datum transformation. |
+| Sensitivity and uncertainty | Material input, parameter, structural, numerical, referent, and operational uncertainties are represented, and tested interactions do not reverse the screening classification. |
+| Materialization | The exact scenario record and every required artifact are independently observed in one generation with matching integrity values. |
+| Monitoring | Drift and failure signals, thresholds, reassessment triggers, retained evidence, and response responsibility are defined for repeated use. |
 
-### B. Forcing and boundary evidence
+## Identity and provenance packet
 
-| Item | Supplied synthetic observation |
+| Item | Supplied evidence |
 | --- | --- |
-| Upstream discharge | 420 m3/s in the request and upstream scenario manifest. |
-| Nominal downstream stage | 102.8 m in the request and scenario address. |
-| Transfer source | The upstream manifest names the `D-42` scenario with discharge 420 m3/s. |
-| Boundary construction | The packet says current cell-specific transfer uses source `depth + terrain` at cells selected through the upstream-grid STL mapping. |
-| Boundary sample record | Only three final `HFIX` WSE values are supplied: 102.72, 102.85, and 102.91 m. |
-| Boundary geometry record | The STL href is named in both manifests, but no cell index, coordinate, source cell, mask, or coverage table is supplied. |
+| Prepared network | N-1 |
+| Model generation | R-200-M2 |
+| Scenario generation | R200-Q200-G10 |
+| Terrain content | T-200-A with a recorded full content checksum |
+| Roughness content and lookup | M-200-A and RL-3 with recorded full content checksums |
+| Method records | Model method MB-2 and scenario method DS-2 |
+| Producer | Readable build label SB-12; no immutable executable digest is supplied |
+| Solver | Solver family and settings are listed; no immutable executable digest is supplied |
+| Observations | Survey collection OBS-V2; point coordinates and source timestamps are supplied |
+| Observation datum | Values are labeled VD-1 after transformation |
+| Datum transformation | Method name and reported uncertainty are supplied; transformation-grid identity and parameters are absent |
 
-### C. Raster and datum evidence
+## Software-verification packet
 
-| Item | Supplied synthetic observation |
-| --- | --- |
-| Downstream depth raster | Shape 300 by 240, EPSG:26918, 10 m nominal resolution, and no vertical datum field. |
-| Downstream terrain raster | Shape 300 by 240, EPSG:26918, 10 m nominal resolution, and NAVD88 metres stated in separate metadata. |
-| Affine transforms | The packet does not provide either transform, bounds, cell registration, or nodata mask. |
-| Upstream terrain | EPSG:26918 and metres are stated, but the vertical datum is absent. |
-| Transfer implementation fact | Current code can add raw equal-shaped arrays and does not explicitly verify transform, bounds, datum, nodata masks, or cell registration first. |
+A synthetic signed report states that 18 named checks passed for build label SB-12.
+The checks cover required fields, unknown-field rejection, unit validation, boundary-allocation totals, identity change under controlled input changes, dry and nodata masks, isolated staging, atomic pointer promotion, required-role observation, and integrity mismatch rejection.
 
-### D. Numerical evidence
+The report includes the check names and expected results.
+It does not include an immutable executable digest, the executed inputs and outputs, or a failure-injection result for concurrent readers during promotion.
 
-| Item | Supplied synthetic observation |
-| --- | --- |
-| Termination | `volume_convergence` with final ratio 0.0008. |
-| Local transfer-band WSE | Mean WSE rose by 0.09 m and then 0.06 m over the final two saved-output intervals. |
-| Domain storage | Total positive-depth storage changed by less than the selected proxy threshold over the final interval. |
-| Flux and balance | Inflow is known, but outflow, boundary fluxes, source and sink terms, and closure residual are not supplied. |
-| Edge evidence | No `edge_error` is recorded, and boundary-check activation and wet-perimeter cells are not supplied. |
-| Initial state | A depth-only hot start was used from another finished scenario, but no cold-start or alternative-hot-start comparison is supplied. |
+## Numerical packet
 
-### E. Benchmark and plausibility evidence
+The saved-output interval is 900 s.
+The convergence history is:
 
-| Item | Supplied synthetic observation |
-| --- | --- |
-| Synthetic benchmark | A larger-domain model using nominally the same forcing and solver has WSE 0.35 m lower over the 160 m transfer band. |
-| Comparability | Exact DEM bytes, terrain transformation, roughness, boundary locations, initial state, grid realization, and saved time are not supplied for the benchmark. |
-| Visual review | Both maps look smooth, and neither shows an obvious disconnected pool at the display scale. |
-| Observation data | No independent measured stage, WSE, depth, extent, or discharge is supplied. |
-| Acceptance policy | No authorized tolerance, uncertainty allowance, or permitted-use criterion is supplied. |
+| Saved time | Storage-change ratio | Point A absolute WSE change | Point B absolute WSE change |
+| ---: | ---: | ---: | ---: |
+| 18,000 s | 0.0013 | 0.022 m | 0.041 m |
+| 18,900 s | 0.0009 | 0.015 m | 0.031 m |
+| 19,800 s | 0.0007 | 0.011 m | 0.026 m |
+| 20,700 s | 0.0006 | 0.008 m | 0.024 m |
 
-### F. Publication and materialization evidence
+The cumulative balance covers model time zero through 20,700 s.
+Inflow and source volumes are positive additions.
+Outflow and sink volumes are positive removals.
 
-| Item | Supplied synthetic observation |
-| --- | --- |
-| Job result | The job returned the target scenario-manifest path. |
-| Observed storage | The target manifest and depth object are present. |
-| Missing object | The target STL named by the manifest is absent. |
-| Other assets | Inundation presence and checksums are not independently observed. |
-| Membership | No durable selected-library member list includes this scenario. |
-| Composite | A draft composite references the scenario depth, but no complete product manifest or source compatibility record is supplied. |
+| \(\Delta S\) | \(V_{in}\) | \(V_{out}\) | \(V_{source}\) | \(V_{sink}\) |
+| ---: | ---: | ---: | ---: | ---: |
+| 752,680 m3 | 3,780,000 m3 | 3,050,000 m3 | 0 m3 | 0 m3 |
 
-## Part A: Frame the decision
+Use:
 
-State the intended decision, the quantity being judged, and the minimum evidence categories needed before acceptance.
-Separate hydraulic readiness from storage materialization and selected-library membership.
+\[
+R_P=100\frac{\Delta S-\left(V_{in}-V_{out}+V_{source}-V_{sink}\right)}{V_{in}}
+\]
 
-## Part B: Define competing hypotheses
+The grid-comparison summary reports a 95th percentile absolute WSE difference of 0.04 m.
+The packet does not supply the raw 5 m and 10 m fields, common mask, cell population, weighting, refinement procedure, failed cells, or calculation record.
 
-Write at least three competing hypotheses for the 0.35 m high-WSE band.
-Your set must include:
+The edge summary reports no connected wet component at an unintended edge.
+The packet does not supply the component map, boundary-role map, wet threshold output, or edge-scan record.
 
-1. A transfer-raster registration, datum, mask, or indexing hypothesis.
-2. A residual transient or incomplete-balance hypothesis.
-3. A physically or numerically real downstream-control hypothesis under correctly mapped inputs.
+## Hydraulic comparison packet
 
-You may add forcing, terrain, roughness, benchmark-comparability, or initial-condition hypotheses.
-Treat missing materialization evidence as a separate readiness failure unless you explain a mechanism by which it created the WSE values.
+Points C1 and C2 were used to choose the roughness lookup and are calibration points.
+Points V1 and V2 were held out and are the independent validation points.
 
-For each hypothesis, state one expected observation if it is true and one expected observation if it is false.
+| Point | Use | Observed WSE after stated transformation | Modeled WSE | Model minus observation |
+| --- | --- | ---: | ---: | ---: |
+| C1 | Calibration | 102.20 m | 102.22 m | +0.02 m |
+| C2 | Calibration | 102.48 m | 102.44 m | -0.04 m |
+| V1 | Independent validation | 102.44 m | 102.49 m | +0.05 m |
+| V2 | Independent validation | 101.98 m | 102.12 m | +0.14 m |
 
-## Part C: Select one immediate next check
+All four values are labeled VD-1.
+The transformation-grid identity and transformation parameters are missing as stated in the provenance packet.
+No independent depth, extent, velocity, arrival-time, or structure observation is supplied.
 
-Choose exactly one immediate next check.
-Defend it by explaining how its possible outcomes distinguish the leading hypotheses.
+## Sensitivity and uncertainty packet
 
-- **A.** Increase upstream roughness until the map agrees with the benchmark.
-- **B.** Obtain the exact downstream source depth, terrain, STL, and final three saved grids; verify shape, transforms, bounds, CRS, horizontal units, vertical datum, masks, registration, STL coverage, and bounded source indices; then reconstruct every transferred `HFIX` value and its recent time history.
-- **C.** Accept the scenario because the manifest inputs match and the final volume-convergence ratio is below 0.001.
-- **D.** Expand every upstream domain edge by the largest allowed distance and rerun before inspecting the transfer.
+| Source | Representation | Supplied result |
+| --- | --- | --- |
+| Discharge | Two alternatives at -8 percent and +8 percent | V2 WSE changes by -0.05 m and +0.06 m. |
+| Downstream stage | Two alternatives at -0.10 m and +0.10 m | V2 WSE changes by -0.08 m and +0.09 m. |
+| Terrain elevation | Stated uncertainty of plus or minus 0.15 m | No sensitivity run is supplied. |
+| Roughness | Lookup RL-3 was calibrated with C1 and C2 | No held-out roughness sensitivity is supplied. |
+| Grid | One reported 5 m comparison | Raw fields and support are missing. |
+| Initial state | Dry-start result only | No alternate-start result is supplied. |
+| Factor interactions | Discharge, stage, terrain, roughness, grid, and initial state | No interaction run is supplied. |
+| Observation datum transformation | Reported uncertainty of 0.04 m | Transformation identity and parameters are missing. |
+| Operational completeness | Materialization observation supplied | No stale-source or deleted-artifact drill is supplied. |
 
-The answer must name the expected discriminatory result under each required hypothesis.
+The discharge and stage alternatives are scenario sensitivities.
+The packet supplies no probability distributions and does not authorize combining the values into one probabilistic uncertainty interval.
 
-## Part D: Apply the evidence hierarchy
+## Materialization and monitoring packet
 
-Classify each project claim with one of the six handbook evidence labels.
-For the invented benchmark and storage observations, use `Synthetic exercise observation` or `Outside the project evidence taxonomy` rather than granting project evidence authority.
-Also state which approved label an analogous observation would receive if it came from a real, traceable project record.
-Explain what the statement can and cannot establish.
+An independent observer found the scenario record, final depth, maximum depth, inundation, diagnostics, and integrity inventory in generation R200-Q200-G10.
+All recorded and observed integrity values match.
+The observation time, required roles, generation, model identity, and scenario identity are recorded.
 
-1. Current code can add equal-shaped depth and terrain arrays without proving cell registration.
-2. DR-031 selects cell-specific stage transfer.
-3. The synthetic benchmark WSE is 0.35 m lower in the transfer band.
-4. The target STL object is absent from observed storage.
-5. No authorized validation tolerance is supplied.
+The repeated-operation monitor counts completed scenarios, runtime, and materialization failures.
+It has no threshold for source drift, residual distribution, local WSE behavior, edge contact, screening-area change, or validation drift.
+No reassessment trigger or response responsibility is assigned.
 
-## Part E: State stopping and escalation conditions
+## Part A: Frame the evidence decision
 
-State:
+Restate the intended use, exact quantity, scope, excluded uses, and evidence cutoff.
+Explain why the conclusion cannot be generalized to another discharge, reach, quantity, or decision.
 
-- the observation that would support a bounded transfer-misregistration diagnosis;
-- the observation that would move residual transient behavior ahead of misregistration;
-- the observation that would justify investigating real downstream control after mapping and transient checks;
-- the materialization condition required before the scenario can serve as an upstream transfer source;
-- the policy condition that still requires escalation even if the technical anomaly is explained; and
-- the condition under which the review should stop rather than tune another parameter.
+## Part B: Audit each evidence lane
 
-## Part F: Issue a direct readiness verdict
+Classify every predeclared lane as Passed, Failed, Insufficient evidence, or Out of scope.
+Use only the supplied packet.
+Do not give a passing status to a reported summary whose required support is absent.
 
-Choose one verdict from [Validation Framework](../06-validation-and-qc/01-validation-framework.md):
+## Part C: Perform the calculations
 
-- `READY FOR THE STATED USE`;
-- `READY WITH RESTRICTIONS`;
-- `NOT READY`; or
-- `INSUFFICIENT EVIDENCE TO ASSESS`.
+Determine whether the global and local convergence criteria pass.
+Calculate the signed cumulative balance residual and percentage.
+Calculate the independent validation residuals and compare them with the predeclared criterion.
 
-State the verdict first.
-Then give the smallest evidence set that could change it.
-Do not invent a pass threshold for the 0.35 m difference.
+## Part D: Assess validation and uncertainty
+
+Explain why C1 and C2 cannot serve as independent validation evidence.
+Interpret the V1 and V2 result within the missing datum-transformation provenance.
+Classify each uncertainty entry as quantified sensitivity, stated but unevaluated uncertainty, or missing interaction evidence.
+
+## Part E: Triage the V2 high result
+
+Define at least three competing hypotheses for the +0.14 m V2 residual.
+Include:
+
+1. A datum, transformation, coordinate, or sampling-support hypothesis.
+2. A residual transient or numerical-resolution hypothesis.
+3. A physically real downstream-control, terrain, roughness, or forcing hypothesis under correctly mapped inputs.
+
+Choose one immediate read-only check that best separates those hypotheses.
+Do not tune roughness or another parameter before the check.
+
+## Part F: Issue the validation conclusion
+
+Choose one conclusion from [Validation Framework](../06-validation-and-qc/01-validation-framework.md):
+
+- MEETS THE STATED CRITERIA
+- MEETS THE STATED CRITERIA WITH RESTRICTIONS
+- DOES NOT MEET THE STATED CRITERIA
+- INSUFFICIENT EVIDENCE TO ASSESS
+
+State the conclusion first.
+Then identify the failed criteria, unavailable evidence, permitted statements, prohibited uses, and smallest packet needed for another review.
 
 ## Deliverable
 
 Submit a short review with these sections:
 
-1. Decision and evidence categories.
-2. Hypothesis table with predictions.
-3. One selected next check and expected discriminatory observations.
-4. Evidence labels and limits.
-5. Stopping and escalation conditions.
-6. Direct readiness verdict.
+1. Intended use and scope.
+2. Evidence-lane table.
+3. Numerical calculations.
+4. Validation and uncertainty assessment.
+5. V2 hypothesis table and next check.
+6. Direct validation conclusion.
 
 ## Competency criteria
 
 The lab is complete when the answer:
 
-- separates diagnosis, materialization, library membership, and hydraulic acceptance;
-- states at least three competing hypotheses with both confirming and challenging observations;
-- selects check B and explains how its outcomes discriminate rather than merely gather more data;
-- does not treat `volume_convergence`, manifest equality, smooth maps, or one benchmark as adequacy proof;
-- identifies the missing STL as a direct materialization failure;
-- preserves the missing authorized tolerance as an Open question;
-- states a stopping or escalation condition; and
-- issues a direct readiness verdict without turning synthetic values into project authority.
+- keeps the seven evidence types distinct;
+- finds three consecutive global ratios below \(10^{-3}\) but fails the local Point B criterion;
+- calculates a signed cumulative balance residual of +22,680 m3 and +0.60 percent;
+- excludes C1 and C2 from independent validation;
+- finds V1 within and V2 outside the synthetic residual criterion;
+- withholds grid and edge passes because their support is missing;
+- identifies provenance, interaction, monitoring, and responsibility gaps;
+- selects a read-only comparability and raw-support check before tuning; and
+- concludes DOES NOT MEET THE STATED CRITERIA without extending the result beyond the supplied use.
 
 After completing the lab, compare the reasoning with [Lab 12 Solution](solutions/lab-12-validate-and-triage-solution.md).

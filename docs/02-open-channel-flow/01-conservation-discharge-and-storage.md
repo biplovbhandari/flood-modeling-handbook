@@ -227,26 +227,23 @@ Conversely, a nonzero storage change is not automatically an error.
 It can be the correct response during a rising flood wave, initial filling, floodplain activation, or draining period.
 The diagnostic question is whether the change agrees with all represented fluxes and the intended simulation state.
 
-## Current project relevance
+## Applying continuity to a modeled scenario
 
-**Current implementation:** The current `QFIX` boundary value and ND discharge fields are whole-number integers expressed in m3/s, called `cms` in the input descriptions.
-In [`RunNDScenariosInputs`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/models/run_nd_scenarios.py), `min_upstream_inflow` and `delta_upstream_inflow` are each validated as greater than zero.
-The `max_upstream_inflow` field has no equivalent positivity check and no cross-field validation that it exceeds `min_upstream_inflow` in the reviewed checkout.
-The [current ND adaptive run path](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/jobs/run_nd_scenarios.py) can pass the accepted maximum to `_run_scenario`, which constructs the `QFIX` boundary on the model manifest's inflow line.
+**Applied example:** A synthetic steady-flow scenario for reach R-100 uses a fixed-discharge boundary of 50 m3/s.
+The scenario definition requires a positive minimum discharge, a positive increment, and a maximum that is no smaller than the minimum.
+These checks prevent an invalid scenario sequence, but they do not specify the velocity distribution across the inflow section.
 
-**Open question:** An intended valid hydraulic scenario requires a physically meaningful positive discharge, but current ND input validation does not fully enforce that requirement for the maximum or its ordering relative to the minimum.
-This statement identifies a static model-and-run-path contract gap in the reviewed checkout and does not assert that an invalid ND scenario has been observed in an operational run.
-A `QFIX` input prescribes a total boundary discharge, but it does not by itself specify a measured cross-section velocity distribution or prove that the solver's local distribution is correct.
+**Evidence note:** A prescribed total discharge establishes only the integrated boundary flux.
+It does not establish a measured cross-section velocity distribution or prove that the modeled local velocities are correct.
 
-**Current implementation:** The current solver-run path estimates stored volume from positive raster depths and cell area at consecutive saved outputs.
-It computes a dimensionless storage-change ratio by dividing the absolute volume change by imposed inflow volume over the saved-output interval.
+The same scenario estimates stored water from positive raster depths and cell area at consecutive saved outputs.
+It divides the absolute storage change by the imposed inflow volume over the saved-output interval to form a dimensionless storage-change ratio.
 
-**Open question:** As recorded in [CONF-002](../reference/conflicts-and-open-questions.md#conf-002-volume-convergence-and-mass-balance), this project ratio does not measure outflow or every source and sink.
-Crossing its selected threshold can support a termination decision, but it does not close the control-volume balance and does not prove hydraulic adequacy.
+**Open question:** A storage-change ratio does not measure outflow or every source and sink.
+Crossing a chosen threshold can support a termination decision, but it does not close the control-volume balance and does not prove hydraulic adequacy.
 
-**Scientific foundation:** Continuity is a required physical constraint.
-It is not evidence that any particular boundary geometry, roughness field, solver configuration, scenario, or project artifact satisfies that constraint accurately.
-Those claims require separate implementation and validation evidence.
+**Design principle:** Treat continuity as a required physical constraint and treat evidence of satisfying it as a separate question.
+A correct equation does not prove that a particular boundary geometry, roughness field, solver configuration, or result satisfies the equation accurately.
 
 ## Common misconceptions
 
@@ -287,6 +284,5 @@ It should also explain why a storage-only convergence ratio cannot supply the mi
 ## Source notes
 
 - **Scientific foundation:** Control-volume continuity is supported by [SCI-016](../reference/bibliography.md#sci-016-hec-ras-continuity-equation).
-- **Current implementation:** Steady discharge boundaries and the project storage-change calculation are mapped under [JOB-004](../reference/bibliography.md#job-004-reach-topology-and-steady-forcing-contracts) and [JOB-003](../reference/bibliography.md#job-003-current-implementation-locations).
-- **Open question:** The distinction between storage convergence and complete mass balance is preserved in [CONF-002](../reference/conflicts-and-open-questions.md#conf-002-volume-convergence-and-mass-balance).
-- **Supporting reference:** *Open-Channel Hydraulics* remains supporting reading under SCI-001, but it was not directly inspected and no chapter or page citation is asserted.
+- **Applied example:** The fixed-discharge and storage-change example is synthetic and is not a claim about a named implementation.
+- **Evidence note:** The distinction between storage change and complete mass balance follows the control-volume terms defined in this chapter and in the sourced [Equations and Units](../reference/equations-and-units.md) reference.

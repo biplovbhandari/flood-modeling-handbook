@@ -143,8 +143,8 @@ Consider a synthetic rectangular channel with these instructional givens:
 - Manning's \(n=0.035\ \text{s/m}^{1/3}\); and
 - friction slope \(S_f=0.0010\ \text{m/m}\).
 
-These values are synthetic and are outside the project authority hierarchy.
-They do not describe a project reach or recommend a production roughness or slope.
+These values are synthetic.
+They do not describe a real reach or recommend an operational roughness or slope.
 
 At a trial depth of \(y=2.90\ \text{m}\),
 
@@ -200,18 +200,18 @@ Repeat the same calculation after changing one input at a time.
 These directions assume that the other listed inputs and the rectangular geometry remain fixed.
 Real geometry changes can alter wetted perimeter, compound-section activation, and local roughness at the same time, so "wider means shallower" is not a universal rule without a defined geometry change.
 
-## Current project relevance
+## Applying normal depth at a model boundary
 
-**Current implementation:** The current ND job constructs a `FREE` boundary whose value is a slope in m/m.
-The [ND job code](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/jobs/run_nd_scenarios.py) estimates that slope as the absolute terrain-elevation difference between centerline endpoint cells divided by reach length, then enforces the configured minimum slope.
-The reviewed default minimum is `1e-4` in [`consts.py`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/consts.py).
+**Applied example:** A synthetic model derives a candidate boundary-slope parameter from a 2.0 m terrain-elevation fall over a 4,000 m reach.
+The terrain-slope estimate is \(S_{terrain}=0.0005\ \text{m/m}\).
+The model record stores the estimate, the two sampled elevations, the reach length, the vertical datum, and any lower bound applied to the candidate parameter.
+Only after site evidence supports the uniform-flow assumption may the model adopt this value as the friction slope \(S_f\) for a normal-depth outflow.
 
-**Current implementation:** [`FreeBC`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/models/solvers.py) describes its value as a normal-depth slope in m/m.
-The token `FREE` is therefore a software label in this checkout, not sufficient evidence that the represented physical condition is unrestricted freefall.
+**Design principle:** Store descriptive boundary meaning and the evidence used to derive its value.
+A generic label such as "free" is insufficient because normal-depth outflow and physical freefall are different hydraulic conditions.
 
-**Open question:** [CONF-001](../reference/conflicts-and-open-questions.md#conf-001-boundary-condition-terminology-and-behavior) preserves the conflict among `FREE`, freefall, and normal-depth meanings.
-[CONF-008](../reference/conflicts-and-open-questions.md#conf-008-unregistered-dr-039-selection) also preserves DR-039's missing registered status.
-Neither conflict should be resolved by redefining Manning flow in this chapter.
+**Open question:** Does the endpoint terrain slope represent the friction slope at the boundary, and is the boundary far enough downstream that plausible alternatives do not affect the interpretation area?
+The question requires sensitivity and site evidence rather than a terminology decision.
 
 **Scientific foundation:** A normal-depth calculation supplies a boundary relationship only under its assumptions.
 It does not prove that a natural reach is uniform, that the estimated slope equals friction slope, that roughness is calibrated, or that the boundary is far enough from the study area.
@@ -252,11 +252,11 @@ Your answer should also state why the direction for a real geometry change must 
 
 ## Practice
 
-Complete [Lab 4: Flow Regime and Normal Depth](../labs/lab-04-flow-regime-and-normal-depth.md) to combine section geometry, Froude number, normal-depth iteration, sensitivity, current-code tracing, and missing-evidence review.
+Complete [Lab 4: Flow Regime and Normal Depth](../labs/lab-04-flow-regime-and-normal-depth.md) to combine section geometry, Froude number, normal-depth iteration, sensitivity, and missing-evidence review.
 
 ## Source notes
 
 - **Scientific foundation:** Manning flow, conveyance, and normal-depth calculations are supported by [SCI-023](../reference/bibliography.md#sci-023-hec-ras-uniform-flow-computations) and [SCI-024](../reference/bibliography.md#sci-024-hec-ras-downstream-boundary-conditions).
 - **Scientific foundation:** Roughness variability and calibration context are supported by [SCI-025](../reference/bibliography.md#sci-025-hec-ras-energy-loss-coefficients).
-- **Current implementation:** The current slope and `FREE` contracts are mapped under [JOB-003](../reference/bibliography.md#job-003-current-implementation-locations) and [JOB-005](../reference/bibliography.md#job-005-discharge-bound-consumer-contracts).
-- **Supporting reference:** *Open-Channel Hydraulics* remains supporting reading under SCI-001, but it was not directly inspected and no chapter or page citation is asserted.
+- **Applied example:** The terrain-slope estimate is synthetic and demonstrates the provenance needed before adopting a friction slope for a normal-depth outflow.
+- **Open question:** A derived terrain slope remains a hypothesis for friction slope until boundary sensitivity and site evidence support it.

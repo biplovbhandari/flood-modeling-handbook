@@ -1,257 +1,219 @@
 # Validation Framework
 
-Hydraulic adequacy is a use-specific conclusion supported by several distinct kinds of evidence.
-No single file, metric, image, or comparison can establish it.
+Hydraulic adequacy is a conclusion about a stated use, not a permanent property of a model.
+The conclusion requires distinct evidence for software behavior, numerical behavior, physical representation, uncertainty, and acceptance.
 
-## Why this matters
+## Why this topic matters
 
-A completed run can be internally consistent yet answer the wrong scientific question.
-A physically plausible map can also come from incomplete provenance, an unintended boundary, unresolved numerical error, or a compensating parameter adjustment.
-This framework keeps those evidence types separate so that a reviewer can state what has been established, what remains uncertain, and whether the result is ready for a named decision.
+A completed calculation can be internally consistent and still answer the wrong question.
+A plausible map can also result from incomplete provenance, incompatible datums, unresolved numerical error, or compensating parameter choices.
+Separating the evidence prevents one successful check from standing in for the whole credibility argument.
 
 ## Prerequisites
 
-Review [Convergence, Mass Balance, and Hot Starts](../03-2d-hydraulics/04-convergence-mass-balance-and-hot-starts.md), [Domain and Boundary Geometry](../04-model-development/04-domain-and-boundary-geometry.md), [KWSE and Stage Transfer](../05-scenario-libraries/03-kwse-and-stage-transfer.md), and [Compositing, Identity, and Provenance](../05-scenario-libraries/05-compositing-identity-and-provenance.md).
-Read [Source Authority](../reference/source-authority.md) before using a project case, issue, experiment, or implementation detail as evidence.
+Review [Convergence, Mass Balance, and Hot Starts](../03-2d-hydraulics/04-convergence-mass-balance-and-hot-starts.md), [Domain and Boundary Geometry](../04-model-development/04-domain-and-boundary-geometry.md), [Compositing, Identity, and Provenance](../05-scenario-libraries/05-compositing-identity-and-provenance.md), and [Source Authority](../reference/source-authority.md).
 
 ## Learning objectives
 
 After this chapter, the reader should be able to:
 
-- distinguish software verification, numerical verification, scientific validation, calibration, benchmark comparison, plausibility review, acceptance criteria, operational monitoring, and post-run diagnosis;
-- explain why each evidence lane is necessary but insufficient by itself;
-- build a traceable evidence chain for one intended use;
-- label project evidence without turning a case or experiment plan into validation proof; and
-- issue a direct readiness verdict with explicit gaps and escalation conditions.
+- distinguish software verification, numerical verification, validation, calibration, benchmark comparison, plausibility review, diagnosis, monitoring, and acceptance;
+- explain what each evidence type can and cannot establish;
+- define validation around an intended use and predeclared criteria;
+- build a traceable evidence record without extending a result beyond its scope; and
+- issue a bounded conclusion that states missing evidence and restrictions directly.
 
-## 1. Start with the question and decision context
+## Start with the intended use
 
-Validation is not a property that a model possesses for every purpose.
-It is an assessment of model agreement with the real world from the perspective of an intended use.
-[SCI-043](../reference/bibliography.md#sci-043-nasa-standard-for-models-and-simulations) defines validation and requires acceptance criteria to be tied to the intended use.
-[SCI-044](../reference/bibliography.md#sci-044-nist-assessment-of-accuracy-and-reliability) also separates code verification, solution verification, and validation.
+**Scientific foundation:** Validation evaluates the degree to which a model represents the relevant real system for an intended use.
+[SCI-043](../reference/bibliography.md#sci-043-nasa-standard-for-models-and-simulations) ties verification, validation, uncertainty, and acceptance criteria to intended use.
+[SCI-044](../reference/bibliography.md#sci-044-nist-assessment-of-accuracy-and-reliability) distinguishes code verification, solution verification, and validation.
+[SCI-045](../reference/bibliography.md#sci-045-epa-environmental-model-guidance) connects environmental-model quality to the decision the model will support.
 
-Before gathering evidence, record:
+Record these items before gathering evidence:
 
-1. The decision the result will support.
-2. The hydraulic quantity, spatial support, time or scenario range, and units being judged.
-3. The consequences of a false acceptance and a false rejection.
-4. The model, data, methodology, solver, and artifact revisions in scope.
-5. The acceptance authority and the evidence available to that authority.
-6. The permitted use and the uses that remain outside the assessment.
+1. State the decision that the result will support.
+2. Name the hydraulic quantities, units, datums, locations, spatial support, and time or scenario range being judged.
+3. State the consequences of false acceptance and false rejection.
+4. Identify the model, data, method, solver, and artifact generations in scope.
+5. Name the acceptance responsibility and the evidence available to that responsibility.
+6. Define permitted uses, prohibited uses, and conditions that require reassessment.
 
-A depth raster can be adequate for one screening decision and inadequate for another decision that needs accurate structure head loss, local velocity, or floodplain arrival time.
+**Design principle:** Define the claim before selecting a metric or threshold.
+A depth raster can support broad screening while remaining unsuitable for a decision that requires accurate local velocity, structure head loss, or arrival time.
 
-## 2. Keep the evidence lanes distinct
+## Keep the evidence types distinct
 
-### 2.1 Software verification
+| Evidence type | Question answered | What it cannot establish alone |
+| --- | --- | --- |
+| Software verification | Does the software implement its specified calculation and failure behavior? | Whether the equations, inputs, and abstractions represent the real system adequately. |
+| Numerical verification | Does the computed solution adequately approximate the selected mathematical model for the stated quantities? | Whether the mathematical model represents reality for the intended use. |
+| Validation | Does the model agree adequately with independent physical observations for the stated use? | Adequacy outside the tested places, regimes, quantities, and conditions. |
+| Calibration | Which defensible parameter values improve agreement with calibration data? | Independent predictive performance or freedom from compensating error. |
+| Benchmark comparison | How does the model compare with a defined analytical, numerical, or observational referent? | Universal validity or accuracy beyond the benchmark scope. |
+| Plausibility review | Are patterns physically coherent and free of obvious contradictions? | Quantified accuracy, provenance, numerical adequacy, or uncertainty. |
+| Diagnosis | Which explanation is best supported for a particular symptom? | Acceptance for use unless the diagnosis also closes every required criterion. |
+| Operational monitoring | Does repeated operation remain within recorded limits and expected contracts? | Missing verification, validation, or initial acceptance. |
+| Acceptance | Does the complete evidence packet satisfy authorized criteria for the stated use? | Continued adequacy after relevant drift without monitoring and reassessment. |
 
-**Scientific foundation:** Software verification asks whether the implemented software satisfies its specified computational behavior.
-Examples include unit and integration tests, schema checks, regression tests, conservation test cases, failure-path tests, and comparisons with analytical or manufactured solutions when applicable.
+### Software verification
 
-Software verification can establish that code performs a stated calculation correctly.
-It cannot establish that the selected equations, input data, parameters, boundaries, or abstractions represent the real river adequately.
+**Scientific foundation:** Software verification asks whether implemented behavior satisfies its specification.
+Useful evidence includes unit and integration tests, schema validation, regression tests, conservation test cases, failure-path tests, and comparison with analytical or manufactured solutions where appropriate.
 
-### 2.2 Numerical verification
+**Evidence note:** A passing software test establishes only the behavior and conditions exercised by that test.
+It does not establish that the selected physical model or inputs are adequate.
 
-**Scientific foundation:** Numerical verification asks whether the discrete solution adequately represents the selected mathematical model for the stated quantities and tolerance.
-It includes spatial and temporal resolution studies, iterative or transient convergence checks, numerical error estimates, conservation diagnostics, and comparisons with known mathematical solutions or higher-resolution results.
+### Numerical verification
 
-Numerical verification is different from the project's volume-convergence termination proxy.
-That proxy measures change in total positive-depth storage between two saved grids relative to interval inflow.
-It does not estimate grid or time-step error, establish local-state convergence, or close the full mass balance.
+**Scientific foundation:** Numerical verification examines discretization, convergence, conservation, and solution error for the selected mathematical model.
+Relevant work can include grid and time-step refinement, iterative convergence, transient histories, balance residuals, and comparisons with known solutions.
 
-### 2.3 Scientific validation
+**Evidence note:** A small change in domain-total storage between saved outputs is not a full mass balance and does not prove local stability.
+The evidence must match the quantity and scale used in the decision.
 
-**Scientific foundation:** Scientific validation asks how well the model represents the relevant real-world behavior for the intended use.
-Evidence can include independent observations of stage, WSE, discharge, extent, depth, velocity, rating behavior, or another decision-relevant quantity.
-The observation uncertainty, representativeness, datum, timing, and spatial support are part of the comparison.
+### Validation
+
+**Scientific foundation:** Validation compares model results with independent observations of the relevant physical system.
+The observation uncertainty, representativeness, timing, datum, units, and spatial support are part of the comparison.
 
 Validation does not prove universal truth.
-It establishes bounded evidence over the conditions, locations, quantities, and uses that were assessed.
+It supports a bounded conclusion over the tested conditions and stated use.
 
-### 2.4 Calibration
+### Calibration
 
-**Scientific foundation:** Calibration adjusts numerical or modeling parameters to improve agreement with a referent.
-[SCI-043](../reference/bibliography.md#sci-043-nasa-standard-for-models-and-simulations) and [SCI-045](../reference/bibliography.md#sci-045-epa-environmental-model-guidance) define calibration in this way.
+**Scientific foundation:** Calibration adjusts uncertain model parameters against a referent under stated constraints.
+[SCI-043](../reference/bibliography.md#sci-043-nasa-standard-for-models-and-simulations) and [SCI-045](../reference/bibliography.md#sci-045-epa-environmental-model-guidance) distinguish calibration from validation.
 
-Calibration is not validation because the same data influenced parameter selection.
-An evaluation using independent data, or a clearly justified cross-validation design when independent data are scarce, is needed to assess transfer beyond the calibration observations.
-Parameter changes must remain physically defensible and must not compensate silently for terrain, datum, forcing, boundary, or structure errors.
+Calibration data are not independent validation data because they influenced parameter selection.
+When independent observations are scarce, a justified cross-validation design must preserve held-out evidence and disclose its limits.
+Parameter changes must not conceal errors in terrain, datum, forcing, boundaries, structures, or numerical settings.
 
-### 2.5 Benchmark comparison
+### Benchmark comparison and plausibility review
 
-**Scientific foundation:** A benchmark comparison evaluates stated model quantities against a defined referent under controlled and comparable conditions.
-The referent can be an observation, an analytical result, an accepted test case, or another model whose role and limitations are explicit.
+A benchmark comparison requires a defined referent, comparable quantities, compatible references, a metric, and an explicit scope.
+The referent can be an observation, an analytical result, a controlled test case, or another model with stated limitations.
 
-**Selected methodology:** DR-002 ALT-A defines the project benchmark for model-connectivity testing as a composite 2D model developed with the same source inputs, forcing, and hydraulic software.
-That selection is scoped to connectivity testing and does not convert the benchmark into real-world validation evidence.
+A plausibility review asks whether the result follows represented connectivity, responds in the expected direction to forcing, and avoids obvious contradictions.
+Plausibility is valuable for triage but cannot replace quantified comparison and provenance.
 
-One benchmark comparison can reveal disagreement or support similarity for its tested configuration.
-It cannot establish adequacy over other reaches, flows, boundary regimes, data qualities, structures, or intended uses.
+## Define acceptance criteria before inspecting the answer
 
-### 2.6 Plausibility review
+**Scientific foundation:** Acceptance criteria are qualitative or quantitative rules used to judge fitness for a named purpose.
+The criteria should identify the quantity, metric, support, datum, uncertainty treatment, threshold, responsible decision, and response to failure.
 
-**Scientific foundation:** A plausibility review asks whether patterns are physically coherent and whether obvious contradictions are present.
-Examples include checking that water follows represented connectivity, WSE profiles do not contain unexplained steps, inundation does not cross high ground without a pathway, and stage responds in the expected direction to forcing changes.
+Define criteria before inspecting results whenever practical.
+This timing prevents the answer from selecting its own passing rule.
 
-Plausibility review is useful for triage.
-It is not validation because a map can look reasonable while being biased, misregistered, incomplete, numerically unresolved, or produced from the wrong inputs.
+**Design principle:** A criterion is reviewable only when another person can apply it to the same evidence and reach the same disposition.
 
-### 2.7 Acceptance criteria
+Acceptance criteria should cover every material lane for the intended use:
 
-**Scientific foundation:** Acceptance criteria are the recorded qualitative or quantitative conditions used by an authorized reviewer to judge fitness for the intended use.
-[SCI-043](../reference/bibliography.md#sci-043-nasa-standard-for-models-and-simulations) requires criteria for verification, validation, uncertainty, sensitivity, and assessment thresholds.
+- input identity and provenance;
+- software verification;
+- numerical verification and conservation;
+- calibration separation;
+- validation or benchmark evidence;
+- uncertainty and sensitivity;
+- artifact integrity and materialization;
+- restrictions and unresolved questions; and
+- monitoring and reassessment triggers.
 
-Acceptance criteria should identify the quantity, statistic or rule, spatial and temporal support, flow or stage range, datum, uncertainty treatment, threshold, responsible authority, and response to failure.
-Criteria must be defined before inspecting the answer whenever practical so that the result does not choose its own passing rule.
+**Open question:** Which criteria are required for a particular product use remains a decision for the accountable organization.
+This handbook does not invent universal hydraulic thresholds.
 
-**Open question:** The reviewed 2D FIM sources do not yet provide one authorized, project-wide acceptance policy that covers software, numerical, hydraulic, benchmark, uncertainty, materialization, and operational evidence for each product use.
-This handbook therefore asks validation questions and does not invent pass thresholds.
+## Build a reviewable evidence record
 
-### 2.8 Operational monitoring
-
-Operational monitoring observes repeated production behavior after an approach has been accepted for a stated use.
-It should detect input drift, source-version changes, identity collisions, missing assets, unusual termination patterns, threshold excursions, distribution shifts, and failures in network or storage dependencies.
-
-Monitoring can show that current operation remains within recorded limits.
-It cannot retroactively supply missing verification or validation, and an alert-free interval does not prove scientific adequacy.
-
-### 2.9 Post-run diagnosis
-
-Post-run diagnosis investigates a particular result after execution.
-It compares competing explanations, selects the next observation that best distinguishes them, and stops when evidence supports a bounded conclusion or requires escalation.
-
-Diagnosis is not acceptance.
-It can identify a likely cause or an evidence gap while the result remains not ready for hydraulic interpretation.
-Use the ordered process in [Diagnostic Workflow](02-diagnostic-workflow.md).
-
-## 3. The validation evidence chain
-
-![Validation evidence chain from input verification through monitoring](../assets/validation-evidence-chain.svg)
-
-**What to notice:** Input verification, numerical evidence, hydraulic or benchmark evidence, uncertainty, acceptance criteria, and operational monitoring are separate linked stages.
-The feedback arrows show that a failed or ambiguous stage returns the reviewer to a stated hypothesis rather than allowing later evidence to cover the gap.
-Acceptance is a decision gate, not another model output.
-Monitoring follows acceptance and remains bounded by the accepted use.
-
-## 4. Why common shortcuts do not establish adequacy
-
-| Observation | What it can establish | What it cannot establish independently |
-| --- | --- | --- |
-| Solver exit or returned result | The process ended in a recorded way and may have produced a job response. | Correct inputs, stable numerics, quasi-steady behavior, complete artifacts, or physical adequacy. |
-| Artifact presence | Bytes or an object exist at an address. | Correct content, complete publication, intended identity, compatible datum, or hydraulic acceptance. |
-| Manifest equality | Stored declared inputs equal a target request under the current comparison. | Presence and integrity of every referenced asset, current scientific intent, or adequacy of the result. |
-| Volume-convergence proxy | Net positive-depth storage changed little relative to interval inflow at the compared outputs. | Full inflow-outflow mass balance, local convergence, grid independence, clean edges, or validation. |
-| Absence of a warning | No implemented warning was emitted or persisted. | That the relevant check ran, that unimplemented checks passed, or that the warning list is complete. |
-| Visual plausibility | The displayed pattern lacks an immediately obvious contradiction to the reviewer. | Quantified bias, independent observation agreement, provenance, numerical accuracy, or uncertainty. |
-| One benchmark | Agreement or disagreement for one referent and bounded configuration. | Transfer across untested reaches, regimes, sources, resolutions, boundaries, or intended uses. |
-
-Current project details make these distinctions material.
-The current scenario result can return a manifest path without independent storage observation.
-Current exact-input reuse does not re-observe every referenced scenario asset.
-Current convergence branch ordering can store `volume_convergence` when an edge violation is simultaneously true.
-Current warning coverage omits several science-level checks documented in the crosswalk and conflict register.
-
-## 5. Build a reviewable evidence record
-
-A validation record should contain these sections even when some sections conclude that evidence is unavailable:
+A complete record should contain the following sections even when evidence is unavailable:
 
 1. **Question and intended use.**
-State the decision, quantities, domain, scenario range, and consequences of error.
+State the decision, quantities, domain, conditions, and consequences of error.
 2. **Configuration and provenance.**
-Record immutable or content-based input identity, transformation history, methodology revision, solver build, settings, hardware when relevant, and artifact addresses.
+Record input identity, transformations, method version, solver identity, settings, and artifact generation.
 3. **Software verification.**
-Name the specification, tests, reference cases, revisions, and unresolved failures.
+Name the specification, checks, revisions, results, and unresolved failures.
 4. **Numerical verification.**
-Record grid and time-step evidence, local and global convergence, mass-balance terms, edge diagnostics, and numerical error estimates.
+Record resolution studies, convergence histories, balance terms, edge diagnostics, and estimated numerical error.
 5. **Calibration.**
-Identify adjusted parameters, defensible bounds, objective, data used, nonuniqueness, and the calibration domain.
+Identify adjusted parameters, bounds, objective, data, nonuniqueness, and calibration domain.
 6. **Validation or benchmark comparison.**
-Identify independent referents, comparability, metrics, uncertainty, results, and domain of applicability.
+Identify independent referents, comparability, metrics, uncertainty, results, and applicability.
 7. **Plausibility and diagnosis.**
 Record reviewed patterns, competing hypotheses, discriminatory checks, and unresolved contradictions.
-8. **Uncertainty and sensitivity.**
-Describe known sources, their influence on decision-relevant outputs, and unavailable uncertainty information.
-9. **Acceptance decision.**
-Name the predeclared criteria, authority, result, restrictions, failed criteria, and required follow-up.
-10. **Operational monitoring.**
-Define drift signals, alert thresholds, evidence retention, ownership, and reassessment triggers.
+8. **Sensitivity and uncertainty.**
+Describe influential factors, interactions, evidence limits, and unavailable uncertainty information.
+9. **Materialization and acceptance.**
+Separate observed artifact completeness from the scientific decision and its restrictions.
+10. **Monitoring.**
+Define drift signals, alert thresholds, evidence retention, response responsibility, and reassessment triggers.
 
-Each statement should carry an evidence label from [Source Authority](../reference/source-authority.md).
-A checked-in case, issue, or experiment retains the label **Evidence or experiment** unless an authorized source gives it another role.
+Each evidence statement should use one of the five labels in [Source Authority](../reference/source-authority.md).
 
-## 6. Project evidence boundaries
+## Interpret common observations narrowly
 
-### Current implementation
+| Observation | Supported conclusion | Unsupported extension |
+| --- | --- | --- |
+| A process returns successfully. | The process reached a recorded completion state. | Inputs, artifacts, numerics, and hydraulics are correct. |
+| An artifact exists. | Bytes are present at an observed address. | The artifact is complete, compatible, current, or accepted. |
+| A manifest matches a request. | Declared fields satisfy the stated comparison. | Referenced assets exist or the result remains scientifically suitable. |
+| A convergence metric passes. | The defined metric met its threshold over the recorded support. | Full balance, local stability, grid independence, or validation. |
+| No warning is reported. | No implemented reporting rule emitted a warning. | Every relevant check ran and passed. |
+| A map looks plausible. | No obvious contradiction was identified in that review. | Quantified agreement, correct provenance, or bounded uncertainty. |
+| One benchmark agrees. | The model agrees under the benchmark configuration and metric. | Transfer to untested reaches, regimes, methods, or uses. |
 
-The current jobs checkout defines implemented manifest fields, run behavior, termination logic, publication steps, and warnings.
-Code does not define whether the resulting hydraulic product is acceptable for a scientific use.
+## Use bounded conclusion language
 
-### Selected methodology
+A validation record should conclude with one of these statements for the stated use:
 
-Decision Register alternatives define intended methodology within their recorded status and scope.
-A selected method still requires implementation evidence, numerical evidence, validation evidence, and acceptance authority.
+- **Meets the stated criteria** when every required criterion passes within the recorded evidence scope.
+- **Meets the stated criteria with restrictions** when the criteria explicitly permit a bounded use and every restriction is visible and enforceable.
+- **Does not meet the stated criteria** when a required criterion fails or a material condition lies outside the permitted range.
+- **Insufficient evidence to assess** when the packet cannot support either acceptance or a bounded rejection.
 
-### Target design
+**Design principle:** Do not translate operational success into a scientific acceptance conclusion.
+The `READY`, `READY WITH CONDITIONS`, and `NOT READY` verdicts in [Scientific Methodology Review](../07-system-design/03-scientific-methodology-review.md) apply to a named methodology change and its complete review packet.
 
-System-design material defines intended ownership and reconciliation contracts.
-It does not prove deployment, successful observation, or scientific acceptance.
+## Applied example
 
-### Evidence or experiment
+**Applied example:** The completed boundary-distance comparison in the [Applied Evidence Catalog](04-case-issue-and-experiment-catalog.md#completed-case-boundary-distance-comparison) examines one synthetic reach, one discharge, and one area of interest.
+Its predeclared metric passes for that configuration.
 
-Case-018 records strong agreement for a particular Winooski comparison conducted under the EXP-013 methodology and also records DEM and WSE artifacts.
-That bounded result does not validate every reach-based composite or resolve the identified anomalies.
-Case-018 records a completed comparison of candidate quasi-steady metrics against modeler judgment under a section linked to EXP-014.
-It does not prove that the selected threshold closes mass balance or establishes hydraulic adequacy in every setting.
-The standalone EXP-013 and EXP-014 files contain descriptions and methodologies rather than those completed observations.
-EXP-012 is an experiment plan for topobathymetry and calibration rather than completed validation proof.
-The twelve issue records identify observed failure signatures but generally do not establish their causes.
-
-## 7. Readiness language
-
-Use one of these verdicts for the stated intended use:
-
-- **READY FOR THE STATED USE** means every required evidence category and authorized acceptance criterion passed within the recorded scope.
-- **READY WITH RESTRICTIONS** means the authorized criteria permit use within explicit limits and every material limitation is visible to the decision maker.
-- **NOT READY** means required evidence is missing, conflicting, outside limits, or fails a criterion.
-- **INSUFFICIENT EVIDENCE TO ASSESS** means the packet cannot support either acceptance or a bounded rejection of the model behavior.
-
-Do not use **READY** when storage materialization, numerical verification, validation, uncertainty, or acceptance authority remains merely assumed.
+**Evidence note:** The result supports a bounded statement about boundary-placement sensitivity in the supplied packet.
+It does not validate the model against the real world because the packet contains no independent physical observations.
+It also does not establish a universal placement distance or threshold.
 
 ## Common misconceptions
 
-### "Calibration made the model valid"
+### Calibration made the model valid
 
-Calibration improves agreement with the data used to tune parameters.
-It does not independently test predictive performance or eliminate compensating errors.
+Calibration improves agreement with the data used for tuning.
+Independent evaluation is still required for a validation claim.
 
-### "The benchmark is the truth"
+### The benchmark is the truth
 
-A benchmark is a referent with its own model form, inputs, numerics, and uncertainty unless it is a direct observation.
-Agreement should be reported as comparison evidence under the benchmark's scope.
+A benchmark is a referent with its own scope, assumptions, and uncertainty.
+Report agreement or disagreement without broadening the benchmark into universal truth.
 
-### "The manifest proves the scenario exists"
+### Materialization proves adequacy
 
-A manifest is one artifact and can reference absent, stale, mixed-generation, or incompatible assets.
-Materialization requires observed completeness and integrity under the applicable contract.
+Materialization establishes that a required artifact set was independently observed under its storage contract.
+It does not establish numerical accuracy or scientific acceptance.
 
-### "Monitoring replaces validation"
+### Monitoring replaces validation
 
-Monitoring detects changes relative to an operating baseline.
-It cannot establish that the baseline was scientifically adequate.
+Monitoring detects drift and failures relative to an accepted baseline.
+It cannot create the missing credibility evidence for that baseline.
 
 ## Competency check
 
-1. Give one example of evidence that belongs to each of the nine evidence lanes.
-2. Explain why `volume_convergence` can be true while a result remains numerically or hydraulically inadequate.
-3. Explain why DR-002's benchmark is useful for connectivity testing but is not automatically field validation.
-4. State the minimum information needed to turn a visual comparison into a reviewable benchmark record.
-5. Issue a verdict for a scenario with matching manifest inputs, present depth, missing STL, no independent observation, and no acceptance policy.
+1. Give one example of evidence for each evidence type in the table.
+2. Explain why calibration data cannot also serve as independent validation data without a justified design.
+3. State the minimum information needed to make a benchmark comparison reviewable.
+4. Explain why a present manifest and warning-free result can still be scientifically unacceptable.
+5. Write a bounded conclusion for a packet that has numerical evidence but no independent observations or authorized criteria.
 
 ## Further reading and source notes
 
-- [SCI-043](../reference/bibliography.md#sci-043-nasa-standard-for-models-and-simulations) supplies direct official definitions for verification, validation, calibration, uncertainty characterization, and intended-use acceptance criteria.
-- [SCI-044](../reference/bibliography.md#sci-044-nist-assessment-of-accuracy-and-reliability) separates code verification, solution verification, validation, and regions of validity in scientific computing.
-- [SCI-045](../reference/bibliography.md#sci-045-epa-environmental-model-guidance) covers environmental-model calibration, corroboration, sensitivity, uncertainty, and decision-specific quality specifications.
-- [SDR-004](../reference/bibliography.md#sdr-004-cases-issues-and-experiments) supplies scoped project cases, issues, and experiment plans.
+- [SCI-043](../reference/bibliography.md#sci-043-nasa-standard-for-models-and-simulations) supplies definitions and requirements for verification, validation, calibration, uncertainty, and intended-use acceptance.
+- [SCI-044](../reference/bibliography.md#sci-044-nist-assessment-of-accuracy-and-reliability) distinguishes code verification, solution verification, validation, and bounded regions of validity.
+- [SCI-045](../reference/bibliography.md#sci-045-epa-environmental-model-guidance) covers decision-specific model quality, calibration, corroboration, sensitivity, uncertainty, and evaluation.

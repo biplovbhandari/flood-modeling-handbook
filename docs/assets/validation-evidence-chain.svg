@@ -121,5 +121,5 @@
 
   <rect x="70" y="718" width="1260" height="88" rx="14" fill="#ffffff" stroke="#9fb3c8" stroke-width="2"/>
   <text x="95" y="750" class="stage-title">Evidence labels stay visible across the chain</text>
-  <text x="95" y="779" class="stage-body">Scientific foundation | Selected methodology | Current implementation | Target design | Evidence or experiment | Open question</text>
+  <text x="95" y="779" class="stage-body">Scientific foundation | Applied example | Design principle | Evidence note | Open question</text>
 </svg>

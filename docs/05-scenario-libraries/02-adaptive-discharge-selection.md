@@ -1,471 +1,223 @@
 # Adaptive Discharge Selection
 
-The current adaptive selector uses measured final-state depth and area metrics to place ND scenarios across a caller-supplied discharge range.
-Response curves propose the next discharge, but the actual trial metrics determine its measured verdict.
+Adaptive selection can refine a discharge library where adjacent measured scenarios show a large hydraulic response.
+The synthetic method in this chapter repeatedly divides the widest unresolved interval on a fixed candidate grid.
 
 ## Why this topic matters
 
 Equal discharge increments do not create equal hydraulic changes.
-A small discharge increase can cross a levee, fill a side channel, or spread across a broad floodplain, while a much larger increase elsewhere can produce little map change.
+A small increase can cross a levee or fill a side channel, while a larger increase elsewhere can produce little map change.
 
-Adaptive selection tries to spend simulations where the represented response changes and skip near-duplicate selected entries where it does not.
-The algorithm also creates search overhead, depends on sequential depth-only warm starts, and can miss a sharp transition until a trial lands beyond it.
+Interval refinement directs simulations toward measured changes without requiring a fitted response curve.
+It also makes stopping behaviour and unresolved intervals explicit.
 
 ## Prerequisites
 
-Read [Normal-Depth Libraries](01-normal-depth-libraries.md), [Grids, Wetting, and Drying](../03-2d-hydraulics/02-grids-wetting-and-drying.md), and [Convergence, Mass Balance, and Hot Starts](../03-2d-hydraulics/04-convergence-mass-balance-and-hot-starts.md).
-Review the metric and window equations in [Equations and Units](../reference/equations-and-units.md#current-adaptive-nd-metrics-and-verdict).
+Read [Discharge-Only Scenario Libraries](01-normal-depth-libraries.md), [Grids, Wetting, and Drying](../03-2d-hydraulics/02-grids-wetting-and-drying.md), and [Convergence, Mass Balance, and Hot Starts](../03-2d-hydraulics/04-convergence-mass-balance-and-hot-starts.md).
 
 ## Learning objectives
 
 After this chapter, the reader should be able to:
 
-- distinguish `reference`, `position`, all finished scenario points, published trials, and selected members;
-- calculate max-depth, median-depth, and flooded-area changes with the current units and zero-area rule;
-- reproduce `reject_low`, `accept`, and `reject_high` verdicts;
-- construct monotone response curves and calculate interpolated or extrapolated threshold crossings;
-- derive the acceptance window and apply q-grid snapping and proposal fallbacks;
-- explain endpoint, finest-step, maximum-discharge, and re-judgment behavior; and
-- identify what current outputs do not preserve about selection and search history.
+- define a fixed candidate grid and endpoint scenarios;
+- calculate a normalized response distance between adjacent measured scenarios;
+- identify the widest interval that still requires refinement;
+- choose an untried candidate deterministically when the exact midpoint is unavailable;
+- choose a compatible warm start from a lower scientifically accepted scenario;
+- state the stopping rule and any unresolved residual; and
+- specify a durable interval-refinement record.
 
-## Selected method and implemented method
+## Synthetic candidate grid
 
-**Selected methodology:** DR-030 ALT-C selects adaptive stepping based on hydraulic response.
-Its stated goal is to avoid near-duplicate maps while increasing density around hydraulic transitions.
+**Applied example:** The `R-200` candidate grid contains 100, 125, 150, 175, 200, 225, and 250 cubic metres per second.
+The lower and upper endpoints at 100 and 250 cubic metres per second are measured first.
 
-**Current implementation:** The current job uses maximum depth over wet cells, median depth over wet cells, and total flooded area from the final saved grid.
-It does not sample maximum or median stage at fixed monitoring points as DR-030 describes.
+Every measured scenario reports maximum depth and flooded area from the same grid, wet threshold, nodata rule, and final-state definition.
+Median depth can remain a diagnostic, but it does not control this synthetic selector.
 
-DR-030 states example or selected bands of 0.75 to 1.25 m for maximum stage, 0.25 to 0.75 m for median stage, and 7.5 to 12.5 percent for extent.
-Current code defaults are 0.75 to 1.25 m for maximum depth, 0.25 to 0.5 m for median depth, and 10 to 15 percent for flooded area.
-These are different quantities and, for two criteria, different numeric bands.
-
-This chapter teaches the exact current algorithm while preserving DR-030 as the selected-method source within its recorded scope.
-The unresolved alignment is recorded in [CONF-015](../reference/conflicts-and-open-questions.md#conf-015-adaptive-nd-criteria-and-generated-documentation).
-
-## State that the algorithm carries
-
-### Reference
-
-The `reference` is the current accepted selected scenario used as the denominator and baseline for the next measured comparison.
-The minimum-discharge baseline begins as the reference.
-
-When an ordinary trial is accepted, it becomes the new reference.
-A finished scenario accepted during free-pass re-judgment can also become the new reference.
-
-The maximum discharge is a forced selected endpoint, but the loop can stop without assigning it as the reference when its measured result is `accept` or `reject_low`.
-Reference is therefore an algorithm state, not a complete membership list.
-
-### Position
-
-The `position` is the scenario whose final depth will hot-start the next newly simulated trial and whose discharge supplies the lower search position for one proposal fallback.
-It advances on `accept` and `reject_low`.
-It does not advance on an ordinary `reject_high`.
-
-After a free re-judgment pass, the position can be the highest finished scenario classified `reject_low` against the current reference.
-The position is not necessarily the trial that ran most recently and is not necessarily a selected member.
-
-### Finished scenario points
-
-The `done` mapping contains every scenario available to the invocation by discharge.
-It combines adopted manifests and scenarios obtained during the current invocation.
-
-Ordinarily rejected points remain in `done` because they improve proposal curves, can bound later windows, and can receive a different verdict when compared with a new reference.
-The current implementation also publishes most newly simulated points before judging them.
-
-### Published trials and selected members
-
-A published trial has artifacts and a manifest at its scenario address.
-A selected member is a discharge the adaptive control flow chooses to represent the library, including the baseline and maximum endpoint under ordinary completion.
-
-Those sets are not equal in current code.
-Every newly simulated non-edge-error trial is published before its measured verdict, including later `reject_low` and `reject_high` results.
-
-The ND result does not contain an explicit membership list.
-Free-pass acceptances are logged but not appended to the returned comparison list, a finest-step measured `reject_high` remains recorded as `reject_high` even when control flow treats it as accepted, and maximum inclusion is not marked by a dedicated field.
-
-## The three current response metrics
-
-The metrics use the final processed saved depth raster.
-The wet set is every cell whose depth is strictly greater than zero.
-
-For wet-cell depths $h_i$, square-cell resolution $r$, and wet-cell count $N_w$, current code reports:
+For wet cells \(W\), cell size \(s\), and wet-cell count \(N_w\):
 
 \[
 h_{max}=\max_{i\in W}(h_i)
 \]
 
 \[
-h_{med}=\operatorname{median}_{i\in W}(h_i)
+A_f=\frac{N_ws^2}{10^6}
 \]
+
+Maximum depth is in metres when depth is in metres.
+Flooded area is in square kilometres only when \(s\) is in metres.
+
+## Response distance
+
+For adjacent measured scenarios at discharges \(Q_a<Q_b\), define:
 
 \[
-A_f=\frac{N_wr^2}{10^6}
+D(a,b)=\max\left(\frac{|h_{max,b}-h_{max,a}|}{0.50\ \text{m}},\frac{|A_{f,b}-A_{f,a}|}{0.10\ \text{km}^2}\right)
 \]
 
-Maximum and median depth are in m when depth values are in m.
-Flooded area is in km2 only when $r$ is in m.
+An interval meets the response criterion when \(D(a,b)\leq1\).
+An interval requires refinement when \(D(a,b)>1\) and at least one untried candidate lies strictly inside it.
 
-The median's population changes as new shallow cells become wet.
-Median depth can therefore fall even while discharge and flooded area rise.
-That behavior is not necessarily a numerical error.
+The 0.50 m and 0.10 square kilometre scales are synthetic method values.
+They do not define a universal resolution requirement.
 
-If no cell is wet, current code reports zero for all three metrics.
-If the reference flooded area is zero, the current percentage-change expression returns 0.0 rather than dividing by zero.
-The flooded-area change therefore cannot produce measured `accept` or `reject_high` for that comparison, even if the trial area is positive.
-Proposal-window behavior is different because the relative floor and ceiling response targets both collapse to zero.
-If a later flooded-area point is positive, crossing logic can return the reference or the lower endpoint of the first rising segment for both targets, so the area curve can create a degenerate or otherwise influential predicted window.
-If the monotone flooded-area curve never rises above zero, it contributes no crossing.
+## Deterministic refinement rule
 
-## Default acceptance bands
+Apply the following steps after each completed, scientifically accepted scenario.
 
-| Criterion | Current measured change | Current default floor | Current default ceiling |
-| --- | --- | ---: | ---: |
-| Maximum depth | $h_{max,t}-h_{max,r}$ | 0.75 m | 1.25 m |
-| Median depth | $h_{med,t}-h_{med,r}$ | 0.25 m | 0.50 m |
-| Flooded area | $100(A_{f,t}-A_{f,r})/A_{f,r}$ | 10 percent | 15 percent |
+1. Sort measured scenarios by discharge.
+2. Calculate \(D(a,b)\) for every adjacent pair.
+3. Keep intervals with \(D(a,b)>1\) and at least one untried interior candidate.
+4. Select the widest retained interval.
+5. Break equal-width interval ties by choosing the interval with the lower discharge endpoint.
+6. Select the untried interior candidate nearest the arithmetic midpoint of the chosen interval.
+7. If two candidates are equally near, choose the lower discharge.
+8. Warm-start the new scenario from the nearest lower scientifically accepted measured member with compatible model, grid, terrain, datum, boundary family, and state type.
 
-The input model requires each maximum-depth and median-depth band to span at least 0.1 m and the area band to span at least 1 percentage point.
-Those span checks do not establish scientific suitability for every reach or scale.
+The nearest-untried rule also defines behaviour when the exact midpoint was already tried.
+The selector never repeats a candidate and never invents an off-grid discharge.
 
-## The measured verdict
+**Design principle:** Candidate choice, tie breaking, and warm-start choice must be part of the method record rather than implementation accident.
 
-The current verdict gives ceiling violations priority.
+## Stopping rule
 
-1. Return `reject_high` if any metric change is strictly greater than its ceiling.
-2. Otherwise return `accept` if any metric change is greater than or equal to its floor.
-3. Otherwise return `reject_low` because all three changes are below their floors.
+Stop when every adjacent measured interval either meets \(D(a,b)\leq1\) or contains no untried interior candidate.
+If an interval still has \(D(a,b)>1\) but no untried interior candidate, record it as an unresolved grid residual.
 
-Equality to a ceiling is allowed because only a strict exceedance is high.
-Equality to a floor is sufficient for acceptance.
+The stopping rule means the selected set can include every scientifically accepted scenario measured by the refinement process.
+It does not claim that the fixed grid resolves an unsampled transition narrower than its spacing.
 
-Acceptance does not require all criteria to lie inside their individual bands.
-It requires no criterion above its ceiling and at least one criterion at or above its floor.
-A negative median-depth change can coexist with acceptance through maximum depth or flooded area.
+## Worked refinement trace
 
-The baseline has no reference.
-Current code records zero changes and `accept` for it by construction.
+The synthetic response packet is:
 
-## Curves are proposal aids, not verdicts
+| Discharge | Maximum depth | Flooded area | Measurement order | Warm-start source |
+| ---: | ---: | ---: | ---: | --- |
+| 100 m3/s | 1.00 m | 0.500 km2 | 1 | Dry start |
+| 250 m3/s | 2.30 m | 0.750 km2 | 2 | 100 m3/s |
+| 175 m3/s | 1.60 m | 0.595 km2 | 3 | 100 m3/s |
+| 125 m3/s | 1.20 m | 0.530 km2 | 4 | 100 m3/s |
+| 200 m3/s | 1.78 m | 0.635 km2 | 5 | 175 m3/s |
+| 225 m3/s | 2.01 m | 0.680 km2 | 6 | 200 m3/s |
 
-The selector builds one curve for each absolute metric using every finished scenario point sorted by discharge.
-It does not build curves from only selected members.
-
-Before interpolation, each metric sequence is replaced by its running maximum:
+The initial endpoint interval from 100 to 250 m3/s has:
 
 \[
-\tilde y_i=\max(y_1,\ldots,y_i)
+D(100,250)=\max\left(\frac{1.30}{0.50},\frac{0.250}{0.10}\right)=2.60
 \]
 
-This monotone envelope flattens decreases.
-For median depth, a real fall caused by newly wetted shallow cells becomes a flat segment for proposal purposes even though the raw measured decrease remains in the verdict calculation.
+Its midpoint is 175 m3/s, which is an untried candidate and becomes the third measurement.
 
-Between simulated discharges, the crossing calculation uses a straight line segment.
-Above the largest simulated discharge, it extends the slope of the final segment if that slope is positive.
-It returns no crossing when fewer than two points define an extrapolation, when the target is not above the final value after segment checks, or when the final segment is flat or decreasing after monotone processing.
+After 175 m3/s is measured, both intervals are 75 m3/s wide and exceed the criterion.
+The lower-endpoint tie rule selects the 100 to 175 m3/s interval.
+Its midpoint is 137.5 m3/s, so 125 and 150 m3/s are equally near and the lower-candidate tie rule selects 125 m3/s.
 
-Interpolation or extrapolation never accepts a scenario.
-It only selects where to measure next.
+The new 100 to 125 and 125 to 175 m3/s intervals both meet the response criterion.
+The unresolved 175 to 250 m3/s interval selects 200 m3/s because 200 and 225 m3/s are equally near its midpoint of 212.5 m3/s.
 
-## Build the acceptance window
+After 200 m3/s is measured, only the 200 to 250 m3/s interval exceeds the criterion.
+Its exact midpoint is 225 m3/s, so 225 m3/s is measured.
 
-For each metric, the algorithm reads the monotone curve at the current reference discharge.
-It adds the depth floor and ceiling in m.
-For area, it multiplies the reference curve value by one plus the percentage floor or ceiling.
+The final adjacent distances are:
 
-Each curve can therefore provide:
+| Interval | Response distance | Result |
+| --- | ---: | --- |
+| 100 to 125 m3/s | 0.40 | Meets criterion |
+| 125 to 175 m3/s | 0.80 | Meets criterion |
+| 175 to 200 m3/s | 0.40 | Meets criterion |
+| 200 to 225 m3/s | 0.46 | Meets criterion |
+| 225 to 250 m3/s | 0.70 | Meets criterion |
 
-- a floor crossing where the change first becomes large enough; and
-- a ceiling crossing where that criterion would first become too large.
+The selected discharge set is therefore 100, 125, 175, 200, 225, and 250 cubic metres per second.
+The 150 m3/s candidate remains untried because both intervals beside it meet the criterion after 125 and 175 m3/s are measured.
 
-The combined window opens at the earliest available floor crossing because any one criterion can satisfy a floor.
-It closes at the earliest available ceiling crossing because every criterion must remain at or below its ceiling.
+**Evidence note:** The trace follows the stated interval, midpoint, tie, and stopping rules exactly.
+It proves only the selection arithmetic for the supplied synthetic metrics.
+It does not prove convergence, domain adequacy, warm-start independence, or suitability of the response scales for another reach.
 
-\[
-Q_{open}=\min_j Q_{j,floor}
-\]
+## Warm-start compatibility
 
-\[
-Q_{close}=\min_j Q_{j,ceiling}
-\]
+The method selects the nearest lower scientifically accepted measured member, not merely the nearest lower file in storage.
+Compatibility requires the same model generation, grid, terrain, vertical reference, boundary family, wetting convention, and solver-state type.
 
-If no criterion has a floor crossing, the function returns no window.
-If at least one floor exists but no ceiling exists, the close is positive infinity.
-Both cases direct the proposal to the maximum discharge.
+Depth-only initialization does not preserve velocity, momentum, face flux, or a complete checkpoint.
+Dry-start and alternate-start sensitivity remain necessary where initial conditions can affect the interpreted result.
 
-![Adaptive response curve, proposal, and measured verdict](../assets/nd-adaptive-selection.svg)
+## Incomplete and failed trials
 
-**What to notice:** The shaded discharge window comes from crossings on a monotone proposal curve.
-The hollow diamond is the curve's predicted response at the proposed discharge.
-The filled red point is the later measured response at that same discharge and lies above the ceiling, so the measured verdict is `reject_high` despite an in-window proposal.
+A failed or scientifically rejected scenario does not divide an interval and does not become a warm-start source.
+Its artifacts can remain in an execution inventory, but the refinement record must distinguish them from scientifically accepted scenarios.
 
-## Apply the discharge grid and proposal fallbacks
+If the next candidate fails, record the failure and stop or apply a separately authorized recovery policy.
+Do not silently skip to another candidate because that would change the synthetic method.
 
-For a finite window, the current selector searches a grid anchored to zero with spacing `q_grid_resolution` in whole m3/s.
-The lowest eligible grid value is the greater of the first grid value at or above the opening and one grid step above the reference.
-The highest eligible grid value is the last grid value at or below the closing.
+## Durable refinement record
 
-When at least one grid value lies inside the window, the selector rounds the window midpoint to the grid and clamps it between the lowest and highest eligible values.
-The implementation uses Python's `round` behavior before multiplying by the grid spacing.
+The record should include:
 
-When no grid value lies inside the window, the selector first aims at the largest grid value strictly below the opening.
-If that value is at or below the position, it uses one grid step above the position instead.
-The first fallback candidate is zero-grid aligned.
-The replacement `position + q_grid_resolution` is not zero-grid aligned when the position came from an off-grid adopted scenario or off-grid opening trial.
+- candidate grid and required endpoints;
+- metric definitions, wet threshold, units, and nodata rule;
+- response-distance equation and scale values;
+- measured scenarios and complete identities;
+- interval distances after each measurement;
+- width and midpoint used for each choice;
+- tie-breaking decisions;
+- warm-start source and compatibility evidence;
+- scientifically rejected or failed trials; and
+- final selected set and unresolved grid residuals.
 
-The selector marks a proposal as `finest` when it equals `position + q_grid_resolution`.
-If that finest trial measures `reject_high`, current control flow treats it as accepted because there is no intermediate grid value to try.
-The returned comparison object still records the measured `reject_high` result.
+## Limitations
 
-If there is no window, the close is infinite, or the calculated proposal is at or above `max_upstream_inflow`, the selector returns the maximum exactly and marks it as an at-maximum proposal.
-The maximum is not validated against the zero-anchored grid.
+### Fixed-grid resolution
 
-## Exact q-grid enforcement gaps
+The method cannot resolve a transition narrower than the candidate spacing without changing the authored grid.
 
-The input description says every scenario must land on the q-grid, but current code does not enforce that statement everywhere.
+### Sequential execution
 
-The following current values are not validated or snapped to `q_grid_resolution`:
+Each new interval and warm start depends on prior measured results.
 
-- discharges in adopted `existing_scenarios` manifests;
-- `min_upstream_inflow`;
-- `max_upstream_inflow`; and
-- the authored opening trial `min_upstream_inflow + delta_upstream_inflow`;
-- a no-grid-value fallback that uses `position + q_grid_resolution` when `position` is off-grid; and
-- any `_propose` path that returns the unsnapped maximum.
+### Metric selection
 
-Finite-window midpoint proposals and the first below-window candidate are constructed on the zero-anchored grid.
-Later `_propose` outputs are therefore not universally grid-snapped because the position-relative fallback and maximum-return paths preserve their off-grid source values.
-If adopted scenarios make `done` contain more than one point at startup, the loop can skip the authored opening step and immediately derive a proposal from the adopted curves.
+Maximum depth and total flooded area can miss a localized change that matters for a particular asset or pathway.
 
-The code comment that says the orchestrator supplies a real per-reach grid cites DR-041.
-No DR-041 row exists in the reviewed Decision Register, so the citation does not grant selected-methodology authority.
+### Scale dependence
 
-## Bootstrap from one point
+The 0.50 m and 0.10 square kilometre scales do not represent equal importance for every reach size or application.
 
-One scenario point cannot define a segment or an extrapolation slope.
-When `done` contains only the minimum baseline, the first trial is therefore:
+### Scientifically rejected scenarios
 
-\[
-Q_{trial}=\min(Q_{min}+\Delta Q_{authored},Q_{max})
-\]
-
-This trial is not snapped to the q-grid.
-If the authored step reaches or exceeds the maximum, current code runs the maximum as the opening trial.
-
-After at least two points are in `done`, the curve-based proposal logic controls subsequent trials.
-
-## Apply each verdict
-
-### `reject_low`
-
-All three measured changes are below their floors.
-The trial remains published and in `done`, does not become the reference, and becomes the position and next hot-start source.
-
-A long `reject_low` move is allowed.
-The algorithm does not require every search increment to equal one grid step.
-
-### `accept`
-
-No measured change is above its ceiling, and at least one change reaches a floor.
-The trial becomes both reference and position.
-
-The algorithm then re-judges finished scenarios above the new reference before simulating another discharge.
-
-### `reject_high`
-
-At least one measured change is above its ceiling.
-The trial remains published and in `done`, but ordinary control flow leaves both reference and position unchanged.
-
-The new point can change interpolation and extrapolation enough to bring the next proposed window back toward the reference.
-If the trial was marked `finest`, control flow overrides membership treatment to accept it while preserving the measured `reject_high` record.
-
-## Re-judge finished runs after the reference advances
-
-Re-judgment uses stored manifest metrics and does not rerun the solver.
-The algorithm examines finished discharges above the reference from highest to lowest.
-
-It skips `reject_high` candidates until it finds the first result that is not high.
-If that result is `accept`, it promotes the scenario to reference, records a free advance internally, and repeats the scan against the new reference.
-If that result is `reject_low`, it becomes the position and the free pass stops.
-If every candidate is high, the position remains the reference.
-
-A discharge can therefore be high relative to one reference, low relative to a later reference, or accepted relative to another.
-The physical scenario did not change.
-Only the comparison baseline changed.
-
-Free-pass comparisons are emitted to logs but not appended to `scenario_comparison_results`.
-The result therefore does not preserve a complete re-judgment history.
-
-## Maximum-discharge behavior
-
-The maximum is intended as a selected endpoint because later KWSE planning needs the top of the ND envelope.
-When the maximum is newly simulated without edge error, current code publishes it before judgment as it does other trials.
-
-If its measured verdict is `accept` or `reject_low`, the loop stops immediately.
-The maximum is treated as a member, but the reference and position are not advanced through the ordinary verdict branches before the break.
-
-If its measured verdict is `reject_high`, the maximum remains published and selected as the forced endpoint.
-The loop continues to fill the gap below it.
-The already finished maximum can later be re-judged after the reference advances.
-
-Once the maximum has been processed and a later proposal again resolves to the maximum, the loop stops before another comparison.
-
-A requested maximum not already in `done` can be newly simulated or exactly reused by full-input equality.
-If either returned manifest has `edge_error`, it takes the adaptive abort before the maximum-membership branch.
-A newly simulated edge-error maximum is not published, while an exactly reused edge-error maximum already remains in storage.
-The run ends with partial prior results and a warning in either case.
-
-## Worked proposal and verdict
-
-Suppose the current reference is 100 m3/s with maximum depth 2.00 m, median depth 0.50 m, and flooded area 1.000 km2.
-Suppose a finished trial at 150 m3/s has maximum depth 3.40 m, median depth 0.80 m, and flooded area 1.140 km2.
-
-The measured changes are:
-
-\[
-\Delta h_{max}=3.40-2.00=1.40\ \text{m}
-\]
-
-\[
-\Delta h_{med}=0.80-0.50=0.30\ \text{m}
-\]
-
-\[
-\Delta A_f=100\frac{1.140-1.000}{1.000}=14.0\%
-\]
-
-Maximum depth exceeds its 1.25 m ceiling, so the verdict is `reject_high` even though median depth and area are within their default bands.
-
-Now suppose a measured 140 m3/s trial gives 3.00 m, 0.78 m, and 1.120 km2.
-Its changes from the 100 m3/s reference are 1.00 m, 0.28 m, and 12.0 percent.
-No ceiling is exceeded and all three floors are reached, so the verdict is `accept`.
-
-Re-judge the finished 150 m3/s point against the new 140 m3/s reference:
-
-\[
-\Delta h_{max}=3.40-3.00=0.40\ \text{m}
-\]
-
-\[
-\Delta h_{med}=0.80-0.78=0.02\ \text{m}
-\]
-
-\[
-\Delta A_f=100\frac{1.140-1.120}{1.120}\approx1.79\%
-\]
-
-All changes are below their floors, so 150 m3/s is now `reject_low` and becomes the position and next hot-start source.
-It remains a published nonmember under the current monotone-in-discharge control flow because later proposals and accepted references move above this rejected-low position.
-Later free-pass acceptance can apply to higher finished points that were previously skipped as `reject_high` against an earlier reference, not to this lower point after the reference has passed it.
-
-[Lab 10](../labs/lab-10-follow-adaptive-nd-selection.md) continues this sequence through a curve-based next proposal, endpoint classification, and readiness judgment.
-
-## Limitations and diagnostic consequences
-
-### Sequential warm starts reduce parallelism and can introduce path dependence
-
-The next target and its initial depth depend on prior measured results.
-Ordinary trials therefore cannot be scheduled independently without changing the algorithm.
-
-Depth-only initialization does not preserve full dynamic state.
-Cold-start and alternate-start sensitivity remain necessary before claiming target-result independence.
-
-### Floodplain transitions can be discovered late
-
-Straight lines between sparse measured points cannot reveal an unsampled threshold.
-A trial beyond a spillover or overtopping transition can measure `reject_high` and pull the next proposal back, but the first overshoot still costs a simulation and does not guarantee complete transition resolution.
-
-Normal-depth downstream control can also suppress or distort transitions that depend on backwater or downstream stage.
-Adaptive density under one boundary family is not proof of density under every plausible downstream condition.
-
-### Flooded-area percentage is scale dependent
-
-The flooded-area denominator is the reference's own area.
-The same absolute new area produces a larger percentage near a small reference extent and a smaller percentage after the floodplain is already broad.
-
-The two depth criteria use absolute metres rather than relative changes.
-One set of bands therefore does not represent the same hydraulic distinction at all reach sizes, grid resolutions, or positions in the discharge range.
-
-### The monotone envelope hides decreases for proposals
-
-Running maxima prevent proposal curves from decreasing.
-They can also erase information in a real median-depth decline or a noisy metric response.
-The raw measured verdict still sees the decrease, so proposal and verdict evidence can tell different stories.
-
-### Search overhead is stored
-
-Rejected trials cost solver time, post-processing, and persistent storage under current publication semantics.
-The result does not label them as overhead or return a selected-member index.
-
-### Current outputs omit decision history
-
-The response omits free-pass comparisons, the explicit selected set, the membership override for a finest `reject_high`, and a dedicated maximum-member marker.
-The manifest records one scenario but not its later judgments against changing references.
-
-Logs can contain some state and comparisons, but current artifact contracts do not promote a complete reproducible adaptive trace into a durable selection record.
-
-## Readiness boundary
-
-An ND selection is not ready for downstream scientific use merely because every returned comparison has a familiar verdict or every manifest exists.
-Readiness requires, at minimum:
-
-1. Traceable and authorized discharge bounds with $Q_{HFT}$, $Q_{100}$, source version, period, fit, uncertainty, and rounding defined.
-2. An authorized metric and band contract that resolves the DR-030 and current-code mismatch.
-3. A durable selected-membership record distinct from published search trials.
-4. Storage observation for every required selected artifact.
-5. A resolved q-grid authority and enforcement policy for adopted points, endpoints, and the opening trial.
-6. Adequate convergence, mass-balance, edge, domain, hot-start sensitivity, and hydraulic validation evidence for the intended use.
-
-Until those conditions are supported, the correct status is implementation evidence with open scientific and contract questions, not a validated production library.
+A numerically complete scenario can fail scientific acceptance and must not guide refinement until the failure is resolved.
 
 ## Common misconceptions
 
-### The curve decides acceptance
+### The widest discharge interval is always refined
 
-The curve proposes a discharge.
-Raw measured changes against the current reference determine the verdict.
+Only intervals that exceed the response criterion and contain an untried interior candidate are eligible.
 
-### `accept` means every metric is inside its band
+### The exact midpoint must exist on the grid
 
-Acceptance requires no ceiling exceedance and at least one floor reached.
-Other criteria can remain below their floors.
+The method selects the nearest untried interior candidate and uses a lower-discharge tie break.
 
-### `reject_low` means the simulation is invalid
+### Every candidate is simulated
 
-It means the measured hydraulic change from the current reference was below all configured floors.
-The result remains a usable search point and warm-start source under current control flow.
+The 150 m3/s candidate remains untried because surrounding measured intervals already meet the criterion.
 
-### `reject_high` is never selected
+### A completed run is automatically a refinement member
 
-A measured high at the finest available step is treated as accepted by control flow, and the maximum is a forced endpoint unless a newly simulated or exactly reused maximum triggers the adaptive edge abort.
-
-### The q-grid covers every scenario
-
-Current code constructs finite-window midpoint proposals and the first below-window candidate on the zero-anchored grid.
-Adopted points, endpoints, the opening authored step, an off-grid position-relative fallback, and a direct maximum return can remain off-grid.
-
-### Published folders reveal the selected library
-
-Current code publishes ordinary trials before verdict.
-Folder presence therefore reveals simulations, not membership.
+The method requires scientific acceptance and complete observation before a scenario can divide an interval.
 
 ## Competency check
 
-1. Why can reference and position name different scenarios?
-2. What wet-cell population and units define each current metric?
-3. Why does `reject_high` have priority over `accept`?
-4. How do the earliest floor and earliest ceiling crossings define the combined window?
-5. What happens when no criterion reaches a floor, no ceiling crossing exists, or no grid value lies inside the window?
-6. Which endpoint, adoption, bootstrap, fallback, and maximum paths can bypass current q-grid alignment?
-7. How can a finished scenario receive a different verdict without being rerun?
-8. Which selected-membership decisions are absent or ambiguous in the current job result?
+1. Which endpoints initialize the synthetic selector?
+2. What two quantities define the response distance?
+3. Why is 125 m3/s selected before 150 m3/s?
+4. What happens when the exact midpoint was already tried?
+5. Which scenario warm-starts the 225 m3/s run?
+6. Why does 150 m3/s remain untried?
+7. What condition creates an unresolved grid residual?
 
 ## Further reading and source notes
 
-- [VIS-007](../assets/source-register.md#vis-007-adaptive-nd-proposal-and-measured-verdict) records provenance for the original diagram.
-- [Decision-Code-Artifact Crosswalk XW-006](../reference/decision-code-artifact-crosswalk.md#xw-006-scenario-library-bounds-and-sampling) maps DR-029, DR-030, the absent DR-041 reference, code, inputs, artifacts, target design, and validation questions.
-- [CONF-009](../reference/conflicts-and-open-questions.md#conf-009-scenario-publication-membership-reuse-and-discharge-grid-authority) records publication, adoption, membership, materialization, and q-grid gaps.
-- [CONF-015](../reference/conflicts-and-open-questions.md#conf-015-adaptive-nd-criteria-and-generated-documentation) records metric, default-band, response, edge-abort, and generated-document conflicts.
-- JOB-005 and JOB-007 in [Bibliography](../reference/bibliography.md) identify the exact current-code sources and reviewed revision.
-
-No external source was required for this implementation-specific algorithm explanation.
+- **Scientific foundation:** Hydraulic sensitivity concepts are supported by [SCI-015](../reference/bibliography.md#sci-015-hydraulic-model-sensitivity).
+- **Scientific foundation:** Grid and wetting considerations are supported by [SCI-028](../reference/bibliography.md#sci-028-hec-ras-2d-computational-mesh) and [SCI-029](../reference/bibliography.md#sci-029-hec-ras-grid-size-and-time-step-guidance).

@@ -11,7 +11,7 @@ A discharge selected from a hydrograph is not interchangeable with stage, and a 
 ## Prerequisites
 
 Read [Water Balance, Runoff, and Hydrographs](02-water-balance-runoff-and-hydrographs.md) and [Quantities, Units, and Datums](../00-orientation/03-quantities-units-and-datums.md).
-Retain the orientation rule that stage requires a reference and that WSE requires a vertical datum.
+Retain the rule that stage requires a reference and WSE requires a vertical datum.
 
 ## Learning objectives
 
@@ -21,7 +21,7 @@ After this chapter, the reader should be able to:
 - explain what a rating curve can and cannot establish;
 - identify travel time, attenuation, lateral inflow, and confluence timing in routed hydrographs;
 - explain why routed downstream flow is not generally the unshifted sum of upstream peaks; and
-- state what one steady 2D FIM discharge scenario preserves and loses.
+- state what one steady discharge scenario preserves and loses.
 
 ## Discharge and stage answer different questions
 
@@ -56,7 +56,7 @@ It supplies a conditional relationship at a stated location.
 The [National Weather Service routing glossary](https://forecast.weather.gov/glossary.php?word=routing) defines flood routing in terms of downstream changes in timing, shape, and amplitude.
 
 Travel time is the elapsed time associated with movement of a flow feature or water response between locations under a stated definition.
-It can be described by the lag between corresponding hydrograph features, but peak-to-peak lag is not automatically equal to the travel time of an individual parcel of water.
+Peak-to-peak lag is not automatically equal to the travel time of an individual parcel of water.
 
 Attenuation is a reduction and spreading of a hydrograph feature, commonly the peak, as storage and hydraulic processes redistribute flow over time.
 Attenuation does not mean that water volume disappears.
@@ -70,9 +70,9 @@ Withdrawal, loss, or diversion terms must be named separately when they matter.
 
 At a confluence, a downstream hydrograph reflects the timing and shape of all contributing flows plus routing and local lateral inflow.
 If two tributary peaks arrive together, their combined peak can be larger than if one arrives after the other has receded.
-If one tributary's lower but broad hydrograph overlaps another's narrow peak, the combined result can have a different peak time and duration from either input.
+If one tributary's broad hydrograph overlaps another's narrow peak, the combined result can have a different peak time and duration from either input.
 
-The downstream discharge at time \(t\) can be expressed conceptually as the result of routing all upstream hydrographs, distributed lateral inflow, and the initial reach storage together:
+The downstream discharge at time \(t\) can be expressed conceptually as
 
 \[
 Q_{down}(t) =
@@ -85,11 +85,11 @@ S(t_0);
 \]
 
 - \(Q_{down}(t)\) is downstream discharge in m3/s.
-- \(Q_i(t)\) is the hydrograph from upstream input \(i\) in m3/s, and \(n\) is the number of upstream inputs.
-- \(q_{\ell}(x,t)\) is distributed lateral inflow per unit reach length at location \(x\) and time \(t\), in m3/s per m.
-- \(S(t_0)\) is water stored in the routed reach at the initial time \(t_0\), in m3.
-- \(\theta\) represents the routing method's geometry, parameters, downstream controls, and other required conditions.
-- \(\mathcal{R}\) represents the selected routing method that applies travel, storage, and attenuation to the supplied inputs.
+- \(Q_i(t)\) is upstream hydrograph \(i\) in m3/s.
+- \(q_{\ell}(x,t)\) is distributed lateral inflow per unit reach length at location \(x\), in m3/s per m.
+- \(S(t_0)\) is water stored in the routed reach at the initial time, in m3.
+- \(\theta\) represents geometry, parameters, downstream controls, and other required routing conditions.
+- \(\mathcal{R}\) represents the selected routing method.
 
 The corresponding interval water balance is
 
@@ -102,22 +102,18 @@ S(t_1)-S(t_0) =
 \]
 
 - \(S(t_1)-S(t_0)\) is the change in reach storage over the interval, in m3.
-- \(t_1\) is the end of the accounting interval, in s on the same time axis as \(t_0\).
 - \(L\) is routed reach length in m.
-- The first integral sum is total upstream inflow volume in m3.
+- The integral sum is total upstream inflow volume in m3.
 - The double integral is total distributed lateral-inflow volume in m3.
 - The downstream integral is outflow volume in m3.
-- \(V_{loss}\) is any separately represented withdrawal, infiltration, evaporation, or other sink volume over the interval, in m3.
-
-Upstream and lateral inflow volumes can differ from downstream outflow volume over the same interval because water can enter or leave reach storage and because separately represented sinks can remove water.
-Attenuation can reduce and spread a peak while the interval balance still accounts for the associated water volume.
+- \(V_{loss}\) is any separately represented sink volume over the interval, in m3.
 
 These expressions are conceptual rather than a complete routing algorithm.
 Different routing methods impose different conservation, storage, momentum, and parameter assumptions.
 
 ## Worked timing example
 
-Two tributaries join immediately upstream of a routed reach.
+**Applied example:** Two synthetic tributaries join immediately upstream of a routed reach.
 Tributary A peaks at 30 m3/s at 6 hours.
 Tributary B peaks at 25 m3/s at 9 hours.
 
@@ -126,43 +122,28 @@ The combined inflow at 6 hours requires B's discharge at 6 hours.
 The combined inflow at 9 hours requires A's discharge at 9 hours.
 The routed downstream peak then depends on reach storage, travel time, attenuation, lateral inflow, and downstream hydraulic conditions.
 
-The correct diagnostic is to align the full hydrographs on a common time reference before combining or routing them.
+**Design principle:** Align full hydrographs on a common time reference before combining or routing them.
 Peak values without time series are insufficient.
 
 ## From a hydrograph to a steady hydraulic scenario
 
 **Scientific foundation:** Selecting one discharge from a hydrograph preserves one flow-rate magnitude and its stated context.
-It does not preserve the event's sequence, duration, integrated volume, rate of rise, recession, or the hydraulic state created by earlier flows.
+It does not preserve the event sequence, duration, integrated volume, rate of rise, recession, or hydraulic state created by earlier flows.
 
-A steady scenario can answer a bounded question such as:
-
-> What quasi-steady hydraulic response does this model produce when 250 m3/s is imposed at this inflow geometry under these downstream and initial conditions?
-
-It cannot by itself answer:
-
-> How will this complete flood event evolve through time at this reach?
+**Applied example:** A bounded synthetic question is, "What quasi-steady hydraulic response does the `R-200` model produce when \(Q=250\ \text{m3/s}\) is imposed at its inflow geometry under stated downstream and initial conditions?"
+That scenario cannot by itself answer how the complete flood event evolves through time at `R-200`.
 
 The same numerical discharge on a rising limb and recession can encounter different downstream stage, floodplain storage, tributary timing, and antecedent hydraulic state.
-Representing those differences requires a suitable unsteady forcing and boundary design, not merely the repeated use of the same steady magnitude.
+Representing those differences requires a suitable unsteady forcing and boundary design rather than repeated use of the same steady magnitude.
 
-## Current project boundary
+## Routing and scenario dependencies are different
 
-**Current implementation:** [`QFixBC`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/models/solvers.py) carries one integer discharge value in m3/s and one boundary vector.
-The current ND and KWSE jobs construct that boundary from the scenario discharge and the model manifest's inflow line.
-No current scenario input accepts a discharge hydrograph.
+Hydrologic routing propagates a time-varying flow response through a river network.
+A hydraulic scenario dependency transfers a selected boundary condition or result between model calculations.
+Both use network relationships, but they update different scientific objects.
 
-**Current implementation:** The ND job samples multiple steady discharge magnitudes within caller-provided bounds and evaluates changes in hydraulic response metrics between runs.
-The sequence is a scenario-library sampling procedure, not a routed event hydrograph.
-
-**Current implementation:** The KWSE job executes caller-provided pairs of upstream discharge and downstream water-surface condition.
-Its downstream transfer captures hydraulic boundary influence from a selected downstream scenario, but it does not route a time-varying catchment hydrograph through the reach network.
-
-**Target design:** The target orchestrator propagates changed downstream hydraulic dependencies upstream through network topology and boundary-condition provenance.
-That is scenario-dependency propagation, not hydrologic flood-wave routing.
-The distinction matters because both processes use a reach network but update different scientific objects.
-
-**Open question:** A project-wide contract that converts a sourced time-varying hydrograph into the present steady scenario libraries is not established by the current job inputs inspected here.
-Later chapters address discharge bounds, scenario selection, and uncertainty without assuming that this missing conversion is already implemented.
+**Design principle:** Name whether a network operation routes a hydrograph or transfers a hydraulic boundary condition.
+Do not use completion of one operation as evidence that the other occurred.
 
 ## Common misconceptions
 
@@ -186,27 +167,27 @@ Volume must be checked over compatible intervals before inferring loss.
 A set of independent steady scenarios samples a response surface.
 It does not preserve temporal state transitions unless an explicit method and compatible initial conditions connect the runs.
 
-### Network propagation is hydrologic routing
+### Scenario dependency propagation is hydrologic routing
 
-The target orchestrator propagates scenario dependencies and changed downstream boundary information.
+Dependency propagation transfers scenario information.
 Hydrologic routing propagates a time-varying flow response.
 One does not prove the other.
 
 ## Competency check
 
-Suppose an upstream hydrograph reaches 250 m3/s twice, once on the rising limb and once on the recession.
+Suppose a hydrograph for `R-200` reaches 250 m3/s twice, once on the rising limb and once on the recession.
 For each occurrence, list the additional evidence needed to decide whether one steady hydraulic scenario can represent the intended use.
 Include downstream stage, initial hydraulic state, hydrograph timing, reach identity, inflow geometry, and the decision the result must support.
 
-Then explain why the following three statements are different:
+Then explain why the following statements are different:
 
 1. A streamgage rating estimates 250 m3/s from a measured stage at one site.
 2. Hydrologic routing predicts 250 m3/s at a downstream reach and time.
-3. A current 2D FIM scenario applies 250 m3/s as a steady `QFIX` boundary.
+3. A hydraulic scenario applies 250 m3/s as a steady inflow boundary.
 
 ## Source notes
 
-- **Scientific foundation:** Rating-curve behavior is supported by [SCI-007](../reference/bibliography.md#sci-007-streamgaging-and-stage-discharge-ratings), and routing terminology is supported by [SCI-008](../reference/bibliography.md#sci-008-national-weather-service-routing-glossary).
-- **Current implementation:** Constant discharge boundaries and scenario input shapes are mapped under [JOB-004](../reference/bibliography.md#job-004-reach-topology-and-steady-forcing-contracts).
-- **Target design:** Upstream scenario-dependency propagation is mapped under [SYS-002](../reference/bibliography.md#sys-002-upstream-scenario-propagation).
-- **Open question:** No current inspected job contract accepts a time-varying discharge hydrograph, and no target-design statement cited here is treated as deployed hydrologic routing.
+- **Scientific foundation:** Rating-curve behavior is supported by [SCI-007](../reference/bibliography.md#sci-007-streamgaging-and-stage-discharge-ratings).
+- **Scientific foundation:** Routing terminology is supported by [SCI-008](../reference/bibliography.md#sci-008-national-weather-service-routing-glossary).
+- **Scientific foundation:** Stable quantity and water-balance equations are mapped in [Equations and Units](../reference/equations-and-units.md).
+- **Evidence note:** The tributary timing and `R-200` scenarios are synthetic and do not describe observations or an external system.

@@ -320,19 +320,20 @@ A backwater effect is an upstream WSE response to downstream hydraulic control.
 Calculating its complete profile requires the next-stage methods for resistance, normal depth, boundary conditions, and spatial integration.
 This chapter establishes only the physical direction of possible influence.
 
-## Current project relevance
+## Applying flow-regime reasoning to boundaries
 
-**Current implementation:** Current scenarios pair an upstream `QFIX` discharge with downstream boundary handling.
-ND scenarios use a slope-based downstream condition, while KWSE scenarios use transferred or fixed WSE information together with their documented edge handling.
+**Applied example:** A synthetic reach pairs an upstream fixed-discharge boundary with one of two downstream choices.
+The first choice is a normal-depth outflow based on a stated friction slope.
+The second choice is a specified-stage boundary based on datum-compatible WSE evidence.
 
 **Scientific foundation:** Energy, momentum, and Froude reasoning explain why both upstream discharge and downstream hydraulic conditions can matter.
-They do not prove that a selected slope, transferred WSE, domain extent, or edge treatment is scientifically adequate for a particular reach.
+They do not prove that a selected slope, stage, domain extent, or edge treatment is scientifically adequate for a particular reach.
 
-**Open question:** The terms `FREE`, freefall, and normal depth have unresolved relationships in project sources.
-As recorded in [CONF-001](../reference/conflicts-and-open-questions.md#conf-001-boundary-condition-terminology-and-behavior), a code token or steep slope must not be interpreted as proof of a particular physical regime.
+**Open question:** A boundary may be labeled "open" while its mathematical behavior is actually a normal-depth relation.
+A label or a steep slope must not be interpreted as proof of freefall or any other physical regime.
 
-**Scientific foundation:** A section-wide Froude number is a diagnostic abstraction.
-It should not be presented as proof that every cell or subsection in a two-dimensional model shares one regime or one direction of influence.
+**Evidence note:** A section-wide Froude number is a diagnostic abstraction.
+It does not prove that every cell or subsection in a two-dimensional model shares one regime or one direction of influence.
 
 ## Common misconceptions
 
@@ -375,7 +376,7 @@ Then explain why the result cannot establish any of the following claims by itse
 
 1. every part of the cross-section has the same velocity;
 2. every two-dimensional cell has the same flow regime;
-3. a current project boundary condition is physically correct; or
+3. a selected boundary condition is physically correct; or
 4. continuity, energy, momentum, and numerical convergence have all been satisfied.
 
 ## Source notes
@@ -383,5 +384,5 @@ Then explain why the result cannot establish any of the following claims by itse
 - **Scientific foundation:** Energy-head terms and losses are supported by [SCI-017](../reference/bibliography.md#sci-017-hec-ras-energy-equation), and velocity-head correction is supported by [SCI-018](../reference/bibliography.md#sci-018-hec-ras-mean-kinetic-energy-head).
 - **Scientific foundation:** Momentum, pressure, gravity, and boundary drag are supported by [SCI-019](../reference/bibliography.md#sci-019-hec-ras-momentum-equation), while the WSE-gradient and friction form is supported by [SCI-020](../reference/bibliography.md#sci-020-hec-ras-one-dimensional-hydraulic-equations).
 - **Scientific foundation:** The simple and subsection-sensitive Froude interpretations are supported by [SCI-021](../reference/bibliography.md#sci-021-usace-subdivision-froude-number), while boundary-direction implications are supported by [SCI-022](../reference/bibliography.md#sci-022-hec-ras-flow-regime-boundary-guidance).
-- **Current implementation and Open question:** Current boundary contracts are mapped under [JOB-004](../reference/bibliography.md#job-004-reach-topology-and-steady-forcing-contracts), and unresolved terminology is preserved in CONF-001.
-- **Supporting reference:** *Open-Channel Hydraulics* remains supporting reading under SCI-001, but it was not directly inspected and no chapter or page citation is asserted.
+- **Applied example:** The fixed-discharge, normal-depth, and specified-stage comparison is synthetic and illustrates the source-supported boundary distinctions.
+- **Open question:** A boundary label should not be treated as evidence of mathematical behavior without its governing relation, units, location, and solver documentation.

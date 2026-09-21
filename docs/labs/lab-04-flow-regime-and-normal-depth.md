@@ -1,8 +1,7 @@
 # Lab 4: Flow Regime and Normal Depth
 
-This lab combines section geometry, discharge, Froude number, Manning conveyance, normal depth, and sensitivity direction.
-All numerical inputs are synthetic instructional givens outside the project authority hierarchy.
-They are not project observations, selected methodology, current implementation, target design, or validation evidence.
+This lab combines section geometry, discharge, Froude number, Manning conveyance, normal depth, and one-at-a-time sensitivity.
+All numerical inputs are synthetic applied-example values.
 
 ## Prerequisites
 
@@ -11,13 +10,7 @@ Complete these chapters before starting:
 - [Energy, Momentum, and Flow Regimes](../02-open-channel-flow/02-energy-momentum-and-flow-regimes.md)
 - [Manning Flow and Normal Depth](../02-open-channel-flow/03-manning-flow-and-normal-depth.md)
 
-Read [Source Authority](../reference/source-authority.md) and follow the evidence-label rules in [Lab Conventions](README.md).
-Use [Equations and Units](../reference/equations-and-units.md) for the required equations.
-
-## Execution boundary
-
-All required steps are **Core inspection**.
-No command or production access is required, and any independent tooling remains optional and user-run without changing the evidence boundary.
+Read [Lab Conventions](README.md), [Source Authority](../reference/source-authority.md), and [Equations and Units](../reference/equations-and-units.md).
 
 ## Learning objectives
 
@@ -26,10 +19,10 @@ After completing this lab, the learner should be able to:
 - calculate area, top width, wetted perimeter, hydraulic radius, velocity, hydraulic depth, and Froude number;
 - calculate Manning conveyance and discharge at a trial depth;
 - solve normal depth by a reproducible bracket-and-refine method;
-- explain the sensitivity direction for discharge, roughness, slope, and width; and
-- separate synthetic calculation results from project-specific source claims.
+- explain sensitivity direction for discharge, roughness, slope, and width; and
+- distinguish an equation result from evidence that a downstream boundary is suitable.
 
-## Synthetic instructional givens
+## Synthetic section packet
 
 Use a rectangular channel with:
 
@@ -42,9 +35,9 @@ Use a rectangular channel with:
 | Friction slope | \(S_f\) | 0.0010 m/m |
 | Gravitational acceleration | \(g\) | 9.81 m/s2 |
 
-Assume steady, one-dimensional, hydrostatic flow for the section calculations.
-Assume a prismatic rectangular channel and use the same \(n\) across the section.
-These assumptions support the exercise but do not validate them for a natural reach.
+Assume steady, one-dimensional, hydrostatic, uniform flow for the Manning calculation.
+Assume a prismatic rectangular channel and one roughness value across the section.
+These assumptions make the arithmetic reproducible but do not establish suitability for a natural reach.
 
 ## Part A: Section geometry and flow regime
 
@@ -60,26 +53,32 @@ These assumptions support the exercise but do not validate them for a natural re
 
 Show every substitution and unit.
 Classify the section-scale result as subcritical, critical, or supercritical.
-State one limitation of applying that single classification to a real compound or two-dimensional flow field.
+State one limitation of applying one section-average classification to a compound channel or two-dimensional flow field.
 
 ## Part B: Manning capacity and normal depth
 
 **Core inspection:** Calculate conveyance and Manning discharge at the 2.00 m test depth.
 
 \[
-K=\frac{1}{n}AR_h^{2/3}, \qquad Q_{calc}=KS_f^{1/2}
+K=\frac{1}{n}AR_h^{2/3}
 \]
 
-Compare \(Q_{calc}\) with the target 40.0 m3/s and predict whether normal depth is above or below 2.00 m.
+\[
+Q_{calc}=KS_f^{1/2}
+\]
 
-Then solve for normal depth with this reproducible procedure:
+Compare \(Q_{calc}\) with the target 40.0 m3/s.
+Predict whether normal depth is above or below 2.00 m.
+
+Use this reproducible bracket-and-refine procedure:
 
 1. Calculate \(Q_{calc}\) at 2.90 m and 3.00 m.
-2. Confirm that those values bracket 40.0 m3/s.
+2. Confirm whether those values bracket 40.0 m3/s.
 3. Refine the bracket using 2.93 m and 2.94 m.
-4. Report normal depth to the nearest 0.01 m and state the remaining rounding limitation.
+4. Report normal depth to the nearest 0.01 m.
+5. State the rounding and model-form limitations.
 
-At the calculated normal depth, recompute mean velocity and Froude number.
+At the calculated normal depth, recompute area, mean velocity, hydraulic depth, and Froude number.
 Do not reuse the 2.00 m area or velocity.
 
 ## Part C: One-at-a-time sensitivity
@@ -88,39 +87,43 @@ Do not reuse the 2.00 m area or velocity.
 
 | Case | Changed input |
 | --- | --- |
-| 1 | \(Q=60.0\ \text{m3/s}\) |
-| 2 | \(n=0.045\ \text{s/m}^{1/3}\) |
-| 3 | \(S_f=0.0005\ \text{m/m}\) |
-| 4 | \(b=15.0\ \text{m}\) |
+| 1 | \(Q=60.0 \text{m3/s}\) |
+| 2 | \(n=0.045 \text{s/m}^{1/3}\) |
+| 3 | \(S_f=0.0005 \text{m/m}\) |
+| 4 | \(b=15.0 \text{m}\) |
 
-For each case, report normal depth to the nearest 0.01 m and explain the direction of change through area, hydraulic radius, conveyance, or slope.
-State why these one-at-a-time results do not quantify uncertainty for a real reach.
+For each case, report normal depth to the nearest 0.01 m.
+Explain the direction of change through area, hydraulic radius, conveyance, or slope.
+State why one-at-a-time results do not quantify uncertainty for a natural reach.
 
-## Part D: Project source-boundary trace
+## Part D: Interpret the boundary meaning
 
-**Core inspection:** Read the following current-code locations without running a project command:
+The synthetic boundary note says:
 
-- [`get_normal_depth_boundary_condition`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/jobs/run_nd_scenarios.py)
-- [`get_normal_depth_slope`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/jobs/run_nd_scenarios.py)
-- [`FreeBC`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/models/solvers.py)
-- [`MINIMUM_REACH_SLOPE`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/consts.py)
+> Use the calculated normal depth at the downstream edge and call the edge a free outlet.
 
-Record four **Current implementation** observations:
+Review this note using [MX-001](../reference/decision-code-artifact-crosswalk.md#mx-001-boundary-conditions) and [CQ-001](../reference/conflicts-and-open-questions.md#cq-001-terminology-behavior-mismatch).
 
-1. The boundary token.
-2. The meaning and unit of its numeric value.
-3. The slope-estimation arithmetic.
-4. The configured default minimum slope.
+**Core inspection:** Rewrite the note so that it states the prescribed relationship, geometry, slope, roughness, units, and assumptions without using the ambiguous phrase free outlet.
+Explain why a slope-based normal-depth outflow is not automatically a physical free overfall.
+Explain how a specified-stage boundary differs from both concepts.
+Classify the original terminology mismatch as an **Open question** until the intended mathematics and realized behavior are stated.
 
-Then record one **Open question** from [CONF-001](../reference/conflicts-and-open-questions.md#conf-001-boundary-condition-terminology-and-behavior) and one from [CONF-008](../reference/conflicts-and-open-questions.md#conf-008-unregistered-dr-039-selection).
-Do not use the synthetic normal depth as evidence that the project boundary is correct.
+## Part E: Apply the five evidence labels
 
-## Part E: Missing evidence and uncertainty
+Classify each statement as **Scientific foundation**, **Applied example**, **Design principle**, **Evidence note**, or **Open question**.
 
-**Core inspection:** List at least eight items needed before the synthetic calculation pattern could support a production reach decision.
-Include cross-section geometry, below-water terrain, roughness calibration, friction-slope evidence, discharge provenance, datum and location compatibility, flow-regime variation, and boundary-sensitivity evidence.
+1. \(Fr=|\bar{V}|/\sqrt{gD_h}\) is the stated section-scale Froude relation.
+2. The baseline normal depth is about 2.94 m for the supplied geometry and parameters.
+3. A boundary record should state its quantity, relationship, geometry, units, and reference.
+4. The one-at-a-time table does not quantify the joint uncertainty of a natural channel.
+5. The meaning of free outlet is unresolved until the boundary mathematics are defined.
 
-Classify each item as a missing input, assumption, calibration observation, implementation check, or validation result.
+## Part F: Missing evidence and readiness
+
+List at least ten items needed before the calculation pattern could support a real downstream-boundary decision.
+Include cross-section geometry, below-water terrain, roughness calibration, friction-slope evidence, discharge provenance, location and datum compatibility, flow-regime variation, boundary placement, boundary sensitivity, and observational validation.
+Classify each item as a missing input, assumption, calibration observation, numerical-verification result, or physical-validation result.
 
 ## Deliverable
 
@@ -129,18 +132,25 @@ Submit a short answer with these sections:
 1. Section geometry and flow regime.
 2. Manning capacity and normal-depth solution.
 3. Sensitivity table and interpretation.
-4. Project source-boundary trace.
+4. Boundary-note rewrite and evidence labels.
 5. Missing evidence and readiness statement.
 
 ## Competency criteria
 
 The lab is complete when the answer:
 
-- calculates \(A=20.0\ \text{m2}\), \(P=14.0\ \text{m}\), \(R_h\approx1.429\ \text{m}\), and \(Fr\approx0.45\) at the test depth;
-- calculates \(Q_{calc}\approx22.92\ \text{m3/s}\) at the test depth;
-- brackets and reports \(y_n\approx2.94\ \text{m}\) for the baseline;
+- calculates \(A=20.0 \text{m2}\), \(P=14.0 \text{m}\), \(R_h\approx1.429 \text{m}\), and \(Fr\approx0.45\) at the test depth;
+- calculates \(Q_{calc}\approx22.92 \text{m3/s}\) at the test depth;
+- brackets and reports \(y_n\approx2.94 \text{m}\) for the baseline;
 - reports the correct direction for all four sensitivity cases;
-- preserves `FREE`, freefall, normal-depth, and DR-039 authority distinctions; and
-- states that the synthetic results are not production-ready evidence.
+- distinguishes normal-depth outflow, free overfall, and specified stage; and
+- states that the synthetic calculation alone cannot support a real boundary decision.
 
 After completing the lab, compare the reasoning with [Lab 4 Solution](solutions/lab-04-flow-regime-and-normal-depth-solution.md).
+
+## Source notes
+
+- **Scientific foundation:** Froude-number interpretation is supported by [SCI-021](../reference/bibliography.md#sci-021-usace-subdivision-froude-number).
+- **Scientific foundation:** Uniform-flow and normal-depth calculations are supported by [SCI-023](../reference/bibliography.md#sci-023-hec-ras-uniform-flow-computations).
+- **Scientific foundation:** Roughness variability and calibration limits are supported by [SCI-040](../reference/bibliography.md#sci-040-usace-land-cover-and-mannings-n-guidance).
+- **Evidence note:** The section, parameter values, and sensitivity cases are constructed teaching material.

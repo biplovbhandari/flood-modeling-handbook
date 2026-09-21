@@ -213,15 +213,14 @@ Sub-cell channels and barriers are omitted when neither the grid nor a supported
 The shallow-water approximation can remain useful without resolving every omitted process.
 Its adequacy depends on the site, forcing, intended decision, grid, parameterization, solver, and validation evidence.
 
-## Project authority boundary
+## Solver interpretation boundary
 
-**Current implementation:** [JOB-003](../reference/bibliography.md#job-003-current-implementation-locations) records that the reviewed scenario run path invokes LISFLOOD-FP.
-That current-code observation does not make the generic equations in this chapter a claim about the exact LISFLOOD-FP executable, compilation, or run settings.
+**Evidence note:** The generic equations in this chapter are not a claim that any named solver uses every displayed term, variable placement, closure, or numerical method exactly as written.
+The [LISFLOOD-FP and SFINCS](05-lisflood-fp-and-sfincs.md) comparison bounds solver statements to the LISFLOOD-FP 5.9.6 manual, the SFINCS 2.0.6 documentation, and the cited LISFLOOD-FP research paper.
 
-**Open question:** [CONF-003](../reference/conflicts-and-open-questions.md#conf-003-sfincs-documentation-and-current-support) records that SFINCS appears in interfaces and documentation but is not an implemented equivalent run path in the reviewed checkout.
-Official SFINCS material is used in later chapters only as labeled solver documentation, not as evidence of current project execution.
+**Design principle:** Separate documented external capability from implementation support.
+A solver manual can establish behavior for its documented release, but it cannot establish that another workflow has implemented, configured, or validated that capability.
 
-[LISFLOOD-FP and SFINCS](05-lisflood-fp-and-sfincs.md) compares solver-specific behavior, approximation choices, and evidence.
 This chapter supplies only the common physical vocabulary needed for that comparison.
 
 ## Common misconceptions
@@ -262,5 +261,4 @@ Finally, name four physical processes that the basic depth-averaged equations do
 
 - **Scientific foundation:** The assumptions, depth-averaged variables, conservation laws, WSE relation, and finite-volume context are supported by [SCI-027](../reference/bibliography.md#sci-027-hec-ras-2d-unsteady-flow-hydrodynamics).
 - **Scientific foundation:** Local-inertial flood-model context and an efficient two-dimensional formulation are supported by the primary research in [SCI-031](../reference/bibliography.md#sci-031-lisflood-fp-local-inertial-formulation).
-- **Current implementation and Open question:** Solver-support boundaries are mapped under [JOB-003](../reference/bibliography.md#job-003-current-implementation-locations) and [CONF-003](../reference/conflicts-and-open-questions.md#conf-003-sfincs-documentation-and-current-support).
-- **Supporting reference:** *Open-Channel Hydraulics* remains supporting context under SCI-001, but it was not directly inspected and no page or chapter citation is asserted.
+- **Evidence note:** Solver-specific capability claims require the exact release, equation set, configuration, and documentation source.

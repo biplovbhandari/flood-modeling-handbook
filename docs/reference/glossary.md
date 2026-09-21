@@ -1,7 +1,21 @@
 # Glossary
 
 These definitions establish the handbook's stable terminology.
-Where project sources use one term in different ways, the conflict is stated rather than hidden.
+Where two uses of a term can imply different physical or software behavior, the distinction is stated rather than hidden.
+
+## Source mapping
+
+The definitions below synthesize the source families listed in the [Bibliography and Source Map](bibliography.md).
+The table supplies a compact attribution map, and applied-example qualifications remain linked from the relevant definition or chapter.
+
+| Terminology family | Primary source records |
+| --- | --- |
+| Watersheds, networks, runoff, hydrographs, routing, frequency, and forcing | [SCI-003](bibliography.md#sci-003-watersheds-and-drainage-basins) through [SCI-014](bibliography.md#sci-014-nonstationary-flood-frequency-analysis) |
+| Conservation, energy, momentum, Froude number, Manning flow, and boundaries | [SCI-016](bibliography.md#sci-016-hec-ras-continuity-equation) through [SCI-029](bibliography.md#sci-029-hec-ras-grid-size-and-time-step-guidance) |
+| Two-dimensional solvers, wetting, forcing, and numerical behavior | [SCI-027](bibliography.md#sci-027-hec-ras-2d-unsteady-flow-hydrodynamics) and [SCI-031](bibliography.md#sci-031-lisflood-fp-local-inertial-formulation) through [SCI-034](bibliography.md#sci-034-sfincs-forcing-documentation) |
+| Raster geometry, terrain, topobathymetry, land cover, structures, and resampling | [SCI-030](bibliography.md#sci-030-gdal-geotransform) and [SCI-035](bibliography.md#sci-035-usgs-3dep-one-third-arc-second-dem) through [SCI-042](bibliography.md#sci-042-rasterio-reprojection-and-resampling) |
+| Verification, validation, calibration, uncertainty, and intended use | [SCI-043](bibliography.md#sci-043-nasa-standard-for-models-and-simulations) through [SCI-045](bibliography.md#sci-045-epa-environmental-model-guidance) |
+| Scientific software, evidence, uncertainty, and acceptance | [SCI-043](bibliography.md#sci-043-nasa-standard-for-models-and-simulations) through [SCI-045](bibliography.md#sci-045-epa-environmental-model-guidance), with generic conflicts preserved in [Conflicts and Open Questions](conflicts-and-open-questions.md) |
 
 ## Hydrology and network terms
 
@@ -51,7 +65,7 @@ A stream or reach that enters another stream or selected mainstem.
 ### Mainstem
 
 The principal path through a drainage network under a stated naming or selection rule.
-In the current `build_model` input contract, the upstream mainstem is the immediate upstream reach with the largest drainage area, which is narrower than the general term.
+An applied method can select a mainstem by drainage area, stream order, name, or another documented rule, but the selected rule does not redefine the general term.
 
 ### Strahler stream order
 
@@ -166,18 +180,12 @@ Its value normally changes with water level because area and hydraulic radius ch
 ### Discharge
 
 The volumetric flow rate through a section or boundary.
-The SI unit is cubic metres per second, written as m3/s or cms in project inputs.
+The SI unit is cubic metres per second, written as m3/s.
 
 ### Area-averaged velocity
 
 The signed velocity normal to a cross-section averaged over its wetted area, defined as \(\bar{V}=A^{-1}\int_A u_n\,dA\).
 It reproduces total discharge through \(Q=A\bar{V}\) but does not preserve the local velocity distribution.
-
-### High-flow-threshold discharge (\(Q_{HFT}\))
-
-The unresolved input that DR-029 names in its lower-bound formula.
-The reviewed project record does not define the event, statistic, dataset variable, time support, or derivation that makes a discharge the high-flow threshold.
-The symbol and expanded words must not be treated as a scientific definition until an authorized source supplies that contract.
 
 ### Stage
 
@@ -194,15 +202,11 @@ The relationship can change when geometry, roughness, vegetation, debris, ice, o
 The elevation of the water surface relative to a stated vertical datum.
 The SI unit is metres.
 
-### Water-surface elevation level (WSEL)
-
-A project synonym for water-surface elevation used in Decision Register and stage-transfer material.
-The handbook uses WSE in explanatory prose and preserves WSEL when referring to a source that uses that term.
-
 ### Depth
 
 The vertical distance from the terrain or bed elevation to the water surface at a location.
 Depth is computed as \(h = WSE - z_b\) when both elevations use the same vertical datum.
+A depth value retains units, sign convention, location, and surface definition, but it does not itself carry a vertical datum.
 
 ### Velocity
 
@@ -335,18 +339,20 @@ Geometric presence inside a domain does not prove that the line intersects activ
 
 The model state at the start of a simulation, including the initial distribution of water depth or WSE.
 
-### Normal-depth run (ND)
+### Discharge-only scenario
 
-A project scenario in which upstream discharge is paired with a downstream slope-based normal-depth boundary condition.
-ND identifies a scenario family and does not mean that the entire modeled reach is in uniform flow.
+A hydraulic scenario in which an upstream discharge is paired with a stated downstream condition, such as a normal-depth outflow, without a transferred water-surface field from a downstream scenario.
+The label describes the scenario family and does not imply uniform flow throughout the domain.
 
-### Known-water-surface-elevation run (KWSE)
+### Downstream-stage-aware scenario
 
-A project scenario in which a downstream water-surface constraint is transferred from an existing downstream scenario, together with other boundary handling required by the job.
+A hydraulic scenario in which an upstream model uses water-surface information derived from one or more compatible downstream scenarios.
+The record must distinguish the nominal stage used for planning from the spatial values applied at the transfer boundary.
 
-### Stage-transfer line (STL)
+### Stage-transfer geometry
 
-A line within both upstream and downstream model domains that transfers WSE information from a downstream simulation to an upstream simulation.
+A line, point set, or other interface geometry used to transfer water-surface information from a downstream simulation to an upstream simulation.
+The geometry, selected cells, sampling rule, wet-support rule, and datum compatibility are part of the transfer contract.
 
 ### Domain
 
@@ -355,23 +361,23 @@ A domain is a model construct and is not interchangeable with a catchment or rea
 
 ### Computed domain
 
-A domain whose extent is derived by code from supplied geometries, buffers, and grid-snapping rules rather than supplied directly as the final bbox.
-In the current model builder, the computed result is a grid-aligned rectangle.
+A domain whose extent is derived from supplied geometries, buffers, and grid-snapping rules rather than supplied directly as the final bounding box.
+The realized extent, grid, and construction inputs must be recorded.
 
 ### Authored domain
 
-A final domain bbox supplied by a caller as an explicit modeling instruction.
-The current model builder requires authored coordinates to lie on the requested grid and uses them without applying its computed-domain buffers or extra-geometry bounds.
+A final domain extent supplied as an explicit modeling instruction.
+An authored domain should be validated for grid alignment, reference compatibility, required geometry containment, and hydraulic adequacy without being silently changed.
 
-### Domain code
+### Domain realization identifier
 
-The current model builder's `N...S...E...W...` string of integer cell offsets from the grid-snapped domain anchor.
-It identifies one rectangular domain realization relative to the anchor and is not a content hash or an adequacy result.
+An identifier for one realized domain extent, grid, and active-mask configuration.
+It can support comparison or addressing but does not by itself prove content integrity or domain adequacy.
 
 ### Centerline buffer
 
 A polygon formed by expanding a reach centerline laterally by a stated distance.
-The current computed-domain path uses buffered target and retained upstream centerline segments to influence rectangular bounds, but the buffer is not itself a floodplain observation or a hydraulic boundary.
+A computed-domain method can use the buffer to influence rectangular bounds, but the buffer is not itself a floodplain observation or a hydraulic boundary.
 
 ### Edge cell
 
@@ -413,11 +419,10 @@ An inactive cell is not the same as a dry active cell.
 The represented ability of water to move between locations through open cell faces, channels, structures, or boundary connections under the current state.
 Map adjacency or a crossing centerline does not by itself prove hydraulic connectivity.
 
-### Grid-snapped domain anchor
+### Grid anchor
 
-The point obtained in the current model builder by flooring the reach-centroid coordinates to the model grid.
-It anchors domain offsets and the model identifier.
-The current model-manifest schema stores this artifact in the field named `reach_centroid`, but the exported point is not necessarily the exact geometric centroid.
+A snapped reference point used to align a domain, express offsets, or compare model realizations.
+If the anchor is derived from a centroid, snapping can move it away from the exact geometric centroid, so the record should preserve both the source point and the snapping rule when that distinction matters.
 
 ## Terrain and resistance terms
 
@@ -577,20 +582,20 @@ A complete mass-balance assessment requires more than storage change alone.
 
 ### Volume convergence
 
-The project's ratio of absolute modeled storage change between output intervals to inflow volume during the interval.
-It is a storage-change proxy used for termination and does not by itself close the full mass balance.
+A dimensionless comparison between modeled storage change over an interval and a stated reference volume, such as inflow volume over that interval.
+It can support a quasi-steady diagnostic or stopping rule, but it does not by itself close the full mass balance.
 
 ### Solver exit status
 
 Evidence about how an executable process ended, such as normal completion, failure, timeout, or requested termination.
 Exit status does not establish numerical stability, hydraulic convergence, artifact completeness, or physical adequacy.
-The current stored scenario result does not preserve the raw return code, termination-signal outcome, or whether watcher-requested termination escalated from terminate to kill.
+The evidence record should preserve the raw outcome and any requested or escalated termination when those details affect diagnosis.
 
 ### Maximum wall-time termination
 
-The current `max_wall_time` condition records that elapsed wall time exceeded the configured limit while the solver process was still running and the watcher requested termination.
-It is distinct from `max_simulation_time`, convergence termination, edge termination, and solver-declared failure or success.
-The stored condition does not reveal whether terminate succeeded or the helper escalated to kill after three seconds.
+A termination condition reached when elapsed wall time exceeds a configured limit while execution is still active.
+It is distinct from a simulated-time limit, convergence termination, boundary-triggered termination, and solver-declared failure or success.
+The record should preserve whether a graceful stop succeeded or required escalation.
 
 ### Hydraulic adequacy
 
@@ -634,110 +639,78 @@ A selected collection of scenarios intended to represent a reach's hydraulic res
 
 ### Adaptive discharge selection
 
-A method that chooses the next discharge from the hydraulic responses measured at finished scenarios rather than from one fixed discharge interval.
-In the current ND job, proposal curves and measured verdicts are separate steps.
-
-### Adaptive reference
-
-The selected scenario against which the current ND algorithm measures a trial's maximum-depth, median-depth, and flooded-area changes.
-It is the current accepted reference state, which can advance through a directly accepted trial or a free-pass re-judgment of a finished scenario.
-It is algorithm state rather than a complete list of selected members.
-
-### Adaptive position
-
-The scenario whose final depth hot-starts the next newly simulated ND trial and whose discharge supports one proposal fallback.
-It advances on `accept` and `reject_low`, but not on an ordinary `reject_high`, so it need not be the most recently simulated point or a selected member.
+A method that chooses a later discharge from hydraulic responses measured at completed, scientifically accepted scenarios.
+The handbook's applied example refines adjacent intervals on a fixed candidate grid using maximum depth and flooded area.
 
 ### Scenario point
 
-One finished scenario represented by its discharge and final response metrics in the adaptive selector.
-The current curves use adopted, accepted, and rejected finished points rather than only selected members.
+One completed scenario represented by its discharge, complete identity, acceptance state, and response metrics in an adaptive selector.
+A failed or scientifically rejected point can remain in an execution inventory without dividing an interval or becoming a selected member.
 
-### Acceptance band
+### Candidate discharge grid
 
-The configured floor and ceiling for one measured change relative to the current reference.
-Current ND depth bands use absolute m, while the flooded-area band uses percentage change from reference area.
-
-### Acceptance window
-
-The discharge interval predicted from monotone response curves to begin at the earliest criterion floor crossing and end at the earliest criterion ceiling crossing.
-The window proposes where to measure next and does not determine the measured verdict.
-
-### Discharge grid
-
-The intended zero-anchored whole-m3/s lattice with spacing `q_grid_resolution` used by several current curve-based ND proposal calculations.
-Current code does not enforce this lattice for adopted scenarios, the minimum or maximum endpoint, the authored opening trial, or a position-relative fallback based on an off-grid position.
-An `_propose` result is therefore not universally grid aligned.
+A finite, explicitly authored set of discharge values from which an adaptive method can select scenarios.
+The grid, endpoints, units, rounding, candidate ordering, and tie rules belong to the method record.
 
 ### Published trial
 
-A scenario whose artifacts and manifest exist at the scenario address.
-In the current ND job, publication does not establish selected library membership because most newly simulated non-edge-error trials are published before verdict.
+A scenario whose producer has exposed its record and artifacts at an intended generation or address.
+Publication does not establish materialization, scientific acceptance, or selected library membership.
 
 ### Selected library member
 
 A scenario the selection method chooses to represent the library, distinct from every simulated or published trial.
-The current ND job does not return an explicit durable member list.
-
-### Re-judgment
-
-Recalculation of a finished scenario's adaptive verdict against a different accepted reference by using stored manifest metrics without rerunning the solver.
-The current job logs free-pass re-judgments but does not append them to the returned comparison list.
+Selected membership should be explicit, durable, and traceable to the method and evidence that produced it.
 
 ### Model identity
 
-The stable identity of the scientific and data inputs that define a model independently of a particular spatial domain realization.
-The current jobs manifest also records a domain code and a full model identifier for storage location.
-The current model identity includes the jobs image's baked `SDR_COMMIT` value.
+The stable identity of the scientific, data, and method inputs that define a model realization.
+It should cover the prepared network, source content, terrain, roughness, references, grid, domain, boundary geometry, structures, and method or producer versions needed for reproduction.
 
 ### Model identifier
 
-The current `build_model` string formed by joining the eight-character identity hash and the domain code with an underscore.
-It names the intended model directory but does not independently prove asset presence, source immutability, storage materialization, or scientific adequacy.
+A readable label or digest derived from model identity for indexing or addressing.
+It does not independently prove artifact presence, source immutability, storage materialization, or scientific adequacy.
 
-### Existing-model short circuit
+### Model reuse
 
-The current `build_model` branch that returns before raster and vector creation when a manifest exists at the predicted address, validates under the current schema, and reconstructs inputs equal to the current request.
-The branch does not recheck every asset, checksum, stored warning, or scientific acceptance condition.
+Use of an existing model realization instead of producing a new one after complete identity, required artifacts, integrity metadata, compatibility, and applicable acceptance state have been checked.
+A present address or schema-valid record alone is insufficient reuse evidence.
 
 ### Run identity
 
-In the current checkout, run identity contains only the `SupportedSolver` enum value and the jobs image's baked `SDR_COMMIT`.
-It does not identify the executable version or build, image digest, run configuration, or hardware environment.
-Run identity supports bounded provenance and comparison but does not prove version-pinned execution, complete solver-environment equivalence, or scientific adequacy.
-In the reviewed checkout, the baked `SDR_COMMIT` used by model and run identities differs from the Decision Register revision reviewed by this handbook.
-An identity therefore proves its recorded revision, not automatic agreement with the handbook's methodology snapshot.
+The stable identity of the output-affecting model, forcing, boundary, initial-state, numerical, and producer settings used for one simulation.
+Run identity supports provenance and comparison but does not by itself prove execution, materialization, scientific compatibility, or adequacy.
 
 ### Manifest
 
 A structured record that names inputs, identities, settings, artifacts, metrics, warnings, and provenance for a model or scenario.
-The applicable schema and producing job define the exact contract.
+Its schema and producing operation define the exact contract.
 
 ### Composite flood inundation map (composite FIM)
 
 A flood inundation product assembled from multiple reach or scenario results according to a stated compositing method.
-The selected methodology currently identifies pixelwise maximum as the composite pixel-value strategy, but compositing is outside the three current modeling jobs.
-An unpinned current local deployment script invokes Flows2FIM and rewrites VRT bands to maximum, but its presence does not prove deployed or scientifically accepted production.
+Its record should preserve selected source membership, compatibility evidence, transformation and overlap rules, identity, provenance, diagnostics, and acceptance state.
 
 ### Nominal downstream stage
 
-The scalar WSE value used to identify, sort, or address a KWSE scenario.
-In the current KWSE job, `bc_value` is nominal stage and does not replace the cell-specific WSE values calculated from the bound downstream source scenario.
+The scalar WSE target used to plan, index, or describe a downstream-stage-aware scenario.
+It does not replace the spatial water-surface values derived from the bound downstream source scenario or bracketing sources.
 
-### Stage grid
+### Nominal stage grid
 
-A discrete set of nominal downstream-stage targets used to plan KWSE scenarios.
-DR-033 ALT-B selects a zero-anchored per-reach grid with an increment from `{0.25, 0.5, 1, 2, 5}` m.
+A discrete set of downstream-stage targets used to plan downstream-stage-aware scenarios.
+The datum, units, bounds, increments or explicit members, binding rule, and rounding policy belong to the planning record.
 
 ### Planned scenario
 
 One intended discharge-stage target together with its bound downstream source scenario and hot-start source.
-A planned scenario is planning evidence and does not become materialized merely because a job was submitted or returned a path.
+A planned scenario is planning evidence and does not become materialized merely because execution was requested or an address was returned.
 
 ### Transfer point
 
 One grid location where a transferred downstream condition is written into an upstream solver boundary.
-Current code writes a point `HFIX` when sampled downstream depth plus terrain is strictly greater than zero, without separately requiring positive source depth.
+A defensible rule checks terrain-elevation datum compatibility, depth units and surface definition, valid nodata masks, strictly positive wet support when required, and coordinate mapping before emitting a value.
 
 ### Publication
 
@@ -745,7 +718,6 @@ The state in which one or more producer outputs have become externally observabl
 A failed write attempt that makes no intended output externally observable is not publication.
 Partial publication exposes some but not all required outputs.
 Complete publication exposes all outputs required by the producer write contract, but it does not prove integrity, one-generation consistency, compatibility, materialization, selected membership, validity, or acceptance.
-Current scenario publication is sequential and makes assets externally observable before writing the manifest last, so it can expose partial publication and is not one atomic directory transaction.
 
 ### Materialization
 
@@ -755,17 +727,17 @@ Materialization is distinct from job success, publication, storage presence, and
 ### Reconciliation
 
 Repeated comparison of desired state with observed materialized state followed by bounded action to close a detected gap.
-The target reconciliation loop observes storage rather than treating a synchronous job response as completion evidence.
+Reconciliation observes storage rather than treating a synchronous operation response as completion evidence.
 
 ### Asset provenance
 
 The trace from an artifact to its source inputs, producer, identity, realization, transformations, retrieval or creation time, address, and integrity metadata.
 An asset href alone is not complete provenance.
 
-### Immutable-version intent
+### Immutable generation
 
-The intent that a scientifically distinct object or generation remains available at a stable address without in-place mutation.
-The current addressed-path design supports grouping and reuse, but sequential same-address overwrite and identity omissions prevent a complete immutability guarantee.
+A scientifically distinct object version that remains available without in-place mutation after publication.
+Generation-specific addressing or an atomic pointer to immutable content can preserve prior complete generations for recovery and comparison.
 
 ### Scientific software contract
 
@@ -785,7 +757,7 @@ A methodology change that invalidates reuse should create a distinct identity or
 ### Same-address collision
 
 A condition in which two scientifically unequal requests derive the same storage address.
-Exact manifest comparison can reject reuse while still allowing a later run to replace or mix assets at that shared address.
+Exact record comparison can reject reuse while still allowing a later operation to replace or mix artifacts at that shared address.
 
 ### Atomic publication
 
@@ -803,21 +775,27 @@ An authorized conclusion about a named change and intended use under stated revi
 The methodology-change verdicts are `READY`, `READY WITH CONDITIONS`, and `NOT READY`.
 They do not replace the diagnostic verdict vocabulary used by the validation framework.
 
-## Boundary terminology conflict
+## Boundary terminology discipline
 
-### `FREE`
+### Free overfall
 
-`FREE` is the current code token for a boundary condition whose value is documented as a normal-depth slope in m/m.
-The token alone does not establish that the behavior is physically freefall.
+A physical condition in which flow loses downstream support near a drop or control.
+It is not a synonym for a slope-based normal-depth outflow.
 
-### Freefall
+### Normal-depth outflow
 
-In hydraulic science, a physical free overfall loses downstream support and approaches a control near the drop.
-Freefall is also Decision Register language for water leaving a boundary without resistance, distinct there from a normal-depth condition.
-The relationship between that scientific description and the current `FREE` slope-based implementation is unresolved.
+A downstream boundary that uses a stated slope and a normal-depth relation under its solver-specific formulation.
+The slope, direction, cells, units, and solver semantics must be recorded.
 
-### Normal depth in boundary descriptions
+### Specified-stage boundary
 
-Normal depth is the scientific hydraulic state defined above and is also used in project descriptions of slope-based outflow conditions.
-The phrases `FREE`, freefall, and normal depth must not be substituted for one another without a source-specific explanation.
-See [Conflicts and Open Questions](conflicts-and-open-questions.md#conf-001-boundary-condition-terminology-and-behavior).
+A boundary that prescribes water-surface elevation or a stage time series relative to a stated reference.
+It can exchange water with the domain according to the modeled solution and boundary formulation.
+
+### Transferred-stage boundary
+
+A boundary whose spatial water-surface values are derived from one or more compatible source scenarios.
+The source identities, transfer geometry, wet-support rule, interpolation, coverage, and datum compatibility belong to the boundary contract.
+
+An interface label never proves its physical or numerical behavior.
+See [CQ-001](conflicts-and-open-questions.md#cq-001-terminology-behavior-mismatch).

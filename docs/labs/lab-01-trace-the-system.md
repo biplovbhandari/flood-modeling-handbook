@@ -1,11 +1,11 @@
 # Lab 1: Trace One Discharge Through the System
 
-This lab asks you to trace one hypothetical discharge from hydrologic meaning to a composite FIM product.
-The goal is to identify each change in meaning and ownership, not to run a solver.
+This lab traces one synthetic discharge from hydrologic evidence to a composite flood-depth product.
+The goal is to identify each change in scientific meaning, representation, evidence, and responsibility.
 
 ## Prerequisites
 
-Complete the three Stage 1 orientation chapters:
+Complete these chapters before starting:
 
 - [What Is Flood Inundation Mapping?](../00-orientation/01-what-is-fim.md)
 - [End-to-End Mental Model](../00-orientation/02-end-to-end-mental-model.md)
@@ -13,158 +13,176 @@ Complete the three Stage 1 orientation chapters:
 
 Read [Lab Conventions](README.md), [Source Authority](../reference/source-authority.md), [Glossary](../reference/glossary.md), and [Equations and Units](../reference/equations-and-units.md).
 
-## Execution boundary
+## Learning objectives
 
-All required steps are **Core inspection**.
-No command or production access is required, and any independent tooling remains optional and user-run without changing the evidence boundary.
+After completing this lab, the learner should be able to:
 
-## Scenario
+- preserve the meaning and units of discharge across hydrologic and hydraulic records;
+- distinguish a model record, scenario definition, hydraulic response, scenario record, verified artifact set, library membership, and composite product;
+- identify the evidence needed before moving from one claim to the next; and
+- apply the five evidence labels without extending a synthetic packet beyond its stated scope.
 
-A hydrologic source supplies an upstream discharge of 250 m3/s for reach R.
-Assume the source has documented the reach, time or library context, units, and uncertainty.
-A model for reach R already exists.
-A scenario planner chooses a downstream-stage-aware scenario whose upstream discharge is 250 m3/s and whose downstream dependency is scenario D from the next reach downstream.
-The scenario runs successfully and publishes a scenario manifest and final depth artifact.
-Later processing considers the scenario for a reach library and then for a composite depth product.
+## Synthetic network and forcing packet
 
-The values and identifiers are instructional rather than evidence from a production run.
+Reaches `R-100` and `R-300` are immediate upstream neighbours of terminal reach `R-200`.
+The forcing source is a synthetic event estimate for `R-200` at 09:00 on the event clock.
+
+| Forcing item | Supplied value |
+| --- | --- |
+| Total discharge at the `R-200` model boundary | 250 m3/s |
+| Contribution associated with the `R-100` inflow line | 148 m3/s |
+| Contribution associated with the `R-300` inflow line | 90 m3/s |
+| Named local contribution | 12 m3/s |
+| Time support | One-hour average centred on 09:00 |
+| Illustrative uncertainty interval for total discharge | 225 to 275 m3/s |
+| Source limitation | No observation record, calibration record, or probability interpretation is supplied. |
+
+The three contributions sum to the stated total.
+The packet does not establish that the uncertainty interval is suitable for any external use.
+
+## Synthetic model packet
+
+The model record for `R-200` supplies:
+
+- a prepared network in which `R-100` and `R-300` flow into `R-200`;
+- terrain elevations in vertical datum `VD-1`;
+- a roughness grid with a complete category lookup;
+- 10 m square hydraulic cells in one projected horizontal reference;
+- separate inflow lines for `R-100` and `R-300`;
+- a named local-inflow geometry;
+- a terminal downstream boundary region; and
+- a model identity derived from the realized inputs and settings.
+
+The model record contains no event discharge, downstream value, initial water state, or calculated flood response.
+
+## Synthetic scenario and response packet
+
+The scenario record supplies:
+
+| Scenario item | Supplied value |
+| --- | --- |
+| Reach and model | `R-200` and the model described above |
+| Scenario family | Discharge-only |
+| Upstream forcing | 148, 90, and 12 m3/s through the three named input geometries |
+| Downstream condition | Normal-depth outflow with slope 0.0015 m/m |
+| Initial state | Dry active cells |
+| Numerical setting | Saved output every 900 s |
+| Requested outputs | Final depth, inundation geometry, diagnostic history, and scenario record |
+
+The supplied hydraulic response contains:
+
+| Response item | Supplied value |
+| --- | --- |
+| Final maximum depth | 3.20 m |
+| Final flooded area | 1.84 km2 |
+| Storage-change observation | The final saved interval satisfies the scenario's stated storage-change threshold. |
+| Termination observation | The run controller requested a normal stop after the threshold was met. |
+| Missing evidence | No complete inflow-outflow balance, grid sensitivity, boundary sensitivity, or observation comparison is supplied. |
+
+The scenario record repeats the complete model identity, forcing allocation, downstream condition, initial state, numerical settings, output roles, diagnostic summary, and artifact integrity values.
+
+## Synthetic materialization, library, and composite packet
+
+A separate storage observation reports that the scenario record, final depth raster, inundation geometry, and diagnostic history are present at their recorded locations.
+Each observed object has nonzero size and an integrity value matching the value in the scenario record.
+This observation establishes presence and identity for the listed objects, but it does not establish hydraulic adequacy.
+
+The response-library record lists selected `R-200` discharges of 100, 125, 175, 200, 225, and 250 m3/s.
+It includes the 250 m3/s scenario because that value is the upper endpoint of the stated library range.
+The record contains the complete selected set and an inclusion reason for every member.
+
+The composite packet supplies compatible final-depth rasters for `R-100`, `R-300`, and `R-200`.
+All three rasters use metres of depth, the same 10 m grid, the same horizontal reference and alignment, the same wet and dry convention, and the same nodata convention.
+The stated overlap rule is pixelwise maximum depth, as described in [MX-012](../reference/decision-code-artifact-crosswalk.md#mx-012-compositing).
+At one overlapping cell, the three depths are 1.10 m, 0.90 m, and 1.40 m.
+
+## Part A: Check the forcing
+
+**Core inspection:** Verify that the three contributions sum to 250 m3/s.
+State the quantity, unit, reach, time support, and supplied uncertainty limit.
+Explain why the total cannot be interpreted as a volume, WSE, water depth, instantaneous observation, or 1 percent AEP discharge.
+
+## Part B: Separate model and scenario
+
+**Core inspection:** List at least four assets or settings supplied by the model record.
+List at least four scenario choices that the model record does not supply.
+Explain why a complete model record is necessary but insufficient to define a hydraulic response.
+
+## Part C: Trace discharge into spatial boundaries
+
+**Core inspection:** Map each discharge contribution to its named input geometry.
+Explain why a discharge magnitude without location, sign convention, and geometry does not completely define hydraulic forcing.
+Check that the allocated discharge equals the source total without double counting the local contribution.
+
+## Part D: Separate forcing, response, record, and materialization
+
+**Core inspection:** Classify every scenario and response item as an imposed forcing, imposed condition, calculated response, diagnostic, provenance, or storage observation.
+Explain why the final maximum depth is not the imposed discharge.
+Explain why a scenario record is not proof that each named artifact is present.
+Explain why verified presence and matching integrity do not establish numerical or hydraulic adequacy.
+
+Use [MX-005](../reference/decision-code-artifact-crosswalk.md#mx-005-model-development), [MX-010](../reference/decision-code-artifact-crosswalk.md#mx-010-publication), and [MX-011](../reference/decision-code-artifact-crosswalk.md#mx-011-materialization) to check the distinctions.
+
+## Part E: Evaluate library membership
+
+**Core inspection:** State what the response-library record establishes about the 250 m3/s scenario.
+State what it does not establish about the hydrologic bounds, numerical adequacy, hydraulic validity, or suitability for another event.
+Explain why an executed scenario and a selected library member are different claims.
+Use [MX-003](../reference/decision-code-artifact-crosswalk.md#mx-003-discharge-selection) to check the separation between attempted scenarios and selected membership.
+
+## Part F: Calculate one composite cell
+
+**Core inspection:** Apply the stated pixelwise-maximum rule to the three supplied depth values.
+Carry the depth unit through the calculation.
+List at least six compatibility checks that must hold before the same rule is applied across complete rasters.
+Explain why a maximum-depth rule cannot be transferred without review to WSE, velocity, arrival time, or categorical hazard.
+
+## Part G: Complete the trace table
+
+Create one table with these columns.
+
+| Step | Value or object | Scientific meaning | Representation or artifact | Evidence label | Required check before the next claim |
+| --- | --- | --- | --- | --- | --- |
+| 1. Discharge source |  |  |  |  |  |
+| 2. Model record |  |  |  |  |  |
+| 3. Boundary conditions |  |  |  |  |  |
+| 4. Scenario definition |  |  |  |  |  |
+| 5. Hydraulic response |  |  |  |  |  |
+| 6. Scenario record |  |  |  |  |  |
+| 7. Verified artifact set |  |  |  |  |  |
+| 8. Library membership |  |  |  |  |  |
+| 9. Composite product |  |  |  |  |  |
+
+Use only **Scientific foundation**, **Applied example**, **Design principle**, **Evidence note**, and **Open question** as evidence labels.
+Mark every row where scientific meaning, representation, responsibility, or evidence scope changes.
+
+## Part H: State the evidence limits
+
+**Core inspection:** Write one direct sentence for each supplied packet stating what it establishes.
+Write one direct sentence for each packet stating the most important claim that it does not establish.
+Record at least one **Open question** that must be resolved before operational use.
 
 ## Deliverable
 
-Create one trace table with the following columns:
-
-| Step | Value or object being traced | Scientific meaning | Software representation or artifact | Owner | Evidence label and source | Required check before proceeding |
-| --- | --- | --- | --- | --- | --- | --- |
-| 1. Hydrologic forcing |  |  |  |  |  |  |
-| 2. Job input |  |  |  |  |  |  |
-| 3. Hydraulic boundary condition |  |  |  |  |  |  |
-| 4. Solver response |  |  |  |  |  |  |
-| 5. Job response |  |  |  |  |  |  |
-| 6. Scenario manifest |  |  |  |  |  |  |
-| 7. Verified storage materialization |  |  |  |  |  |  |
-| 8. Reach library |  |  |  |  |  |  |
-| 9. Composite product |  |  |  |  |  |  |
-
-Use the smallest evidence set that supports each answer.
-Separate Scientific foundation, Selected methodology, Current implementation, Target design, Evidence or experiment, and Open question.
-
-## Part A: Establish the model context
-
-**Core inspection:** Explain why the pre-existing reach model is necessary but not sufficient to define the scenario.
-Name at least four model assets produced by `build_model` and at least three scenario-specific choices that are not fixed by the model manifest alone.
-
-Use these sources:
-
-- [`BuildModelInputs` and `ModelManifest`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/models/build_model.py)
-- [`BuildModelJob`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/jobs/build_model.py)
-
-## Part B: Trace the value into the job
-
-**Core inspection:** Locate the current typed field that carries 250 m3/s in a downstream-stage-aware scenario.
-Record the field name, declared unit, validation rule, and enclosing input objects.
-
-Use this source:
-
-- [`KWSEScenario` and `RunKWSEScenariosInputs`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/models/run_kwse_scenarios.py)
-
-Then explain what the number means before the job receives it and what the jobs package does not establish about its hydrologic origin.
-
-## Part C: Trace the value into the hydraulic boundary
-
-**Core inspection:** Identify how the current job converts the scenario discharge into a hydraulic boundary condition.
-Record the boundary type, boundary geometry, and assigned value.
-
-Use these sources:
-
-- [`RunKWSEScenariosJob`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/jobs/run_kwse_scenarios.py)
-- [`QFixBC` and `RunScenarioInputs`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/models/solvers.py)
-
-Explain why a discharge number without its inflow geometry would not completely define the hydraulic forcing.
-
-## Part D: Distinguish forcing from response
-
-**Core inspection:** List at least four hydraulic response quantities or artifacts that can result from the scenario.
-For each item, state whether it is the imposed 250 m3/s forcing, a computed response, a diagnostic, or provenance.
-Classify three KWSE quantities separately.
-The supplied `bc_value` is a nominal downstream-stage or stage-grid planning coordinate used in the scenario label and address.
-`RunScenarioResults.nominal_wse` is the achieved upstream-end nominal WSE computed during post-processing and rounded for storage in scenario properties.
-Transferred pointwise `HFIX` values are imposed WSE boundary values derived from the downstream source scenario rather than from `bc_value`.
-
-Use this source:
-
-- [`RunScenarioResults`, `ScenarioAssets`, and `RunScenarioManifest`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/models/solvers.py)
-
-Explain why a successful process exit and a plausible depth raster do not by themselves prove hydraulic adequacy.
-
-## Part E: Distinguish the response, manifest, and materialization
-
-**Core inspection:** Identify the two fields in `RunKWSEScenariosResult` and explain what the response tells its caller.
-Then distinguish that returned response from each scenario manifest named by its paths and from a separate verification that the manifest and assets materialized in storage.
-
-Use these sources:
-
-- [`RunKWSEScenariosResult`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/models/run_kwse_scenarios.py)
-- [`RunScenarioManifest`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/models/solvers.py)
-- [Target orchestrator design](https://github.com/NGWPC/twod-fim-knowledge-base/blob/6ca2d8471676eb4d6b4a86ef3c4683e029ef017e/system-design/orchestrator-design.md)
-
-Explain why a returned manifest path is evidence to inspect rather than proof that every intended artifact is present and scientifically adequate.
-
-## Part F: Trace the manifest into a library
-
-**Core inspection:** Explain who chooses the downstream-stage-aware scenario points and who executes them.
-Identify what the scenario manifest proves and what additional planning evidence is needed to show that the intended library is complete.
-
-Use these sources:
-
-- [Current KWSE job documentation](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/docs/jobs/run_scenarios/run_kwse_scenarios.md)
-- [Target orchestrator design](https://github.com/NGWPC/twod-fim-knowledge-base/blob/6ca2d8471676eb4d6b4a86ef3c4683e029ef017e/system-design/orchestrator-design.md)
-- [XW-006: Scenario-library bounds and sampling](../reference/decision-code-artifact-crosswalk.md#xw-006-scenario-library-bounds-and-sampling)
-
-## Part G: Trace the library into a composite product
-
-**Core inspection:** Identify the selected composite pixel-value rule and its decision status.
-State whether a current modeling-job entry point performs this step.
-List at least four compatibility checks required before a depth raster from reach R can be combined with another reach result.
-
-Use these sources:
-
-- [XW-008: Composite FIM pixel calculation](../reference/decision-code-artifact-crosswalk.md#xw-008-composite-fim-pixel-calculation)
-- [Quantities, Units, and Datums](../00-orientation/03-quantities-units-and-datums.md)
-
-## Part H: Mark the transitions
-
-**Core inspection:** Mark every row in your trace where one of the following changes occurs:
-
-- a hydrologic quantity becomes a hydraulic-model input;
-- a job input becomes a spatial boundary condition;
-- a forcing produces a modeled response;
-- a completed job returns paths and warnings to its caller;
-- a returned path is read as a scenario manifest;
-- a manifest and its required assets are verified in storage;
-- an executed scenario becomes a candidate library member;
-- stored reach results become inputs to a composite product; or
-- responsibility moves between science, tooling, orchestration, and storage verification.
-
-For each transition, write one sentence explaining why the previous evidence is not sufficient for the next claim.
-
-## Part I: Classify bounded project evidence
-
-**Core inspection:** Classify this separate statement using one of the six evidence labels:
-
-> A named project case records that one configured scenario completed and produced a depth raster and a maximum-depth metric under the case's stated inputs.
-
-Explain what the correct label permits you to claim and why the observation does not by itself establish selected methodology, general hydraulic adequacy, or current deployed behavior outside that case.
+Submit the completed trace table, the allocation and composite calculations, and the evidence-limit statements.
 
 ## Competency criteria
 
-Your trace is complete when it:
+The lab is complete when the answer:
 
-- preserves 250 m3/s as discharge rather than confusing it with volume, WSE, stage, or depth;
-- identifies the `upstream_discharge` field and `QFIX` boundary;
-- distinguishes the solver response from the forcing;
-- distinguishes `RunKWSEScenariosResult` from a scenario manifest and verified storage materialization;
-- assigns scenario planning and compositing outside the current job boundary;
-- uses the six evidence labels without substituting one for another; and
-- records at least one Open question or required evidence check.
+- verifies \(148+90+12=250 \text{m3/s}\);
+- preserves discharge meaning, units, reach, and time support;
+- distinguishes the model record from the scenario definition;
+- distinguishes the calculated response from the scenario record and verified artifact set;
+- explains why execution does not automatically confer library membership;
+- calculates a composite depth of 1.40 m at the supplied cell;
+- uses only the five public evidence labels; and
+- records at least one unresolved evidence requirement.
 
-After completing the lab, compare your reasoning with [Lab 1 Solution](solutions/lab-01-trace-the-system-solution.md).
+After completing the lab, compare the reasoning with [Lab 1 Solution](solutions/lab-01-trace-the-system-solution.md).
+
+## Source notes
+
+- **Scientific foundation:** Discharge, depth, WSE, and datum concepts are defined in [Glossary](../reference/glossary.md) and [Equations and Units](../reference/equations-and-units.md).
+- **Design principle:** [MX-001](../reference/decision-code-artifact-crosswalk.md#mx-001-boundary-conditions) separates physical boundary meaning from labels and records.
+- **Evidence note:** Every numerical value and record in this prompt is constructed teaching material.

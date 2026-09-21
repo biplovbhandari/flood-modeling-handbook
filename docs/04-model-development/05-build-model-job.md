@@ -1,435 +1,299 @@
-# The Build-Model Job
+# The Model-Building Operation
 
-The current `build_model` job turns one prepared-network reach and caller-authored modeling inputs into a rectangular terrain and roughness grid, vector geometry assets, a model manifest, and a result that names the intended output directory.
-It constructs model inputs for later scenarios, but it does not run a hydraulic solver, prove that storage materialized, or establish that the resulting model is scientifically adequate.
+A model-building operation transforms prepared network, terrain, roughness, geometry, and configuration inputs into a model record and named artifacts.
+The operation should preserve the difference between requested inputs, realized settings, produced artifacts, warnings, identity, and observed storage state.
 
 ## Why this topic matters
 
-The job is where network, geometry, terrain, roughness, identity, storage, and warning contracts meet.
-A request can pass type validation and produce a complete-looking artifact directory while still carrying the wrong topology, a mutable source, an unknown vertical datum, an unmapped roughness value, or an undersized domain.
-
-Understanding the exact path makes it possible to separate software completion from hydraulic readiness and to place missing checks with the component that owns them.
+A completed operation proves only that its implemented steps finished.
+It does not by itself prove that inputs were authoritative, terrain and datums were compatible, the domain was adequate, or every expected artifact is present and valid.
 
 ## Prerequisites
 
 Read [Network Preparation](01-network-preparation.md), [Terrain, Topobathymetry, and Structures](02-terrain-topobathymetry-and-structures.md), [Roughness and Land Cover](03-roughness-and-land-cover.md), and [Domain and Boundary Geometry](04-domain-and-boundary-geometry.md).
-Use [Lab 8](../labs/lab-08-inspect-a-built-model.md) to inspect a checked-in fixture after completing this trace.
 
 ## Learning objectives
 
 After this chapter, the reader should be able to:
 
-- trace validated request data through every current `build_model` stage;
-- distinguish checked-in environment fallbacks, process-realized fallbacks, caller overrides, and manifest-recorded inputs;
-- distinguish code defaults from selected Decision Register values;
-- explain reach lookup, bankfull-width estimation, inflow construction, domain construction, raster extraction, and roughness conversion;
-- reconstruct model identity, domain code, model ID, output addressing, and manifest creation;
-- identify implemented and documented-but-unimplemented warnings;
-- explain existing-model short-circuit behavior and its evidence limits; and
-- state what each result field proves and does not prove.
+- distinguish an input record from realized settings and a model record;
+- trace a model-building operation from validation through publication;
+- explain why defaults and source names are not complete provenance;
+- identify output-affecting values that belong in model identity;
+- distinguish exact reuse from unsafe same-address reuse;
+- interpret warnings within the checks that produced them;
+- distinguish a returned address from observed materialization; and
+- define the evidence required before a built model supports scenarios.
 
-## The current execution boundary
+## The operation boundary
 
-The common `Job.run` method validates an input dictionary with the job's Pydantic model, creates a temporary directory, calls `BuildModelJob._run`, optionally prints the returned model as a SEPEX-style `plugin_results` object, and returns the result.
-Temporary files disappear when the common job context exits.
-Durable evidence therefore depends on successful copies to the configured output location or on already existing content that is independently observed.
+The operation consumes one prepared reach and already authorized source records.
+It does not decide how the network was prepared, which terrain source is scientifically preferred, which roughness values are calibrated, or whether the model is hydraulically accepted.
 
-The `build_model` request operates on one `reach_id` at a time.
-It does not prepare the network, derive a rainfall-runoff hydrograph, choose scenario discharges, construct ND or KWSE libraries, execute a solver, derive an STL, expand a domain after a run, or composite reach results.
+The operation is responsible for boundary validation, deterministic realization, artifact production, a complete model record, and a publication result.
+Scientific acceptance remains a separate review.
 
-## Step 1: Validate and realize inputs
+## Input record
 
-The input model rejects unknown top-level fields because it uses `extra="forbid"`.
-It requires `reach_id`, `reach_network_path`, and `base_output_path`.
-Other fields have typed defaults, bounds, or both.
+An input record describes the requested recipe before source resolution and geometry construction.
+Common domain fields can include:
 
-The validation that matters for this chapter includes the following behavior.
+| Field | Purpose |
+| --- | --- |
+| `reach_id` | Select the prepared modeling unit. |
+| `terrain_source` | Identify the requested elevation source. |
+| `roughness_source` | Identify the requested land-cover or roughness source. |
+| `grid_resolution` | Define intended hydraulic cell spacing. |
+| `domain` | Provide an optional authored extent. |
+| `artifacts` | Name required output roles. |
 
-- `grid_resolution`, `walk_us_dist_pct`, and `bankfull_width_multiplier` must be greater than zero.
-- `walk_us_dist_pct` has no upper bound, so values greater than 1 pass even though the field is documented as a fraction of reach length.
-- `centerline_buffer_bankfull_multiplier` has no bound, so zero and negative values pass validation.
-- `domain_buffer` must be at least zero.
-- `epsg_code` must be a positive integer.
-- An authored `domain` must have positive x and y extent and must already lie on the `grid_resolution` lattice.
-- Unknown request fields are rejected.
-- Caller-supplied reach topology is typed but not checked against graph relationships.
-- A `lulc_lookup` dictionary receives integer keys and numeric values, but completeness, positivity, representable code range, and physical plausibility are not enforced.
-- `other_geometries` values are strings, but geometry parsing occurs after input validation.
+The complete input record should also carry the prepared-network version, horizontal and vertical references, source-content identities, roughness lookup, boundary-placement settings, structure settings, and any extra extent geometries.
+These values can be represented without copying a private schema or internal implementation symbol.
 
-Type validation therefore establishes request shape and selected scalar bounds.
-It does not establish source availability, network correctness, datum compatibility, geometry intersection, source immutability, or hydraulic suitability.
-It also does not establish that `epsg_code` identifies a projected CRS with metre linear units.
-Current geometry lengths, bankfull width, buffers, later slope calculations, per-unit-width discharge, cell area, stored volume, and flooded area assume metre-based projected coordinates unless explicit conversions are applied.
-The documented inflow-placement fraction requires `0 < walk_us_dist_pct <= 1`.
-The computed-domain corridor requires `centerline_buffer_bankfull_multiplier > 0`, while any finite upper limit remains for the authorized domain-method owner to define.
-The current input-contract owner for these scientific ranges is not identified by the reviewed sources.
+## Realized settings
 
-## Checked-in fallbacks are not necessarily realized inputs
+Realized settings record what the operation actually used after resolving defaults, source aliases, and derived geometry.
+A fallback becomes evidence only after the operation records that it was selected.
 
-The settings module evaluates `DEFAULT_DEM_SOURCE`, `DEFAULT_LULC_SOURCE`, and `DEFAULT_EPSG_CODE` from environment variables when the process imports that module.
-If the variables are unset, checked-in strings supply a 3DEP seamless VRT, an Annual NLCD 2023 Collection 1.0 mosaic, and EPSG:5070.
+**Design principle:** Never infer a realized source, reference system, or tolerance from a checked-in default.
+Read the model record and the produced artifact metadata.
 
-`BuildModelInputs` then uses those process values as field defaults unless the caller supplies overrides.
-The checked-in constant is therefore only a fallback definition.
-The process environment can change the field default, and the caller can change the realized request again.
+For the synthetic `R-200` model, the realized settings are:
 
-Inspect `model_manifest.inputs` to identify the values recorded for one built artifact.
-Do not infer a realized source or CRS from the repository constant alone.
+| Setting | Realized value |
+| --- | --- |
+| Prepared network | Synthetic network version `N-1` |
+| Terrain | Synthetic blended terrain content `T-200-A` |
+| Roughness | Synthetic class conversion content `M-200-A` |
+| Grid | 10 m square cells in a projected metre-based reference |
+| Vertical reference | Example datum `VD-1`, metres |
+| Domain | Computed and snapped to $(21020, 48100, 22640, 49620)$ m |
+| Inflows | Separate lines for `R-100` and `R-300` |
+| Downstream boundary region | Terminal edge segment for `R-200` |
 
-`grid_resolution`, `walk_us_dist_pct`, `bankfull_width_multiplier`, `domain_buffer`, and `centerline_buffer_bankfull_multiplier` use checked-in code defaults rather than environment lookups.
-They can still be overridden by the caller.
+The values are self-contained and belong only to the applied example.
 
-## Code defaults and selected values are separate authorities
+## Model-building sequence
 
-The following comparison prevents a default from being described as methodology merely because the software supplies it.
+### 1. Validate the boundary record
 
-| Topic | Current checked-in code default | Selected methodology at the reviewed Decision Register revision |
-| --- | --- | --- |
-| Model resolution | `grid_resolution=10`. | DR-017 ALT-A selects 10 m. |
-| Ordinary upstream inflow offset | `walk_us_dist_pct=0.1`. | DR-016 ALT-A selects 0.25 of upstream-reach length. |
-| Inflow width | `bankfull_width_multiplier=1.0`, applied to the estimated bankfull width. | DR-015 ALT-A selects a fixed 100 m line. |
-| Headwater inflow | A single perpendicular line at the first target-reach coordinate when the upstream mainstem is null and `ds_of_lake=false`. | DR-014 ALT-B selects points distributed along the reach. |
-| Initial domain | A computed bbox from available geometry or an exact authored bbox. | DR-011 ALT-D selects the bbox of inflow, downstream STL when available, and buffered centerline. |
-| Domain expansion | No build-model expansion behavior exists. | DR-012 ALT-G selects WSE-informed expansion with a 50-bankfull-width limit. |
+Validate required fields, types, units, finite numeric values, allowed ranges, horizontal and vertical reference compatibility, and prepared-network membership.
+Reject unknown fields when silent acceptance could hide a misspelling or obsolete setting.
 
-Agreement in the 10 m row does not make every realized model 10 m because a caller can override the input.
-Disagreement in another row does not authorize the handbook to silently replace code behavior or the selected decision.
-The reviewed Decision Register selects DR-011 ALT-D, while the standalone DR-011 file also marks ALT-E as `#current`.
-That file-marker conflict remains an Open question and does not change the registered selection within its recorded status and scope.
+Boundary validation establishes structural acceptability.
+It does not establish hydraulic adequacy.
 
-## Step 2: Look up the target and optional mainstem reaches
+### 2. Resolve immutable sources
 
-The job calls `query_reach` for `inputs.reach_id` and requires the fields named by the current constants for reach ID, downstream reach ID, drainage area, stream order, and geometry.
-The checked-in field names are `reach_id`, `reach_to_id`, `total_da_sqkm`, `stream_order`, and `geometry`.
+Resolve terrain, roughness, network, structure, and geometry references to immutable versions or content digests where exact reproduction matters.
+Record both the human-readable source description and the immutable identity.
 
-The reader requests only the matching `reach_id` and rejects an unavailable dataset, a missing required field, an absent identifier, a duplicate identifier, or a horizontal CRS that does not match `epsg_code` when the source CRS is present.
-It then merges a contiguous `MultiLineString` to a `LineString` or raises when the parts cannot be merged into one line.
+A source address can remain unchanged while its bytes change.
+Hashing only the address does not pin the source.
 
-The job copies `upstream_reach_ids` from the request for later properties.
-If `upstream_mainstem_reach_id` is non-null, it independently looks up and normalizes that one reach.
+### 3. Read the prepared reach and topology
 
-The job does not derive or verify the upstream list from `reach_to_id`.
-It does not establish completeness, adjacency, mainstem membership, largest drainage area, direction, or true headwater status.
-Those facts remain caller and prepared-network responsibilities.
+Read the target reach, immediate upstream reaches, downstream reach, confluence classification, and lineage from the same prepared-network version.
+Confirm that `R-100` and `R-300` are immediate upstream neighbours of `R-200` before constructing the two inflow geometries.
 
-## Step 3: Realize the roughness lookup
+### 4. Realize roughness parameters
 
-When `lulc_lookup` is already a dictionary, the job uses that dictionary.
-When the input is a path or URI string, the job reads JSON and converts every key to an integer.
+Load the class-to-roughness mapping, validate every realized class, and record the complete mapping.
+Local overrides and calibration regions should have explicit priority and provenance.
 
-The normalized dictionary later enters model identity.
-Equivalent dictionary content and JSON-path content can therefore produce the same lookup hash even though the recorded input representation differs.
+### 5. Estimate or read characteristic width
 
-The source path itself is not included in the lookup hash.
-This is useful for content equivalence, but reproduction still requires the manifest to preserve the original input and a consumer to retain or reconstruct the resolved dictionary.
-
-## Step 4: Estimate bankfull width
-
-Current code estimates bankfull width from target-reach drainage area as
+A characteristic width can support buffers and inflow geometry, but the relation must state its inputs, units, calibration domain, and bounds.
+For an illustrative power relation:
 
 \[
-W_{bf}=2.7A_d^{0.352}
+W_{bf}=aA^b
 \]
 
-where \(A_d\) is the current `total_da_sqkm` value in km2 and \(W_{bf}\) is in m under the code's documented relation.
-The formula is recorded as current implementation, not as proof that the estimate represents every reach or flow state.
+$A$ is drainage area and $a$ and $b$ are method parameters.
+The applied model record should preserve the realized width rather than requiring later readers to reconstruct it from an undocumented relation.
 
-The estimated width has two current uses.
-It sets inflow-line length after multiplication by `bankfull_width_multiplier`, and it sets computed-domain centerline buffer distance after multiplication by `centerline_buffer_bankfull_multiplier`.
-The unmultiplied estimate is rounded to two decimals in manifest properties.
+### 6. Construct and inspect boundary geometry
 
-No validation compares the estimate with observed channel or floodplain width.
+Build inflow, outflow, and transfer-support geometry from the prepared topology and stated rules.
+Check expected intersections, selected grid cells, orientation, width, and connectivity.
 
-## Step 5: Construct and inspect the inflow line
+At the applied confluence, two inflow lines remain separate.
+Combining them into one unnamed line would erase source-specific forcing and diagnostics.
 
-`make_inflow_line` follows one of three branches.
+### 7. Construct the domain and grid
 
-1. A lake-outlet request places a perpendicular line within the target reach at `walk_us_dist_pct` of target length from the first coordinate.
-2. A null upstream mainstem places a perpendicular line at the first target-reach coordinate.
-3. A supplied upstream mainstem places a perpendicular line `walk_us_dist_pct` of mainstem length upstream from the mainstem's downstream end.
+Use either the authored domain or the documented computed-domain method.
+Snap outward to the grid, calculate rows and columns, and preserve the realized transform, extent, anchor, and construction inputs.
 
-All three branches assume meaningful coordinate order and topology.
-The line width is the estimated target-reach bankfull width multiplied by `bankfull_width_multiplier`.
+### 8. Compute a complete identity
 
-A `walk_us_dist_pct` value greater than 1 can clamp or reinterpret interpolation rather than place the line at a documented fraction within the reach.
-The request can still continue to artifact construction, so a valid manifest does not prove that the realized inflow occupies the intended fractional position.
+Model identity should change whenever an output-affecting scientific input changes.
+At minimum, identity should cover:
 
-The implemented check finds intersections between the target reach centerline and the generated line.
-It emits `centerline_inflow_multi_intersection` only when there are more than one.
-Zero and one target-reach intersections both produce no warning.
+- prepared-network version and reach lineage;
+- target reach geometry;
+- terrain and roughness content identities;
+- horizontal and vertical references;
+- grid resolution and exact realized transform;
+- domain construction or authored extent;
+- inflow and outflow geometry rules;
+- structure and topobathymetry treatment; and
+- producer and method versions needed for reproduction.
 
-For an ordinary upstream-mainstem line, zero target-reach intersections can be expected because the line lies on the adjacent upstream reach.
-The same outcome can also occur when a bad geometry misses the intended channel, so the absence of this warning is not an intersection acceptance test.
+**Design principle:** A short hash can be a convenient label but should not be the only integrity evidence.
+Store the canonical identity object and a full digest in the model record.
 
-## Step 6: Construct the domain and grid
+### 9. Check reuse safely
 
-When an authored `domain` is present, the job uses that bbox exactly and derives its anchor and offsets.
-When it is absent, the job assembles extra geometries, buffers centerlines, takes total bounds, applies `domain_buffer`, snaps outward, and derives the anchor and offsets.
+Reuse is safe only when the stored model record matches the complete requested identity and all required artifacts are observed with matching integrity metadata.
+Folder presence, a matching short label, or a schema-valid record is insufficient.
 
-A zero or negative `centerline_buffer_bankfull_multiplier` can remove the intended buffered target and approach corridor from the computed bounds while the inflow line and any other supplied geometries still allow the build to continue.
-Current validation and warnings do not reject or identify that condition.
+If the address exists but the identity differs, create a distinct generation or stop with a clear collision error.
+Do not overwrite a partially compatible model in place.
 
-The number of columns is domain width divided by `grid_resolution`.
-The number of rows is domain height divided by `grid_resolution`.
-These integer dimensions become `properties.grid` and define both destination raster transforms.
+### 10. Produce terrain and roughness rasters
 
-The job emits `large_domain_area` when rectangular area is greater than \(10^9\) square CRS units under the checked-in threshold.
-The threshold comment says it still needs tuning.
-No current build warning reports a domain that is too small, clips a floodplain, excludes an STL, or needs DR-012 expansion.
+Clip or reproject terrain with the stated continuous-data method.
+Reproject categorical land cover with a categorical method before applying the roughness lookup, or use an explicitly documented alternative.
 
-## Step 7: Build model identity and output addressing
+Confirm that both outputs share the exact grid and that nodata, units, and references remain explicit.
 
-The current `Identity` object contains exactly these fields.
+### 11. Produce vector artifacts
 
-- `sdr_commit` records the jobs image's baked `SDR_COMMIT` value.
-- `reach_geom_hash` records the first eight hexadecimal characters of SHA-256 over the target reach WKT.
-- `grid_resolution` records the realized scalar.
-- `epsg_code` records the realized horizontal CRS identifier.
-- `dem_source_inputs_hash` hashes the DEM source string.
-- `lulc_source_inputs_hash` hashes the LULC source string.
-- `lulc_lookup_dict_hash` hashes canonical JSON for the realized lookup dictionary.
+Write artifacts by stable roles rather than relying on filenames to convey meaning.
 
-The job hashes the serialized identity object and truncates the SHA-256 hexadecimal digest to eight characters to create `identity_hash`.
-It joins that value to the domain offset string to create `model_id`.
+| Artifact role | Required content |
+| --- | --- |
+| Centerline | Prepared target reach and lineage reference. |
+| Inflow geometry | One or more named source boundaries with placement provenance. |
+| Domain | Realized model extent and horizontal reference. |
+| Grid anchor | Snapped reference used for addressing or comparison. |
+| Boundary-support geometry | Outflow or transfer regions required by scenario setup. |
 
-The domain offset string has the form `N...S...E...W...` and records integer cell offsets from the grid-snapped anchor.
-It is a domain realization code rather than a content hash.
+### 12. Build the model record
 
-The job constructs `model_dir` as `base_output_path` with its trailing slash removed, followed by `/model_id/`.
-The job itself does not add `reach=<reach_id>`.
-A caller that requires reach partitioning must include the reach-specific segment in `base_output_path`.
+The model record should include:
 
-The address is content-derived only within the fields that the identity and domain code actually cover.
-It is not a complete content-addressed guarantee because source strings can name changing data and several output-affecting request values are absent from the identity object.
+- canonical input record;
+- realized settings;
+- complete identity object and digest;
+- prepared-network and source provenance;
+- domain and grid properties;
+- artifact roles, addresses, sizes, and integrity values;
+- warnings with structured evidence;
+- producer version and creation time; and
+- publication generation or transaction state.
 
-## Identity gaps that affect scientific reproduction
+The record should not use one field for two meanings or label a snapped anchor as an exact centroid.
 
-The current identity hashes DEM and LULC connection strings, not downloaded source bytes, version IDs, object ETags, or source checksums.
-The same mutable URL or path can therefore produce different terrain or land-cover content without changing these identity fields.
+### 13. Publish as one generation
 
-The current identity object does not include `reach_network_path`, upstream IDs, upstream-mainstem ID, `ds_of_lake`, `walk_us_dist_pct`, `bankfull_width_multiplier`, `centerline_buffer_bankfull_multiplier`, `domain_buffer`, `other_geometries`, or authored `domain`.
-Some of those inputs can change the domain code through changed bounds, but equal final offsets do not prove that the same boundary geometry or construction path was used.
+Stage all artifacts and the model record under a new generation.
+Verify the staged set, then promote the generation atomically when the storage system supports it.
+When atomic promotion is unavailable, use a commit marker or equivalent protocol that prevents readers from adopting an incomplete set.
 
-The current identity also has no vertical-datum field, terrain-resampling field, or explicit source-content identity.
-The manifest retains complete inputs and output checksums, so it is necessary evidence, but its presence does not close these identity gaps.
+### 14. Observe storage
 
-The baked `SDR_COMMIT` is `826a602ddcaf58bf4081dc04b65ba15b82cc8c8a` in the reviewed jobs checkout.
-It differs from the knowledge-base revision reviewed by this handbook, so the recorded identity proves only the revision it names.
+Read the promoted model record from its final address and verify every required artifact.
+Observation should check identity, role, existence, size, integrity metadata, and required raster or vector compatibility.
 
-## Step 8: Check for an existing manifest
-
-Before extracting rasters, the job checks whether `model_manifest.json` exists at the computed destination.
-If it exists, the job parses it with the current `ModelManifest` model and compares its reconstructed `inputs` object with the current validated inputs.
-
-When both checks succeed, the job returns immediately.
-It does not re-read asset bytes, verify asset existence, compare asset checksums, re-emit stored warnings, or assess scientific adequacy in this branch.
-The returned warnings are only warnings recomputed before the existence check, which currently means inflow multi-intersection and large-domain checks.
-
-When a present manifest is schema valid but its reconstructed inputs do not equal the current request, `_check_model_built` returns false and the job proceeds with a rebuild.
-When the manifest is absent or fails current manifest validation, the job also proceeds with a build at the computed destination.
-A validation failure is not returned as an existing-model warning.
-
-Several output-affecting inputs are absent from the identity object.
-If one of those inputs changes without changing the final domain code, the unequal-input request can rebuild into the same full `model_id` and `model_dir` as the existing manifest.
-Examples include topology or boundary-geometry inputs whose changed realization produces the same bbox offsets.
-The same-address outcome follows current address coverage and is not proof that the two requests are scientifically equivalent.
-
-The generated job documentation says the existence check returns a warning that the model already exists.
-Current code does not implement such a warning class or append one.
-This documentation statement must remain visibly classified as unimplemented.
-
-## Step 9: Extract the DEM
-
-The job opens `dem_source`, creates a destination transform from the domain bbox and grid dimensions, reprojects band 1 into a `float32` array, and writes `dem.tif`.
-The destination horizontal CRS is `EPSG:<epsg_code>`.
-
-The current call omits an explicit resampling argument, so Rasterio's documented nearest-neighbor default applies.
-No vertical datum is supplied, transformed, or recorded.
-The terrain asset receives an output checksum, the source connection string, and a retrieval time.
-
-Those fields identify one realized output and source address.
-They do not establish source immutability, vertical compatibility, bathymetry, drainage enforcement, structure representation, or terrain adequacy.
-
-## Step 10: Convert land cover to roughness
-
-The job reprojects the realized LULC source to the same bbox, rows, columns, and horizontal CRS as the DEM.
-It then casts the reprojected array to `uint8`, indexes a 256-entry lookup array, and writes `roughness.tif` as `float32`.
-
-The lookup array uses `-9999` for unpopulated post-cast indices.
-The current job does not reject that negative result and emits no unmapped-class warning.
-Pre-cast negative, fractional, or out-of-range values can truncate or wrap into apparently valid `uint8` indices.
-
-The generated documentation says the job checks for similar roughness values.
-Current code contains only an unimplemented marker for that check.
-It does not emit a similar-roughness warning.
-
-## Step 11: Write vector assets
-
-The job writes the following current files into the temporary directory.
-
-| Filename | Manifest role | Current content |
-| --- | --- | --- |
-| `reach.geojson` | `centerline` | The target prepared-network reach and required attributes. |
-| `inflow.geojson` | `inflow_line` | The constructed perpendicular line. |
-| `anchor.geojson` | `reach_centroid` | The grid-snapped domain anchor, not necessarily the exact centroid. |
-| `domain.geojson` | `domain` | The rectangular bbox polygon and offset fields. |
-
-The vector assets use `epsg_code` as their output horizontal CRS.
-The reach and inflow assets record `reach_network_path` as their source URL.
-The anchor and domain assets also record that path even though they are computed geometries.
-
-The current `Assets` schema does not include `outflow_area.geojson` or an STL.
-Those can be present in a broader fixture or scenario workflow without being current `build_model` outputs.
-
-## Step 12: Relocate asset hrefs and construct properties
-
-For every asset, `_create_copy_job` keeps only the filename and replaces its temporary href with `model_dir/filename`.
-It also builds a temporary-to-destination copy mapping.
-
-The properties block records grid rows and columns, drainage area, estimated bankfull width, caller-supplied upstream IDs, stream order, reach length, and caller-supplied upstream-mainstem ID.
-
-The current assignment to `properties.downstream_reach_id` uses the target `reach_id` field rather than the required network `reach_to_id` field.
-Checked-in manifests therefore can repeat the modeled reach identifier in the downstream field even when `reach.geojson` records a different `reach_to_id`.
-Use the authoritative prepared-network field for downstream adjacency until this contract is corrected or redefined.
-
-## Step 13: Create the manifest
-
-The job creates `model_manifest.json` with the following major blocks.
-
-- Top-level producer fields record type, hash algorithm, package version, creation time, reach ID, identity hash, domain code, and model ID.
-- `inputs` records the validated request, including defaults that Pydantic realized for the current request.
-- `domain` records bbox, anchor, and offsets.
-- `identity` records the seven identity inputs.
-- `properties` records grid dimensions and reach attributes.
-- `assets` records six role-keyed artifact hrefs and integrity metadata.
-- `warnings` records the implemented non-fatal build warnings emitted before manifest creation.
-
-The code writes the manifest to the temporary directory after all other temporary assets exist.
-It then adds the manifest to the copy mapping after the asset mappings, so Python's insertion-preserving dictionary iteration currently copies the six assets before the manifest.
-
-Publication is sequential rather than transactional.
-Each destination file is replaced through its own `fsspec` write, and the code provides no directory-level staging, atomic promotion, rollback, or cleanup of already copied files.
-If an asset copy fails, earlier assets can remain at the destination while later assets and the new manifest are absent.
-If a same-address rebuild replaces one or more assets before the final manifest copy, readers can temporarily encounter the older manifest paired with newly replaced assets.
-If the final manifest copy fails, that mixed state can remain after the job raises.
-
-The manifest is an inventory and provenance record.
-It is not an acceptance certificate, hydraulic result, domain-expansion result, validation report, or proof that every named remote destination remains available later.
-
-## Step 14: Copy to the output address
-
-The job iterates over the copy mapping and uses `fsspec` streams to copy each file to its destination.
-Any copy failure raises `WriteFailureError` and prevents the normal result return.
-
-A normal new-build return therefore follows completion of the copy loop in this process.
-The return object itself still does not independently observe the destination after copying, and the existing-manifest branch does not verify assets.
-The manifest-last order narrows the normal new-address visibility window because a first build has no manifest until all six assets have copied.
-It does not make publication atomic, repair partial files, prevent mixed generations at a reused address, or guarantee that a storage observer cannot read intermediate objects.
-
-In the target reconciliation pattern, observed storage is the materialization authority.
-A job result naming `model_dir` must not be treated as independent proof that a complete, current, scientifically adequate model is materialized.
-
-## Step 15: Interpret the result fields
-
-`BuildModelResult` contains four fields.
-
-| Field | What it supports | What it does not prove |
-| --- | --- | --- |
-| `identity_hash` | It identifies the current seven-field identity object under the current hash recipe. | It does not identify mutable source bytes, every output-affecting input, or hydraulic adequacy. |
-| `model_id` | It combines the identity hash with the domain offset code used for the intended folder. | It does not prove that the folder exists, is complete, or contains matching assets. |
-| `model_dir` | It names the destination address the job used or found. | It does not independently observe storage materialization. |
-| `warnings` | It carries warnings emitted by implemented checks during this call. | An empty list does not prove valid roughness, vertical datum, unclipped domain, correct topology, or current asset integrity. |
+The operation's returned address is a claim about intended output.
+Independent observation establishes materialization.
 
 ## Model-development chain
 
-![Model-development chain from prepared inputs to an addressed model directory](../assets/model-development-chain.svg)
+![Model-development chain from prepared inputs to an identified model generation](../assets/model-development-chain.svg)
 
-**What to notice:** Prepared network and source rasters enter different transformation paths.
-Geometry determines the rectangular domain and boundary artifacts, while the same domain grid controls terrain and roughness extraction.
-The figure groups the six assets and manifest as one logical publication set, but current code copies that set sequentially and does not publish it atomically.
-The manifest records inputs, identity, properties, warnings, and output checksums, but a separate observation and scientific review remain necessary before treating the directory as materialized and adequate.
+The figure shows that prepared network, terrain, and roughness follow different transformations before they become one realized model.
+The record and artifact set support traceability, while scientific acceptance remains a later gate.
 
-The figure is registered as [VIS-006](../assets/source-register.md#vis-006-model-development-chain).
+## Warnings are bounded evidence
 
-## Current warning matrix
+A useful warning carries a stable category, severity, location or affected cells, observed value, comparison threshold, and recommended check.
+Warnings can cover:
 
-| Condition | Current outcome |
-| --- | --- |
-| The inflow line intersects the target reach more than once. | The build can continue with `centerline_inflow_multi_intersection`. |
-| The domain area exceeds the checked-in threshold. | The build can continue with `large_domain_area`. |
-| The inflow line intersects the target reach zero times. | No build warning is emitted. |
-| A resolved roughness value is `-9999`. | No dedicated build warning or error is emitted. |
-| Roughness values are unusually similar. | Generated documentation describes a warning, but current code leaves the check unimplemented. |
-| The destination manifest already exists with equal inputs. | The job returns early without an existing-model warning. |
-| The destination manifest is schema valid but has unequal inputs. | The job rebuilds, potentially at the same full address when omitted identity inputs change without changing the domain code. |
-| An asset or manifest copy fails. | The job raises, but earlier destination writes are not rolled back and can leave a partial or mixed-generation directory. |
-| The domain clips a connected floodplain. | No build warning or expansion loop is implemented. |
-| A terrain or WSE vertical datum is missing or incompatible. | No build validation or warning is implemented. |
-| Source content changes behind the same DEM or LULC string. | No source-content identity warning is implemented. |
+- an inflow line with unexpected intersections;
+- a domain that exceeds an operational size threshold;
+- unmapped or invalid roughness values;
+- missing or incompatible vertical-reference metadata;
+- suspiciously uniform roughness;
+- connected wet evidence near an unintended edge from a prior realization;
+- a source that cannot be pinned immutably; and
+- an existing address whose identity or artifacts do not match.
+
+**Evidence note:** No warnings means only that the implemented checks found no reportable condition.
+It does not prove correct topology, adequate domain extent, compatible datums, complete structures, or current artifact integrity.
+
+## Synthetic failure examples
+
+### Identity omits boundary placement
+
+Two builds use the same reach, terrain, roughness, and grid but place an inflow on different tributaries.
+If boundary placement is omitted from identity, unsafe reuse can return the wrong model.
+
+### Publication stops after the rasters
+
+Terrain and roughness reach the final address, but vector boundaries and the model record do not.
+A reader that treats any folder content as completion can adopt a partial generation.
+
+### Returned address is treated as observation
+
+The operation returns a model address before a storage copy is visible or verified.
+Downstream planning begins even though a required artifact is missing.
+
+### Source identity covers only a mutable address
+
+The terrain provider updates bytes behind the same address.
+The next build appears to have the same identity even though the realized elevation changed.
 
 ## Scientific readiness after a successful build
 
-A model build is ready for scenario preparation only after additional evidence addresses the following questions.
+A built model is ready for scenario work only when:
 
-1. Does the prepared network prove reach direction, topology, mainstem selection, and source lineage?
-2. Is the realized horizontal CRS projected with metre linear units, or are explicit conversions documented for every affected geometric and raster calculation?
-3. Are DEM, roughness, vector, STL, and boundary data horizontally aligned and vertically compatible?
-4. Are terrain, bathymetry, structures, and drainage connections adequate for the intended reach and result?
-5. Are all roughness values positive, mapped, reviewable, and supported by calibration or sensitivity evidence where needed?
-6. Does the inflow intersect connected conveyance at the intended location and width?
-7. Does the domain include the relevant floodplain and transfer geometry for the largest intended scenario?
-8. Are outflow and stage-transfer cells constructed and reviewed later under the correct scenario contracts?
-9. Does independent storage observation verify the manifest and every required asset at the predicted address?
-10. Does the recorded identity cover immutable source content and the methodology revision needed for reproduction?
+1. prepared topology and lineage have passed scientific acceptance;
+2. terrain, roughness, structures, units, and datums are documented;
+3. domain and boundary geometry pass spatial and hydraulic review;
+4. model identity covers output-affecting inputs;
+5. all required artifacts are observed and integrity checked;
+6. warnings are resolved or dispositioned with rationale; and
+7. sensitivity and validation plans match the intended use.
 
 ## Common misconceptions
 
-### A validated request is a validated model
+### A validated input record is a validated model
 
-Pydantic validation establishes a bounded software contract.
-It does not validate graph topology, source content, datums, or hydraulic sufficiency.
+Schema validation checks the request boundary.
+It does not establish scientific adequacy.
 
-### A source-string hash pins the source
+### A source-address hash pins the source
 
-The hash pins the string.
-It does not pin content that can change behind that string.
+It pins text, not mutable source bytes.
 
-### Empty warnings mean the model passed QC
+### Empty warnings mean the model passed quality control
 
-Only two build warnings are currently implemented, and neither is a complete model-quality review.
+Warnings cover only implemented checks.
 
-### The manifest downstream ID is authoritative
+### Exact record equality proves current artifacts
 
-The current assignment repeats the modeled reach ID instead of using `reach_to_id`.
+Artifacts can be missing, replaced, or partially published after the record was written.
 
-### `reach_centroid` is the exact centroid
+### A returned directory proves materialization
 
-The asset contains the centroid floored to the grid.
-
-### A returned directory is observed materialization
-
-The result names the intended address.
-Storage observation, asset integrity, and scientific review are separate evidence gates.
+Materialization requires observation at the final address.
 
 ## Competency check
 
-1. Which input values come from environment-evaluated fallbacks, and where are realized values recorded?
-2. Which topology claims does the job trust rather than derive?
-3. Which selected inflow values differ from code defaults?
-4. Which seven fields currently define `identity_hash`?
-5. Why can mutable DEM content change without changing model identity?
-6. What does the existing-model branch verify, and what does it skip?
-7. Which current artifact role points to `anchor.geojson`, and why is that name misleading?
-8. Why is `properties.downstream_reach_id` not current authoritative topology evidence?
-9. Which warning statements in generated documentation are not implemented?
-10. Why does a normal result not establish scientific adequacy or independent storage materialization?
-11. Which scalar bounds must be enforced before inflow placement and computed-domain construction can satisfy their documented geometry contracts?
+1. What is the difference between the input record and realized settings?
+2. Which output-affecting values belong in model identity?
+3. Why is an address string insufficient source identity?
+4. Which evidence is required before exact reuse is safe?
+5. How does generation-based publication reduce partial-write risk?
+6. What does an empty warning list establish?
+7. Why must storage observation remain separate from the operation response?
 
-## Source notes
+## Further reading and source notes
 
-- **Current implementation:** The complete job trace, input model, geometry transformations, identity, warnings, copy behavior, result fields, and fixture tests are indexed under [JOB-009](../reference/bibliography.md#job-009-build-model-lifecycle-artifacts-and-existing-model-behavior).
-- **Current transformation details:** Terrain and roughness behavior is also indexed under [JOB-008](../reference/bibliography.md#job-008-model-development-input-transformations-and-warnings).
-- **Selected methodology:** Domain, inflow, grid, expansion, and STL decisions are indexed under [SDR-010](../reference/bibliography.md#sdr-010-domain-boundary-and-expansion-decisions).
-- **Checked-in fixture:** Lab 8 evidence is indexed under [ART-001](../reference/bibliography.md#art-001-checked-in-build-model-test-fixture).
-- **Target design and observed-state boundary:** The checked-in reconciler consumer is indexed under [SYS-005](../reference/bibliography.md#sys-005-checked-in-reconciler-build-model-caller).
-- **Open questions:** Scalar bounds, identity, existing-model, warning, clipping, datum, downstream assignment, and roughness gaps are preserved in [Conflicts and Open Questions](../reference/conflicts-and-open-questions.md).
+- **Scientific foundation:** Terrain source and surface-treatment concepts are supported by [SCI-035](../reference/bibliography.md#sci-035-usgs-3dep-one-third-arc-second-dem) and [SCI-036](../reference/bibliography.md#sci-036-usgs-dem-surface-treatments).
+- **Scientific foundation:** Land-cover and roughness concepts are supported by [SCI-039](../reference/bibliography.md#sci-039-annual-nlcd-collection-1-user-guide) and [SCI-040](../reference/bibliography.md#sci-040-usace-land-cover-and-mannings-n-guidance).
+- **Scientific foundation:** Model credibility and evidence boundaries are supported by [SCI-043](../reference/bibliography.md#sci-043-nasa-standard-for-models-and-simulations), [SCI-044](../reference/bibliography.md#sci-044-nist-assessment-of-accuracy-and-reliability), and [SCI-045](../reference/bibliography.md#sci-045-epa-environmental-model-guidance).

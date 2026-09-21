@@ -1,58 +1,51 @@
 # Lab 6 Solution: Grid Stability and Wetting
 
-This solution demonstrates one evidence-disciplined answer to the synthetic exercise.
-It does not select a project time step, threshold, grid, terrain pathway, solver configuration, or readiness decision.
+This solution gives one reproducible answer to the packets in [Lab 6](../lab-06-grid-stability-and-wetting.md).
+Use it only after attempting the prompt.
 
-## Use conditions
+## 1. CFL estimate
 
-The prerequisites, goal, inputs, ordered steps, expected deliverable, and stopping criteria are defined in [Lab 6](../lab-06-grid-stability-and-wetting.md).
-Use this solution only after attempting that prompt.
-The reasoning uses only the prompt and cited local sources, requires no command or production access, and keeps illustrative thresholds outside project authority.
-Stop when the answer satisfies the prompt's competency criteria or records the exact evidence gap that blocks production use.
-
-## 1. CFL estimate and candidate comparison
-
-The shallow-water gravity-wave speed is
+The gravity-wave speed is:
 
 \[
 c=\sqrt{gh}
-=\sqrt{(9.81\ \text{m/s2})(1.00\ \text{m})}
-=3.132\ \text{m/s}
+=\sqrt{(9.81 \text{m/s2})(1.00 \text{m})}
+=3.132 \text{m/s}
 \]
 
-The directional signal-speed estimates are
+The directional signal-speed estimates are:
 
 \[
-|u|+c=1.50+3.132=4.632\ \text{m/s}
+|u|+c=1.50+3.132=4.632 \text{m/s}
 \]
 
 \[
-|v|+c=0.50+3.132=3.632\ \text{m/s}
+|v|+c=0.50+3.132=3.632 \text{m/s}
 \]
 
-The x-direction teaching estimate is
+The x-direction teaching estimate is:
 
 \[
 \Delta t_x
-=\frac{(0.80)(20.0\ \text{m})}{4.632\ \text{m/s}}
-=3.454\ \text{s}
+=\frac{(0.80)(20.0 \text{m})}{4.632 \text{m/s}}
+=3.454 \text{s}
 \]
 
-The y-direction teaching estimate is
+The y-direction teaching estimate is:
 
 \[
 \Delta t_y
-=\frac{(0.80)(20.0\ \text{m})}{3.632\ \text{m/s}}
-=4.405\ \text{s}
+=\frac{(0.80)(20.0 \text{m})}{3.632 \text{m/s}}
+=4.405 \text{s}
 \]
 
-The controlling value is
+The controlling estimate is:
 
 \[
-\Delta t_{est}=\min(3.454,4.405)=3.454\ \text{s}
+\Delta t_{est}=\min(3.454,4.405)=3.454 \text{s}
 \]
 
-For \(\Delta t=3.0\ \text{s}\),
+For \(\Delta t=3.0 \text{s}\):
 
 \[
 C_x=\frac{(4.632)(3.0)}{20.0}=0.695
@@ -62,9 +55,9 @@ C_x=\frac{(4.632)(3.0)}{20.0}=0.695
 C_y=\frac{(3.632)(3.0)}{20.0}=0.545
 \]
 
-Both directional values are below the stated target of 0.80.
+Both directional values are below 0.80.
 
-For \(\Delta t=4.0\ \text{s}\),
+For \(\Delta t=4.0 \text{s}\):
 
 \[
 C_x=\frac{(4.632)(4.0)}{20.0}=0.926
@@ -74,119 +67,133 @@ C_x=\frac{(4.632)(4.0)}{20.0}=0.926
 C_y=\frac{(3.632)(4.0)}{20.0}=0.726
 \]
 
-The 4.0 s candidate exceeds the stated x-direction target even though it remains below the y-direction target.
-Therefore, 3.0 s is the only supplied candidate that satisfies this lab's target in both directions.
+The 4.0 s candidate exceeds the x-direction target.
+The 3.0 s candidate is the only supplied value that satisfies the teaching target in both directions.
 
-**Scientific foundation:** The calculation applies a shallow-water wave-speed and directional CFL teaching estimate.
-It is not an exact LISFLOOD-FP or SFINCS rule because actual stability and adaptive stepping depend on each solver's grid geometry, variable placement, discretization, source treatment, wetting logic, and configured controls.
+This result is not an exact solver rule.
+An operational rule depends on the numerical formulation, variable placement, grid geometry, wetting treatment, source terms, and configured controls.
 
-## 2. Wetting-transition volume account
+## 2. Wetting transition
 
-The cell area is
+The cell area is:
 
 \[
-A_i=(20.0\ \text{m})(20.0\ \text{m})=400\ \text{m2}
+A_i=(20.0 \text{m})(20.0 \text{m})
+=400 \text{m2}
 \]
 
-The supplied inflow volume is
+The supplied inflow volume is:
 
 \[
 \Delta V=Q_{in}\Delta t
-=(0.80\ \text{m3/s})(5.0\ \text{s})
-=4.0\ \text{m3}
+=(0.80 \text{m3/s})(5.0 \text{s})
+=4.0 \text{m3}
 \]
 
-With zero outflow and no source or sink, the constant-area teaching depth is
+The constant-area depth is:
 
 \[
 h=\frac{\Delta V}{A_i}
-=\frac{4.0\ \text{m3}}{400\ \text{m2}}
-=0.010\ \text{m}
+=\frac{4.0 \text{m3}}{400 \text{m2}}
+=0.010 \text{m}
 \]
 
-The resulting WSE is
+The resulting WSE is:
 
 \[
-\eta=z_b+h
+WSE=z_b+h
 =100.25+0.010
-=100.260\ \text{m SYN-2}
+=100.260 \text{m VD-2}
 \]
 
-The depth exceeds the illustrative \(h_{on}=0.005\ \text{m}\), so the lab classifies the target cell as wet after the interval.
-The same face flux is positive outward from the western cell and positive inward to the target cell.
-When one shared exchange is applied with equal magnitude and opposite signs, it transfers 4.0 m3 between the pair without creating water.
+The depth exceeds the illustrative \(0.005 \text{m}\) threshold.
+The simplified comparison therefore classifies the target cell as wet.
 
-If \(h_{on}=0.020\ \text{m}\), the calculated 0.010 m depth does not exceed the illustrative threshold.
-The threshold comparison would still classify the cell as dry under the simplified rule.
-Whether a solver retains the 4.0 m3 as sub-threshold storage, limits the flux, applies a thin layer, or uses another state transition is implementation-specific and cannot be inferred from this calculation.
+The face flux is outward from the western cell and inward to the target cell.
+Applying the same 4.0 m3 exchange with opposite signs transfers water without creating it across the pair.
 
-The neighbor WSE of 100.30 m exceeds the illustrative face elevation of 100.20 m, so a wet face opening is plausible in the teaching geometry.
-The supplied \(0.80\ \text{m3/s}\) flux is nevertheless a given and was not derived or validated from that head difference.
+The calculated depth does not exceed the illustrative \(0.020 \text{m}\) threshold.
+The simplified comparison would classify the cell as dry under that threshold.
+Whether the 4.0 m3 is retained as sub-threshold storage, limited at the face, represented as thin water, or handled another way is solver-specific.
 
-## 3. Resolution-pathway reasoning
+The neighbour WSE exceeds the illustrative face elevation, so an opening is plausible in the teaching geometry.
+The 0.80 m3/s flux remains a supplied value rather than a flux derived from that head difference.
 
-The arithmetic mean of the three face samples is
+## 3. Terrain pathway
+
+The arithmetic mean is:
 
 \[
 z_{mean}
 =\frac{100.60+100.05+100.60}{3}
-=100.4167\ \text{m SYN-2}
+=100.4167 \text{m VD-2}
 \]
 
-At WSE \(100.30\ \text{m SYN-2}\), a one-value mean face at 100.4167 m appears closed.
-It blocks the 10 m notch that the finer samples place below WSE.
+At \(WSE=100.30 \text{m VD-2}\), a mean face at 100.4167 m appears closed.
+It blocks the 10 m notch below the trial WSE.
 
-The minimum is
+The minimum is:
 
 \[
-z_{min}=100.05\ \text{m SYN-2}
+z_{\min}=100.05 \text{m VD-2}
 \]
 
-A one-value minimum face appears open at WSE 100.30 m.
-It can incorrectly treat the full 30 m width as open at the notch elevation and therefore create excess cross-face area or conveyance.
+A one-value minimum face appears open.
+It can incorrectly treat the full 30 m width as open at the notch elevation.
 
-A supported subgrid relationship could represent 10 m of the face below the trial WSE and 20 m above it.
-That representation better preserves the supplied width-elevation pattern, but it is not automatically correct.
-Its interpolation, roughness, terrain quality, face placement, and solver equations still require evidence.
+A supported subgrid relationship can represent 10 m below the trial WSE and 20 m above it.
+That representation preserves the supplied width-elevation pattern better than one mean or minimum.
+It still requires evidence for interpolation, roughness, terrain quality, face placement, and numerical treatment.
 
-Shifting the 30 m grid origin by 10 m changes the grouping of 10 m source samples under a coarse face.
-The notch can move into a neighboring face or be combined with different ridge samples even though nominal resolution remains 30 m.
-Resolution alone therefore does not establish the pathway.
+Shifting the coarse grid origin by 10 m changes which fine samples fall under a coarse face.
+The notch can move to another face or be grouped with different ridge samples even when nominal resolution remains 30 m.
 
-A reach centerline crossing the cell supplies network or geometry context.
-It does not establish the face opening, below-water terrain, active mask, roughness, structure treatment, or actual flux connection.
+A reach centerline crossing a cell supplies network context.
+It does not establish face opening, below-water terrain, active-mask state, roughness, structure treatment, or actual flux.
 
-## 4. Evidence-label table
+## 4. Evidence labels
 
 | Statement | Label | Reason |
 | --- | --- | --- |
-| \(c=\sqrt{gh}\) is a shallow-water gravity-wave relation. | **Scientific foundation** | It follows from the hydrostatic shallow-water model under the stated assumptions. |
-| The 3.0 s candidate satisfies this lab's directional target. | **Synthetic instructional calculation** | It follows only from the supplied values and chosen target. |
-| The reviewed current scenario path invokes LISFLOOD-FP. | **Current implementation** | [JOB-003](../../reference/bibliography.md#job-003-current-implementation-locations) maps the checked-out run path. |
-| A SFINCS reference in an interface proves current SFINCS execution. | **Unsupported conclusion**, contradicted by **Current implementation** | [CONF-003](../../reference/conflicts-and-open-questions.md#conf-003-sfincs-documentation-and-current-support) records interface references alongside a current writer that raises `NotImplementedError` and no equivalent execution path. |
-| Every project grid should use a 0.005 m wetting threshold. | **Unsupported conclusion** | The number is only a **Synthetic instructional calculation**, while wetting controls are solver, grid, and application specific. |
+| \(c=\sqrt{gh}\) is a shallow-water gravity-wave relation under the stated assumptions. | **Scientific foundation** | The relationship is part of the shallow-water context described by the cited hydraulic sources. |
+| The 3.0 s candidate satisfies this lab's directional target. | **Applied example** | The conclusion follows from the supplied values and selected target. |
+| Grid and time-step sensitivity should precede a resolution decision. | **Design principle** | [SCI-029](../../reference/bibliography.md#sci-029-hec-ras-grid-size-and-time-step-guidance) supports joint space-time review. |
+| The prompt supplies no solver run or mass-balance evidence. | **Evidence note** | The solver-evidence boundary states the absence directly. |
+| Every solver and grid should use a 0.005 m wetting threshold. | **Open question** rejecting the proposed conclusion | The packet provides no basis for a universal threshold. |
 
-No synthetic calculation is Selected methodology, Current implementation, Target design, or project Evidence or experiment.
+Resolving the final question would require solver-specific equations and controls, grid and terrain evidence, volume handling, sensitivity results, and intended-use acceptance criteria.
 
-## 5. Missing evidence and readiness statement
+## 5. Public-source scope
+
+| Source | Supported concept | Unsupported extension |
+| --- | --- | --- |
+| [SCI-031](../../reference/bibliography.md#sci-031-lisflood-fp-local-inertial-formulation) | A peer-reviewed local-inertial formulation, face flux, friction, wetting, time stepping, and numerical-efficiency context | Exact behavior of an unnamed executable, version, grid, or scenario |
+| [SCI-032](../../reference/bibliography.md#sci-032-sfincs-user-manual) | Solver-specific grid, mask, elevation, roughness, subgrid, CFL, wet-state, and numerical-parameter documentation for the stated release | An exact rule for another solver or proof that the lab values are accepted settings |
+| [SCI-033](../../reference/bibliography.md#sci-033-lisflood-fp-user-manual) | Documented input, output, boundary, and initial-depth semantics for the stated historical release | Exact behavior, build, or validation status of another executable |
+| [SCI-034](../../reference/bibliography.md#sci-034-sfincs-forcing-documentation) | Water-level and discharge forcing concepts, units, and time references for the stated release | Solver equivalence or validation of this teaching packet |
+
+Public capability documentation supports scientific and software concepts within its stated scope.
+It does not supply run evidence for this lab.
+
+## 6. Missing evidence and readiness
 
 | Missing item | Category | Why it matters |
 | --- | --- | --- |
-| Actual cell and face geometry, including local small faces | Missing input | The controlling travel distance can differ from nominal resolution. |
-| Complete affine transform and horizontal CRS | Missing input | Resolution alone does not establish location, alignment, or horizontal units. |
-| Terrain units, vertical datum, lineage, and error | Missing input | False elevation differences can create or remove pathways and depth. |
-| Terrain sampling and face-elevation method | Implementation check | Mean, minimum, and subgrid representations produce different openings. |
-| Roughness source, scale, resampling, and face treatment | Implementation check | Resistance changes speed, flux, and wetting behavior. |
-| Active, inactive, and boundary mask semantics | Implementation check | Masks determine which connections exist and where external flux enters. |
-| Solver executable, version, equation set, and numerical formulation | Implementation check | The teaching estimate cannot define the operational stability rule. |
-| Actual internal adaptive or fixed-step logic and limits | Implementation check | Output spacing and nominal settings may not equal internal steps. |
-| Wetting and drying thresholds, hysteresis, flux limiting, and thin-water treatment | Implementation check | Near-dry state changes affect connectivity, speed, and storage. |
-| Forcing, boundary geometry, values, timing, and provenance | Missing input | The hydraulic state and wave speed depend on the imposed problem. |
-| Cell, boundary, source, sink, and domain-wide volume accounting | Numerical-validation result | A stable-looking wetting front can still lose or create water. |
-| Paired spatial and temporal sensitivity evidence | Numerical-validation result | One grid and time step do not establish numerical adequacy. |
-| Observed WSE, depth, extent, timing, or velocity evidence | Physical-validation result | Numerical consistency does not establish physical adequacy. |
-| Accepted project criteria for time-step, pathway, and wetting sensitivity | Unresolved project decision | Readiness needs stated tolerances and decision scope. |
+| Actual cells and face geometry | Missing input | The controlling travel distance can differ from nominal resolution. |
+| Complete affine transform and horizontal reference | Missing input | Resolution alone does not establish location or alignment. |
+| Terrain units, vertical datum, lineage, and error | Missing input | Elevation error can create or remove pathways. |
+| Terrain sampling and face-elevation method | Implementation record | Mean, minimum, and subgrid choices produce different openings. |
+| Roughness source, scale, resampling, and face treatment | Implementation record | Resistance changes speed, flux, and wetting. |
+| Active-mask and boundary semantics | Implementation record | Masks determine connections and external flux locations. |
+| Numerical engine, version, equations, and formulation | Implementation record | The teaching estimate cannot define the operational rule. |
+| Actual internal time-step logic and limits | Implementation record | Saved-output spacing does not identify internal steps. |
+| Wetting thresholds, hysteresis, flux limiting, and thin-water treatment | Implementation record | Near-dry treatment affects connectivity and storage. |
+| Forcing and boundary values, geometry, timing, and provenance | Missing input | The hydraulic state depends on the imposed problem. |
+| Complete volume accounting | Numerical-verification result | A plausible front can still create or lose water. |
+| Paired grid and time-step sensitivity | Numerical-verification result | One resolution and one step do not establish adequacy. |
+| Observation or accepted-benchmark comparison | Physical-validation result | Numerical consistency does not establish physical adequacy. |
+| Predeclared tolerances and intended use | Acceptance criterion | Readiness requires a stated decision basis. |
 
-**Readiness:** The arithmetic is complete as a synthetic instructional calculation.
-It is not ready to define a production time step, wetting threshold, terrain aggregation, domain pathway, or solver acceptance decision.
-Production readiness remains blocked by the missing input, implementation, numerical-validation, physical-validation, and decision evidence listed above.
+**NOT READY for an operational time step, wetting threshold, terrain pathway, or hydraulic acceptance decision.**
+The arithmetic is reproducible, but the missing input, implementation, numerical-verification, physical-validation, and acceptance evidence is material.
+That boundary is consistent with [MX-002](../../reference/decision-code-artifact-crosswalk.md#mx-002-convergence) and [CQ-005](../../reference/conflicts-and-open-questions.md#cq-005-insufficient-convergence-evidence).

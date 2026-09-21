@@ -1,9 +1,6 @@
 # Flood Modeling Handbook
 
-An independently maintained handbook for learning hydrology, hydraulics, and flood-inundation modeling.
-
-The source repository is private, but the rendered GitHub Pages site may be public.
-When publishing is enabled, the site will be available at <https://biplovbhandari.github.io/flood-modeling-handbook/>.
+A handbook for learning hydrology, hydraulics, flood-inundation modeling, validation, and scientific software practice.
 
 ## Documentation source
 
@@ -24,8 +21,3 @@ python -m mkdocs serve
 ```bash
 python -m mkdocs build --strict
 ```
-
-## Publishing status
-
-GitHub Pages deployment is manual while the public-content review remains pending.
-The existence of a successful build does not by itself approve the content for public release.

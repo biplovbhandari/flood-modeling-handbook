@@ -1,8 +1,22 @@
 # Equations and Units
 
-This reference gives the minimum equation, variable, unit, assumption, and project-use context needed by later chapters.
+This reference gives the minimum equation, variable, unit, assumption, and interpretation context needed by later chapters.
 Symbols are local to each equation unless a section states otherwise.
 SI units are the default.
+
+## Source mapping
+
+The equations and assumptions below synthesize the source families listed in the [Bibliography and Source Map](bibliography.md).
+Applied-example equations state their constructed values and assumptions locally.
+
+| Equation family | Primary source records |
+| --- | --- |
+| Discharge, continuity, energy, momentum, hydraulic depth, and Froude number | [SCI-016](bibliography.md#sci-016-hec-ras-continuity-equation) through [SCI-021](bibliography.md#sci-021-usace-subdivision-froude-number) |
+| Flow regimes, Manning flow, normal depth, loss, and downstream boundaries | [SCI-022](bibliography.md#sci-022-hec-ras-flow-regime-boundary-guidance) through [SCI-026](bibliography.md#sci-026-hec-ras-2d-external-boundary-conditions) |
+| Two-dimensional shallow-water behavior, grids, CFL reasoning, and solver limitations | [SCI-027](bibliography.md#sci-027-hec-ras-2d-unsteady-flow-hydrodynamics) through [SCI-029](bibliography.md#sci-029-hec-ras-grid-size-and-time-step-guidance), plus [SCI-031](bibliography.md#sci-031-lisflood-fp-local-inertial-formulation) through [SCI-034](bibliography.md#sci-034-sfincs-forcing-documentation) |
+| Raster transforms, alignment, reprojection, and resampling | [SCI-030](bibliography.md#sci-030-gdal-geotransform) and [SCI-042](bibliography.md#sci-042-rasterio-reprojection-and-resampling) |
+| Verification, validation, uncertainty, and evidence limits | [SCI-043](bibliography.md#sci-043-nasa-standard-for-models-and-simulations) through [SCI-045](bibliography.md#sci-045-epa-environmental-model-guidance) |
+| Applied sampling, domain, convergence, and compositing equations | Public sources listed above, the self-contained assumptions in this page, and the [Method-Evidence-Artifact Crosswalk](decision-code-artifact-crosswalk.md) |
 
 ## Unit conventions
 
@@ -21,8 +35,10 @@ SI units are the default.
 | Slope | \(S_f\) | m/m, dimensionless |
 | Manning roughness | \(n\) | \(\mathrm{s}/\mathrm{m}^{1/3}\) in SI form |
 
-Project inputs often use `cms` to mean m3/s.
-An elevation, stage, or depth value must retain its vertical datum and reference before values are combined.
+Discharge in this handbook is written in m3/s.
+An elevation or stage value must retain its vertical datum and reference before values are combined.
+A depth value must retain its units, sign convention, location, and surface definition.
+Deriving depth from terrain and WSE requires those two elevations to use compatible vertical datums.
 
 ## Discharge through a cross-section
 
@@ -44,8 +60,8 @@ Q=A\bar{V}
 **Assumptions:** The area and velocities refer to the same cross-section and time, and the integral includes the complete velocity distribution represented by that section.
 The relation \(Q=A\bar{V}\) is exact for the defined area average but becomes an approximation when \(\bar{V}\) is estimated from a point, subsection, different location, or assumed uniform distribution.
 
-**Project use:** This equation explains the discharge imposed at an inflow boundary and the relationship among channel geometry, velocity, and flow.
-It is a scientific foundation rather than a claim that the current jobs calculate every boundary discharge from area and velocity.
+**Interpretation:** This equation explains the discharge imposed at an inflow boundary and the relationship among channel geometry, velocity, and flow.
+It is a scientific foundation rather than a claim that every boundary discharge is calculated from area and velocity.
 
 ## Storage continuity
 
@@ -78,7 +94,7 @@ S(t_1)-S(t_0)=
 **Assumptions:** The control volume and sign convention are defined, and all material fluxes and source or sink terms are included consistently.
 For constant-density incompressible water, the volume balance is equivalent to a mass balance after every term is multiplied by density.
 
-**Project use:** Continuity is the scientific basis for diagnosing filling, draining, and mass balance.
+**Interpretation:** Continuity is the scientific basis for diagnosing filling, draining, and mass balance.
 It also shows why a storage-change measure alone cannot prove that inflow and outflow balance.
 
 ## Open-channel energy head
@@ -120,8 +136,8 @@ The correction coefficient is
 **Assumptions:** The section representation is one-dimensional, pressure is approximately hydrostatic, section values are compatible, and losses and external energy inputs are represented consistently.
 Rapidly varied, unsteady, or strongly multidirectional flow can require a fuller momentum or numerical treatment.
 
-**Project use:** Energy-head reasoning helps explain water-surface response, velocity-head effects, and loss between sections.
-It does not prove that a project boundary value, loss representation, or scenario result is correct.
+**Interpretation:** Energy-head reasoning helps explain water-surface response, velocity-head effects, and loss between sections.
+It does not prove that a boundary value, loss representation, or scenario result is correct.
 
 ## Momentum flux and force balance
 
@@ -158,7 +174,7 @@ The correction coefficient is
 **Assumptions:** The displayed balance is steady, one-dimensional, unidirectional, and limited to one inlet and outlet with no net source or sink.
 Unsteady momentum accumulation, multiple boundaries, and lateral momentum inputs require additional terms.
 
-**Project use:** Momentum reasoning helps evaluate directional forces, abrupt transitions, and momentum exchange.
+**Interpretation:** Momentum reasoning helps evaluate directional forces, abrupt transitions, and momentum exchange.
 It neither replaces continuity nor makes the energy balance universal.
 
 ## Water-surface-gradient and friction balance
@@ -195,8 +211,8 @@ Under steady, uniform conditions,
 
 **Assumptions:** The simplified form assumes gradually varied, hydrostatic, one-dimensional flow and omits wind stress, added forces, turbulent diffusion, and lateral momentum exchange.
 
-**Project use:** The balance explains why water responds to the WSE gradient and why friction must be represented.
-It is a conceptual foundation rather than a statement of the complete equation or discretization in either current solver.
+**Interpretation:** The balance explains why water responds to the WSE gradient and why friction must be represented.
+It is a conceptual foundation rather than a statement of the complete equation or discretization in a particular solver.
 
 ## Froude number
 
@@ -217,7 +233,7 @@ Fr = \frac{|\bar{V}|}{\sqrt{gD_h}}, \qquad D_h = \frac{A}{T_w}
 Geometric depth equals hydraulic depth only for a rectangular section.
 Compound or strongly nonuniform sections can require subsection-sensitive or more complete analysis.
 
-**Project use:** The Froude number helps interpret subcritical downstream influence, critical conditions, supercritical behavior, and the sensitivity of results to downstream boundaries.
+**Interpretation:** The Froude number helps interpret subcritical downstream influence, critical conditions, supercritical behavior, and the sensitivity of results to downstream boundaries.
 It does not prove that every part of a cross-section or two-dimensional domain has one flow regime.
 
 ## Manning's equation
@@ -253,7 +269,7 @@ Do not insert the 1.486 coefficient used in a common U.S. customary form into an
 **Assumptions:** Flow is steady and approximately uniform, roughness represents the section, geometry is represented at the evaluated depth, and the energy slope is represented by the chosen slope.
 These assumptions limit its use in backwater, rapidly varied, or strongly two-dimensional conditions.
 
-**Project use:** Manning's equation explains normal-depth boundaries, roughness sensitivity, and why geometry, slope, and Manning's n jointly control conveyance.
+**Interpretation:** Manning's equation explains normal-depth boundaries, roughness sensitivity, and why geometry, slope, and Manning's n jointly control conveyance.
 
 ## Manning roughness sensitivity at fixed geometry
 
@@ -269,7 +285,7 @@ For two Manning calculations with the same wetted area, hydraulic radius, and fr
 **Assumptions:** Wetted geometry and friction slope remain fixed, and both calculations satisfy the steady, approximately uniform assumptions of Manning's equation.
 This relation does not describe a fixed-discharge simulation in which depth, WSE, wet extent, and flow routing adjust.
 
-**Project use:** The ratio supports transparent roughness sensitivity calculations while preventing a fixed-geometry result from being presented as a complete two-dimensional model response.
+**Interpretation:** The ratio supports transparent roughness sensitivity calculations while preventing a fixed-geometry result from being presented as a complete two-dimensional model response.
 
 ## Gradually varied flow concept
 
@@ -277,8 +293,8 @@ Gradually varied flow is steady open-channel flow whose depth changes over a dis
 The simplified profile reasoning used by this handbook also assumes gradual variation, prismatic geometry, and constant discharge or no material lateral inflow over the reach being interpreted.
 It does not apply unchanged at a confluence, a material lateral inflow, an abrupt geometry transition, a hydraulic jump, a structure with rapidly varied flow, or a strongly two-dimensional flow pattern.
 
-**Project use:** The concept organizes backwater intuition and explains why downstream stage can influence an upstream subcritical profile.
-It is not an equation or discretization used to describe the current two-dimensional solver.
+**Interpretation:** The concept organizes backwater intuition and explains why downstream stage can influence an upstream subcritical profile.
+It is not an equation or discretization for a particular two-dimensional solver.
 
 ## Depth-averaged two-dimensional continuity
 
@@ -303,7 +319,7 @@ With terrain elevation \(z_b\), WSE \(\eta\), and depth \(h=\eta-z_b\), the loca
 **Assumptions:** Water is incompressible with approximately constant density, and all represented sources and sinks use the stated sign and area basis.
 The equation expresses continuous conservation but does not by itself prove that a discrete solver, boundary treatment, or artifact closes a water-volume balance.
 
-**Project use:** This equation supplies the common conservation vocabulary for interpreting cell storage, face flux, wetting, and solver behavior.
+**Interpretation:** This equation supplies the common conservation vocabulary for interpreting cell storage, face flux, wetting, and solver behavior.
 It is not a claim that every solver uses the same discrete variables or source terms.
 
 ## Depth-averaged two-dimensional momentum
@@ -353,7 +369,7 @@ S_{fy}=\frac{n^2vU}{h^{4/3}}
 **Assumptions:** The equations are depth-averaged, hydrostatic, and appropriate where vertical acceleration and vertical structure are not controlling.
 The basic form omits unresolved vertical shear, nonhydrostatic pressure, breaking surface waves, air entrainment, movable-bed effects, structures, and any external process not represented in \(R_x\), \(R_y\), or separate model contracts.
 
-**Project use:** The equations explain conservative variables, inertia, hydrostatic pressure, terrain, WSE gradients, and resistance.
+**Interpretation:** The equations explain conservative variables, inertia, hydrostatic pressure, terrain, WSE gradients, and resistance.
 They do not assign one momentum discretization, roughness average, or near-dry regularization to LISFLOOD-FP, SFINCS, or another solver.
 
 ## Cell face-flux volume update
@@ -379,7 +395,7 @@ For a cell with constant horizontal area over one teaching step,
 **Assumptions:** The cell uses a constant horizontal area for the step and every face and source term uses a consistent sign convention.
 A solver with an elevation-volume curve converts stored volume through that relationship instead of assuming one constant plan area.
 
-**Project use:** The relation supports transparent wetting-transition bookkeeping in Lab 6.
+**Interpretation:** The relation supports transparent wetting-transition bookkeeping in Lab 6.
 It does not reproduce a solver's face-flux or wetting algorithm.
 
 ## Water depth from elevations
@@ -395,7 +411,7 @@ h = WSE - z_b
 **Assumptions:** Both elevations use compatible vertical datums, units, horizontal locations, and representations of the bed or terrain.
 Negative values normally indicate dry terrain, a mismatch, or an error that requires interpretation.
 
-**Project use:** The equation connects terrain rasters and modeled WSE to depth artifacts and stage-transfer calculations.
+**Interpretation:** The equation connects terrain rasters and modeled WSE to depth artifacts and stage-transfer calculations.
 
 For comparable results at one location, the change relation is
 
@@ -407,7 +423,7 @@ For comparable results at one location, the change relation is
 If WSE is held fixed, a positive terrain error produces an equal negative depth error.
 When terrain changes the hydraulic solution, both terms can change and the total depth response cannot be inferred from terrain error alone.
 
-**Project use:** The relation separates the direct depth-calculation effect of terrain error from its indirect effect on solved WSE through storage, conveyance, barriers, and pathways.
+**Interpretation:** The relation separates the direct depth-calculation effect of terrain error from its indirect effect on solved WSE through storage, conveyance, barriers, and pathways.
 
 ## Annual exceedance probability and recurrence interval
 
@@ -436,218 +452,246 @@ P(N \geq 1)=1-(1-p)^n
 **Assumptions:** The same probability \(p\) applies to every annual period and annual exceedance occurrences are independent for this calculation.
 These assumptions can be unsuitable when the flood-generating process is nonstationary or materially dependent across years.
 
-**Project use:** DR-029 selects recurrence-interval-based discharge bounds from National Water Model retrospective flow with status Alternate Selected.
-The probability model, source version, record period, annual-maximum extraction, fitting method, sampling uncertainty, and nonstationarity treatment still affect the estimated discharges.
+**Interpretation:** Recurrence-interval-based discharge estimates depend on the probability model, source version, record period, annual-maximum extraction, fitting method, sampling uncertainty, and nonstationarity treatment.
 See [Flood Frequency, AEP, and Discharge Bounds](../01-hydrology-for-fim/04-flood-frequency-aep-and-bounds.md).
 
-## DR-029 discharge-bound rule
+## Applied discharge-bound calculation
+
+**Applied example:** For a separate synthetic frequency calculation, assume a 10 percent AEP discharge of \(Q_{10}=312.5\ \text{m3/s}\), a 1 percent AEP discharge of \(Q_{100}=800\ \text{m3/s}\), a lower factor of 0.80, and an upper factor of 1.25.
 
 \[
-Q_{min}=0.9Q_{HFT}, \qquad Q_{max}=1.5Q_{100}
+Q_{min}=0.80Q_{10}=250\ \text{m3/s}
 \]
 
-- \(Q_{min}\) is the selected lower discharge bound in m3/s.
-- \(Q_{max}\) is the selected upper discharge bound in m3/s.
-- \(Q_{HFT}\) is the input that DR-029 calls the reach high-flow-threshold discharge, in m3/s.
-- \(Q_{100}\) is the estimated 1 percent AEP discharge in m3/s for the stated source and method.
+\[
+Q_{max}=1.25Q_{100}=1000\ \text{m3/s}
+\]
 
-**Assumptions:** The source values refer to the intended reach and compatible model-network version, and their derivations use a documented period, sample rule, probability model, and stationarity assumption.
-The current ND input interface requires whole-m3/s values, so a reproducible workflow also needs an explicit rounding policy when either result is non-integer.
+- \(Q_{min}\) is the instructional lower discharge bound in m3/s.
+- \(Q_{max}\) is the instructional upper discharge bound in m3/s.
+- \(Q_{10}\) and \(Q_{100}\) are synthetic frequency estimates in m3/s.
+- The factors 0.80 and 1.25 are constructed teaching assumptions rather than universal hydrologic constants.
 
-**Open question:** The reviewed project record does not define the event, statistic, dataset variable, time support, or derivation represented by \(Q_{HFT}\).
-Its scientific definition cannot be inferred from the symbol or the words "high-flow threshold."
+**Dimensional check:** Each dimensionless factor multiplies a discharge in m3/s, so each bound has units m3/s.
 
-**Project use:** The factors 0.9 and 1.5 are selected project methodology from DR-029 ALT-A, not universal hydrologic constants.
-The current ND job consumes caller-supplied `min_upstream_inflow` and `max_upstream_inflow` values but does not derive either bound.
-The source and consumer mapping is recorded in [XW-006](decision-code-artifact-crosswalk.md#xw-006-scenario-library-bounds-and-sampling).
+**Assumptions:** The source estimates refer to one synthetic reach, use one documented probability model and record period, and share a declared stationarity assumption.
+A real workflow also needs uncertainty estimates, source lineage, network correspondence, and a rounding policy when the scenario interface requires discrete values.
 
-## Current adaptive ND metrics and verdict
+**Evidence note:** The arithmetic is exact for the stated values, but it does not establish suitable probability levels, factors, or bounds for another reach or intended use.
+This separate calculation does not define the `R-200` candidate grid used by the interval-refinement example below.
+See [Flood Frequency, AEP, and Discharge Bounds](../01-hydrology-for-fim/04-flood-frequency-aep-and-bounds.md).
 
-For a final saved depth raster, define the current wet-cell set as:
+## Applied interval-refinement metrics
+
+For a final depth raster, define the wet-cell set as:
 
 \[
 W=\{i:h_i>0\}
 \]
 
-The current final-state metrics are:
+The applied example uses maximum depth and flooded area:
 
 \[
 h_{max}=\max_{i\in W}(h_i)
 \]
 
 \[
-h_{med}=\operatorname{median}_{i\in W}(h_i)
+A_f=\frac{N_ws^2}{10^6}
 \]
 
-\[
-A_f=\frac{|W|r^2}{10^6}
-\]
-
-- \(h_i\) is saved water depth in cell \(i\), in m under the current depth contract.
+- \(h_i\) is saved water depth in cell \(i\), in m.
 - \(h_{max}\) is maximum depth over wet cells, in m.
-- \(h_{med}\) is median depth over wet cells, in m.
-- \(|W|\) is the number of wet cells.
-- \(r\) is raster resolution in horizontal CRS units.
-- \(A_f\) is flooded area in km2 only when \(r\) is in m.
+- \(N_w\) is the number of wet cells.
+- \(s\) is square-cell size in m.
+- \(A_f\) is flooded area in km2.
 
-If \(W\) is empty, current code returns zero for all three metrics.
-Zero-depth and negative-depth cells are not in \(W\).
+**Dimensional check:** \(N_w\) is dimensionless and \(s^2\) has units m2, so division by \(10^6\ \text{m2/km2}\) gives km2.
 
-For trial \(t\) and reference \(r_f\), the measured changes are:
+**Assumptions:** Every compared scenario uses the same grid, wet threshold, nodata rule, final-state definition, quantity definitions, and compatible identity.
+An empty wet set requires an explicit policy because \(h_{max}\) is otherwise undefined.
+
+The complete synthetic response packet is:
+
+| Discharge | Maximum depth | Flooded area | Measurement order | Warm-start source |
+| ---: | ---: | ---: | ---: | --- |
+| 100 m3/s | 1.00 m | 0.500 km2 | 1 | Dry start |
+| 250 m3/s | 2.30 m | 0.750 km2 | 2 | 100 m3/s |
+| 175 m3/s | 1.60 m | 0.595 km2 | 3 | 100 m3/s |
+| 125 m3/s | 1.20 m | 0.530 km2 | 4 | 100 m3/s |
+| 200 m3/s | 1.78 m | 0.635 km2 | 5 | 175 m3/s |
+| 225 m3/s | 2.01 m | 0.680 km2 | 6 | 200 m3/s |
+
+## Applied interval-refinement selection
+
+For adjacent accepted scenarios at \(Q_a<Q_b\), the synthetic selector defines a normalized response distance:
 
 \[
-\Delta h_{max}=h_{max,t}-h_{max,r_f}
+D(a,b)=\max\left(
+\frac{|h_{max,b}-h_{max,a}|}{0.50\ \text{m}},
+\frac{|A_{f,b}-A_{f,a}|}{0.10\ \text{km}^2}
+\right)
+\]
+
+- \(D(a,b)\) is dimensionless.
+- \(h_{max,a}\) and \(h_{max,b}\) are maximum depths in m.
+- \(A_{f,a}\) and \(A_{f,b}\) are flooded areas in km2.
+- The scales 0.50 m and 0.10 km2 are constructed method values for this example.
+
+**Dimensional check:** Each numerator and denominator share units, so both ratios and their maximum are dimensionless.
+
+An interval meets the response criterion when \(D(a,b)\le1\).
+An interval requires refinement when \(D(a,b)>1\) and at least one untried candidate lies strictly inside it.
+
+**Applied example:** The `R-200` candidate grid is \(\{100,125,150,175,200,225,250\}\ \text{m3/s}\).
+The method selects the widest interval requiring refinement, breaks interval ties by lower endpoint, selects the untried candidate nearest the arithmetic midpoint, and breaks candidate ties by lower discharge.
+It stops when every adjacent measured interval meets the criterion or has no untried interior candidate.
+
+The endpoint calculation is:
+
+\[
+D(100,250)=\max\left(\frac{1.30}{0.50},\frac{0.250}{0.10}\right)=\max(2.60,2.50)=2.60
+\]
+
+The only eligible interval is 150 m3/s wide, and its exact midpoint is 175 m3/s, so 175 m3/s is measured third.
+The two new interval calculations are:
+
+\[
+D(100,175)=\max\left(\frac{0.60}{0.50},\frac{0.095}{0.10}\right)=\max(1.20,0.95)=1.20
 \]
 
 \[
-\Delta h_{med}=h_{med,t}-h_{med,r_f}
+D(175,250)=\max\left(\frac{0.70}{0.50},\frac{0.155}{0.10}\right)=\max(1.40,1.55)=1.55
+\]
+
+Both intervals are 75 m3/s wide and require refinement, so the lower-endpoint tie rule selects the 100 to 175 m3/s interval.
+Its midpoint is 137.5 m3/s, and the untried candidates 125 and 150 m3/s are each 12.5 m3/s away, so the lower-candidate tie rule selects 125 m3/s.
+After that measurement:
+
+\[
+D(100,125)=\max\left(\frac{0.20}{0.50},\frac{0.030}{0.10}\right)=\max(0.40,0.30)=0.40
 \]
 
 \[
-\Delta A_f=100\frac{A_{f,t}-A_{f,r_f}}{A_{f,r_f}}
+D(125,175)=\max\left(\frac{0.40}{0.50},\frac{0.065}{0.10}\right)=\max(0.80,0.65)=0.80
 \]
 
-The depth changes are in m, and \(\Delta A_f\) is a percentage.
-When \(A_{f,r_f}=0\), current code defines \(\Delta A_f=0.0\) rather than evaluating the fraction.
-This zero makes the area criterion neutral in the measured verdict.
-It does not make the area curve neutral in proposal construction.
-
-For criterion floors \(L_j\) and ceilings \(U_j\), current code applies:
+Those two intervals meet the criterion, while \(D(175,250)=1.55\) still requires refinement.
+The midpoint of 175 to 250 m3/s is 212.5 m3/s, and the untried candidates 200 and 225 m3/s are each 12.5 m3/s away, so the lower-candidate tie rule selects 200 m3/s.
+After that measurement:
 
 \[
-\text{verdict}=
-\begin{cases}
-\texttt{reject\_high}, & \exists j:\Delta_j>U_j\\
-\texttt{accept}, & \left(\forall j:\Delta_j\le U_j\right)\land\left(\exists j:\Delta_j\ge L_j\right)\\
-\texttt{reject\_low}, & \forall j:\Delta_j<L_j
-\end{cases}
-\]
-
-The current default bands are 0.75 through 1.25 m for maximum depth, 0.25 through 0.50 m for median depth, and 10 through 15 percent for flooded area.
-These current quantities and defaults differ from DR-030's monitor-point stage descriptions and its median-stage and extent bands.
-
-## Current adaptive ND proposal curves
-
-For metric values ordered by increasing simulated discharge, current code uses a running maximum:
-
-\[
-\widetilde y_i=\max(y_1,\ldots,y_i)
-\]
-
-This construction enforces a nondecreasing proposal curve but does not replace the raw values used for measured verdicts.
-
-For a target response \(y^*\) between two increasing scenario points \((Q_i,\widetilde y_i)\) and \((Q_{i+1},\widetilde y_{i+1})\), the crossing discharge is:
-
-\[
-Q^*=Q_i+(Q_{i+1}-Q_i)
-\frac{y^*-\widetilde y_i}{\widetilde y_{i+1}-\widetilde y_i}
-\]
-
-Above the last point, current code uses the final positive segment slope:
-
-\[
-m_{last}=\frac{\widetilde y_n-\widetilde y_{n-1}}{Q_n-Q_{n-1}}
+D(175,200)=\max\left(\frac{0.18}{0.50},\frac{0.040}{0.10}\right)=\max(0.36,0.40)=0.40
 \]
 
 \[
-Q^*=Q_n+\frac{y^*-\widetilde y_n}{m_{last}}
+D(200,250)=\max\left(\frac{0.52}{0.50},\frac{0.115}{0.10}\right)=\max(1.04,1.15)=1.15
 \]
 
-No extrapolated crossing exists when there are fewer than two points or \(m_{last}\le0\).
-
-For an absolute depth metric with reference response \(y_{r_f}\), its target responses are \(y_{r_f}+L_j\) and \(y_{r_f}+U_j\).
-For flooded area, its target responses are \(y_{r_f}(1+L_j/100)\) and \(y_{r_f}(1+U_j/100)\).
-When the reference flooded-area response is zero, both relative targets collapse to zero:
+Only the 200 to 250 m3/s interval still requires refinement, and its exact midpoint is 225 m3/s, so 225 m3/s is measured sixth.
+The final two affected intervals are:
 
 \[
-A_{f,floor}=0\left(1+\frac{L_A}{100}\right)=0,
-\qquad
-A_{f,ceiling}=0\left(1+\frac{U_A}{100}\right)=0
-\]
-
-If a later monotone flooded-area point is positive, the current crossing test can return the lower endpoint of the first rising segment for both zero targets.
-That endpoint can be the reference or a later zero-area point, and the identical crossings can create a degenerate or otherwise influential combined proposal window.
-If the monotone area curve remains zero, the crossing function returns no area crossing.
-
-The combined predicted acceptance window is:
-
-\[
-Q_{open}=\min_j Q_{j,floor},
-\qquad
-Q_{close}=\min_j Q_{j,ceiling}
-\]
-
-Only existing crossings enter each minimum.
-No floor crossings produce no window, while floor crossings with no ceiling crossing produce an infinite close.
-Both cases send the proposal to the maximum discharge in current code.
-
-For a finite window and grid spacing \(g\), current code calculates:
-
-\[
-Q_{lowest}=\max\left(g\left\lceil\frac{Q_{open}}{g}\right\rceil,Q_{ref}+g\right)
+D(200,225)=\max\left(\frac{0.23}{0.50},\frac{0.045}{0.10}\right)=\max(0.46,0.45)=0.46
 \]
 
 \[
-Q_{highest}=g\left\lfloor\frac{Q_{close}}{g}\right\rfloor
+D(225,250)=\max\left(\frac{0.29}{0.50},\frac{0.070}{0.10}\right)=\max(0.58,0.70)=0.70
 \]
 
-If \(Q_{lowest}\le Q_{highest}\), the proposal is the grid-rounded window midpoint clamped to that inclusive range.
-If no grid value lies inside, current code first aims at the largest grid value strictly below the opening and then raises it to one grid step above the position when needed.
-The first candidate is zero-grid aligned, but the replacement is:
+The final adjacent distances are 0.40, 0.80, 0.40, 0.46, and 0.70 for the intervals 100 to 125, 125 to 175, 175 to 200, 200 to 225, and 225 to 250 m3/s.
+Every value is at most one, so the stopping rule is satisfied with no unresolved grid residual.
+The measurement order is 100, 250, 175, 125, 200, and 225 m3/s, and the selected set contains those six values in ascending order.
+The 150 m3/s candidate remains untried because it lies inside the 125 to 175 m3/s interval whose distance is 0.80.
 
-\[
-Q_{fallback}=Q_{position}+g
-\]
+**Assumptions:** Only completed, scientifically accepted, compatible scenarios can divide intervals or provide warm starts.
+The response scales, candidate grid, tie rules, and stopping rule are method assumptions rather than universal standards.
 
-If \(Q_{position}\bmod g\ne0\), then \(Q_{fallback}\bmod g\ne0\).
-The fallback therefore preserves an off-grid residue from an adopted or opening-trial position.
-No-window, infinite-close, and at-or-above-maximum branches return \(Q_{max}\) directly, which can also be off-grid.
+**Evidence note:** The calculation establishes only the selection arithmetic for the supplied synthetic metrics.
+It does not establish convergence, domain adequacy, initial-state independence, or transferability of the response scales.
+See [Adaptive Discharge Selection](../05-scenario-libraries/02-adaptive-discharge-selection.md) and [MX-003](decision-code-artifact-crosswalk.md#mx-003-discharge-selection).
 
-**Project use:** These equations describe current code, not an independently validated sampling rule.
-Finite-window midpoint proposals and the first below-window candidate use the zero-anchored grid.
-The grid is not enforced for adopted scenarios, endpoints, the opening authored step, an off-grid position-relative fallback, or a direct maximum return.
-See [Adaptive Discharge Selection](../05-scenario-libraries/02-adaptive-discharge-selection.md) and [CONF-009](conflicts-and-open-questions.md#conf-009-scenario-publication-membership-reuse-and-discharge-grid-authority).
+## Applied cell-specific stage transfer
 
-## Current cell-specific stage transfer
-
-For downstream source cell \(i\), current transfer preprocessing calculates:
+For a compatible downstream source cell \(i\), calculate:
 
 \[
 WSE_{ds,i}=h_{ds,i}+z_{ds,i}
 \]
 
 - \(WSE_{ds,i}\) is sampled downstream WSE in m relative to a stated vertical datum.
-- \(h_{ds,i}\) is final downstream depth in m.
+- \(h_{ds,i}\) is final downstream depth in m with a stated sign convention, location, and terrain-surface definition.
 - \(z_{ds,i}\) is downstream terrain elevation in m relative to the same datum.
 
 **Dimensional check:** Both terms on the right are lengths, so the result is a length in m.
 
-**Assumptions:** Depth and terrain share grid support, units, horizontal location, and vertical reference.
-Applying the result upstream also requires compatibility with the upstream terrain datum and intended transfer location.
+**Assumptions:** Depth and terrain share grid support, length units, horizontal location, and nodata treatment.
+The depth is defined as the vertical distance above the represented terrain surface, while the terrain elevation retains the vertical datum inherited by the calculated WSE.
+Applying the result upstream requires compatible downstream and upstream elevation datums, transfer geometry, coordinate-mapping rule, and intended transfer location.
 
-**Current code rule:** A sampled value becomes point `HFIX` only when \(WSE_{ds,i}>0\).
-The current rule does not separately require \(h_{ds,i}>0\), so a dry positive-terrain cell can produce a transfer point and a wet cell at nonpositive WSE is omitted.
-The nominal scenario `bc_value` labels the scenario but does not replace \(WSE_{ds,i}\).
+**Applied example:** For an `R-200` source cell with terrain elevation \(z_{ds}=100.85\ \text{m}\) in datum `VD-1` and depth \(h_{ds}=1.15\ \text{m}\) above that represented terrain surface, the transferred WSE is \(102.00\ \text{m}\) in `VD-1`.
+The synthetic transfer method emits an exact-source value only where terrain and depth are valid and depth is strictly positive.
 
-## DR-033 zero-anchored stage grid
-
-For selected stage increment \(\Delta z\), stage targets lie on:
+For the 102.5 m nominal target, the interpolation coordinate is the scalar transfer-support stage at the confluence in `VD-1`.
+The lower source is the 175 m3/s `R-200` scenario at \(s_{175}=102.4\ \text{m}\), and the upper source is the 200 m3/s scenario at \(s_{200}=102.7\ \text{m}\).
+The target coordinate is \(s^*=102.5\ \text{m}\), so the upper-source weight is:
 
 \[
-z_k=k\Delta z, \qquad k\in\mathbb{Z}
+w=\frac{s^*-s_{175}}{s_{200}-s_{175}}
+=\frac{102.5-102.4}{102.7-102.4}
+=\frac{1}{3}
 \]
 
-- \(z_k\) is a nominal stage-grid target in m relative to the applicable vertical datum.
-- \(\Delta z\) is the per-reach stage increment in m.
+At each common-wet-support point \(i\), calculate the two source WSE fields as:
+
+\[
+\eta_{175,i}=h_{175,i}+z_{175,i},
+\qquad
+\eta_{200,i}=h_{200,i}+z_{200,i}
+\]
+
+Then interpolate pointwise along the scalar stage coordinate:
+
+\[
+\eta_i^*=(1-w)\eta_{175,i}+w\eta_{200,i}
+=\frac{2}{3}\eta_{175,i}+\frac{1}{3}\eta_{200,i}
+\]
+
+The common wet support contains only intended-interface points where both source depths and terrain values are valid and both depths are strictly positive.
+For intended-interface set \(I\) and valid common-wet set \(M\), the coverage fraction is:
+
+\[
+C=\frac{|M|}{|I|}
+\]
+
+The synthetic method requires \(C\ge0.90\).
+It rejects the scenario when coverage is below 90 percent and emits no value outside \(M\) when coverage passes.
+The transfer record retains both source scenario identities, the 102.4 and 102.7 m interpolation coordinates, the 102.5 m target, weights \(2/3\) and \(1/3\), source depth and terrain artifact identities, transforms, datum metadata for the elevation fields, common-wet mask, intended interface, invalid-point reasons, coverage result, and realized interpolated field.
+
+**Evidence note:** A nominal stage organizes the family but does not replace the spatial water-surface field.
+See [Downstream-Stage-Aware Libraries and Stage Transfer](../05-scenario-libraries/03-downstream-stage-and-transfer.md), [MX-004](decision-code-artifact-crosswalk.md#mx-004-stage-transfer), and [CQ-003](conflicts-and-open-questions.md#cq-003-incompatible-datums).
+
+## Applied nominal stage grid
+
+For a regular grid with base stage \(z_0\) and increment \(\Delta z>0\), nominal targets can be written as:
+
+\[
+z_k=z_0+k\Delta z, \qquad k\in\{0,1,\ldots,n\}
+\]
+
+- \(z_k\) is a nominal stage target in m relative to a stated vertical datum.
+- \(z_0\) is the lower nominal stage in m relative to the same datum.
+- \(\Delta z\) is the stage increment in m.
 - \(k\) is a dimensionless integer.
 
-DR-033 ALT-B selects \(\Delta z\in\{0.25,0.5,1,2,5\}\) m and anchors the grid at zero rather than at one reach's bound.
-The selected method rounds bounds to the nearest grid value and binds a target only when a downstream scenario's nominal achieved stage lies within \(\Delta z/2\).
+**Dimensional check:** \(k\Delta z\) and \(z_0\) both have units m, so \(z_k\) has units m.
 
-**Project use:** The stage grid defines planning coordinates, not a uniform cell-by-cell boundary.
-Current `run_kwse_scenarios` consumes an already authored scenario list and does not construct this grid.
+**Applied example:** The upstream `R-100` and `R-300` families use \(z_0=102.0\ \text{m}\), \(\Delta z=0.5\ \text{m}\), and \(k\in\{0,1,2\}\) in datum `VD-1`.
+The resulting nominal targets are 102.0, 102.5, and 103.0 m.
 
-## Selected pixelwise-maximum depth compositing
+**Assumptions:** A planning record defines the datum, units, endpoints, target-to-source binding, interpolation rule, and out-of-range behavior.
+The nominal grid does not prescribe a uniform value at every transfer point.
+
+## Pixelwise-maximum depth compositing
 
 For compatible depth rasters at one output location:
 
@@ -662,31 +706,34 @@ h_{comp}(x,y)=\max_{r\in R(x,y)}h_r(x,y)
 **Assumptions:** Every contributor represents the same physical quantity and units on a compatible grid under an authorized scenario-selection, nodata, and resampling contract.
 Terrain and vertical-datum compatibility remain material when depth is derived from WSE or network continuity is assessed.
 
-**Project use:** DR-004 ALT-D selects pixelwise maximum for composite maps.
-No current `twod-fim-jobs` entry point performs this cross-reach compositing.
-The unpinned current local `twod-fim-deployment/orchestrator/scripts/f2f.py` path requests Flows2FIM VRT output and rewrites each VRT band with `PixelFunctionType` set to `max`, outside the modeling jobs.
+**Interpretation:** The maximum rule is deterministic, but it cannot make incompatible source scenarios scientifically compatible.
+The source membership, joint hydrologic condition, quantity, grid, datum, nodata, and transformation rules must be validated before the calculation.
+See [MX-012](decision-code-artifact-crosswalk.md#mx-012-compositing).
 
-## Current bankfull-width estimate
+## Applied characteristic-width relation
 
-The current model builder estimates bankfull width as:
+An illustrative power relation can be written as:
 
 \[
-W_{bf}=2.7A_d^{0.352}
+W_c=aA_d^b
 \]
 
-- \(W_{bf}\) is estimated bankfull width in m under the current code relation.
-- \(A_d\) is the target reach's `total_da_sqkm` drainage-area value in km2.
+- \(W_c\) is an estimated characteristic width in m.
+- \(A_d\) is drainage area in km2 for this example.
+- \(a\) carries the unit convention needed to produce metres.
+- \(b\) is dimensionless.
 
-**Dimensional interpretation:** The numeric coefficient and exponent encode the unit convention used by the implemented empirical relation.
-They must not be applied to drainage area expressed in another unit without a corresponding conversion or refit.
+**Applied example:** For `R-200`, let \(A_d=142\ \text{km}^2\), \(a=3.0\ \text{m}/(\text{km}^2)^{0.35}\), and \(b=0.35\).
+The resulting teaching estimate is approximately \(W_c=17.0\ \text{m}\).
 
-**Project use:** The current `build_model` job multiplies \(W_{bf}\) by `bankfull_width_multiplier` to set inflow-line length and by `centerline_buffer_bankfull_multiplier` to set computed-domain centerline buffer distance.
-The unmultiplied estimate is recorded in manifest properties.
-This is current implementation, not proof that the estimate matches observed channel or floodplain width for a particular reach or flow.
+**Dimensional check:** The units encoded by \(a\) cancel \((\text{km}^2)^b\) and leave metres.
+
+**Assumptions:** The coefficients, calibration population, applicability range, and uncertainty are stated before the relation is used.
+A width estimate can guide a buffer or geometry proposal, but it is not an observation of channel or floodplain width and does not prove domain adequacy.
 
 ## Computed domain grid and snapping
 
-For unsnapped geometry bounds \((x_{min}^*,y_{min}^*,x_{max}^*,y_{max}^*)\), nonnegative domain buffer \(b\), and grid resolution \(r>0\), the current computed-domain rule is:
+For unsnapped geometry bounds \((x_{min}^*,y_{min}^*,x_{max}^*,y_{max}^*)\), nonnegative domain buffer \(b\), and grid resolution \(r>0\), an outward-snapping rule is:
 
 \[
 x_{min}=r\left\lfloor\frac{x_{min}^*-b}{r}\right\rfloor,
@@ -709,35 +756,40 @@ n_{row}=\frac{y_{max}-y_{min}}{r}
 \]
 
 - \(x_{min}\), \(y_{min}\), \(x_{max}\), and \(y_{max}\) are realized domain coordinates in the horizontal CRS units.
-- \(b\) is `domain_buffer` in the same horizontal units.
-- \(r\) is `grid_resolution` in the same horizontal units.
+- \(b\) is the domain buffer in the same horizontal units.
+- \(r\) is the grid resolution in the same horizontal units.
 - \(n_{col}\) and \(n_{row}\) are dimensionless cell counts.
 
-**Assumptions:** The horizontal CRS is projected with metre linear units unless explicit conversions are applied, all construction geometries already use that CRS, the current grid is unrotated, and the resulting widths are divisible by \(r\).
-The metre-based contract is also required when the bankfull-width estimate is used as geometry distance, reach length is used for slope, discharge is divided by raster resolution for per-unit-width `QFIX`, resolution is squared for cell area and volume, or wet-cell area is converted to km2.
-Current input validation requires only a positive EPSG integer and does not enforce projected coordinates or metre linear units.
-The current authored-domain path bypasses these buffer and outward-snap equations because validation requires the supplied bbox to be grid aligned already.
+**Dimensional check:** Each coordinate, buffer, and resolution uses the same horizontal length unit, and each grid dimension is dimensionless.
 
-**Project use:** Snapping guarantees a full-cell rectangle that contains the supplied computed-domain construction bounds.
-It does not prove that the rectangle contains the relevant floodplain, outflow region, STL, or largest intended scenario.
+**Assumptions:** The horizontal coordinate reference is projected with metre linear units unless explicit conversions are applied, all construction geometries use that reference, the grid is unrotated, and the resulting widths are divisible by \(r\).
+An authored extent that is already grid aligned can bypass the buffer and snapping calculation when the method treats that extent as final.
 
-## Current endpoint terrain-slope estimate
+**Interpretation:** Snapping guarantees a full-cell rectangle that contains the supplied construction bounds.
+It does not prove that the rectangle contains the relevant floodplain, outflow region, transfer geometry, or largest intended scenario.
+See [MX-007](decision-code-artifact-crosswalk.md#mx-007-domain-adequacy) and [CQ-004](conflicts-and-open-questions.md#cq-004-domain-clipping).
 
-The current ND helper calculates:
+## Applied endpoint terrain-slope estimate
+
+A synthetic normal-depth outflow example calculates:
 
 \[
-S_{code}=\max\left(\frac{|z_1-z_2|}{L},S_{min}\right)
+S_{proxy}=\max\left(\frac{|z_1-z_2|}{L},S_{min}\right)
 \]
 
-- \(S_{code}\) is the nonnegative slope magnitude passed to the current `FREE` boundary interface, in m/m when elevations and length are in m.
-- \(z_1\) and \(z_2\) are terrain raster values sampled at the two target-reach endpoints, in m under the unstated terrain vertical reference.
-- \(L\) is the manifest reach length in m.
-- \(S_{min}\) is the configured minimum, whose checked-in fallback is \(10^{-4}\).
+- \(S_{proxy}\) is a nonnegative slope magnitude in m/m when elevations and length are in m.
+- \(z_1\) and \(z_2\) are terrain elevations sampled at stated endpoints in m relative to one stated vertical datum.
+- \(L\) is the reach length in m.
+- \(S_{min}\) is a stated lower bound for the teaching method.
+
+**Dimensional check:** The elevation difference and length both have units m, so their ratio and \(S_{proxy}\) are dimensionless.
 
 **Assumptions and limitation:** The equation assumes that endpoint terrain difference over total reach length is a useful boundary-slope proxy.
 Its m/m interpretation also assumes metre elevation and metre horizontal length or an explicit consistent conversion.
 The absolute value removes direction, so a downstream endpoint higher than the upstream endpoint still produces a positive magnitude.
 A positive result therefore does not prove correct reach direction, downhill bed slope, water-surface slope, vertical-datum compatibility, or boundary adequacy.
+
+**Evidence note:** The proxy must not be called freefall or observed energy slope without evidence for that different behavior.
 
 ## CFL stability estimate
 
@@ -773,23 +825,21 @@ C_y=\frac{(|v|+c)\Delta t}{\Delta y}
 **Assumptions:** The estimate uses hydrostatic shallow-water wave speed, representative local values, and a rectilinear directional distance.
 Actual solver restrictions can depend on face geometry, diagonal propagation, variable placement, explicit or implicit treatment, source terms, wetting logic, nonlinear iteration, and solver-specific safety factors.
 
-**Project use:** The estimate explains why grid resolution, depth, velocity, and time step interact in stability and runtime decisions.
+**Interpretation:** The estimate explains why grid resolution, depth, velocity, and time step interact in stability and runtime decisions.
 It is not a verified statement of the exact adaptive time-step rule used by LISFLOOD-FP or SFINCS.
 
-## Project storage-change convergence ratio
+## Applied storage-change convergence ratio
 
 \[
-C_V = \frac{|V_t - V_{t-\Delta t}|}{Q_{in}\Delta t}
+C_V = \frac{|V_t - V_{t-\Delta t_s}|}{Q_{in}\Delta t_s}
 \]
 
 - \(C_V\) is the dimensionless storage-change convergence ratio.
-- \(V_t\) and \(V_{t-\Delta t}\) are modeled water volumes in m3 at consecutive saved outputs.
+- \(V_t\) and \(V_{t-\Delta t_s}\) are modeled water volumes in m3 at consecutive saved outputs.
 - \(Q_{in}\) is the imposed inflow discharge in m3/s.
-- \(\Delta t\) is the saved-output interval in s.
+- \(\Delta t_s\) is the saved-output interval in s.
 
-For a raster of positive cell depths, `calculate_volume_convergence` in the current [solver run code](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/hydraulic_solvers/run.py) estimates each volume as the sum of positive depths multiplied by cell area.
-
-For the current square-cell calculation,
+For square cells, estimate stored volume from valid positive depths as:
 
 \[
 V_t=(\Delta x)^2\sum_{i\in P_t}h_{i,t}
@@ -799,12 +849,20 @@ V_t=(\Delta x)^2\sum_{i\in P_t}h_{i,t}
 - \(P_t\) is the set of cells whose saved depth is positive at time \(t\).
 - \(h_{i,t}\) is saved water depth in cell \(i\) at time \(t\), in m.
 
-**Dimensional check:** \([V_t]=(\text{m})^2(\text{m})=\text{m3}\), \([Q_{in}\Delta t]=(\text{m3/s})(\text{s})=\text{m3}\), and therefore \([C_V]=1\).
+**Dimensional check:** \([V_t]=(\text{m})^2(\text{m})=\text{m3}\), \([Q_{in}\Delta t_s]=(\text{m3/s})(\text{s})=\text{m3}\), and therefore \([C_V]=1\).
 
-**Assumptions:** Consecutive rasters are compatible, the projected horizontal CRS uses metre linear units so squared grid resolution represents m2, inflow is positive and constant over the interval, and storage change is a useful proxy for the selected termination purpose.
+**Assumptions:** Consecutive rasters are compatible, the projected horizontal reference uses metre linear units so squared cell width represents m2, inflow is positive and constant over the interval, nodata is excluded, and storage change is a useful proxy for the stated diagnostic purpose.
 
-**Project use:** The reviewed Decision Register selects DR-022 ALT-G volume convergence and DR-028 ALT-A threshold \(10^{-3}\), both with status Alternate Selected.
-The standalone DR-022 file also marks ALT-J as `#current`, so that file-marker conflict remains an Open question while the registered selection controls methodology within its status and scope.
-The current [solver run code](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/hydraulic_solvers/run.py) terminates when the absolute ratio is below the configured tolerance, and [the current constants](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/consts.py) set the default to `0.001`.
-The project mapping and validation question are recorded in [XW-002](decision-code-artifact-crosswalk.md#xw-002-quasi-steady-termination).
-This diagnostic does not calculate outflow and must not be described as a complete inflow-outflow mass-balance closure.
+**Applied example:** Let \(\Delta x=20\ \text{m}\), \(Q_{in}=50\ \text{m3/s}\), \(\Delta t_s=900\ \text{s}\), and consecutive positive-depth sums be 328.5000 m and 328.5900 m.
+The stored volumes are 131,400 m3 and 131,436 m3, so:
+
+\[
+C_V=\frac{36\ \text{m3}}{(50\ \text{m3/s})(900\ \text{s})}=0.0008
+\]
+
+The synthetic rule declares quasi-steady storage only when \(C_V<10^{-3}\) for three consecutive saved intervals.
+A value equal to the tolerance does not satisfy the strict inequality.
+
+**Evidence note:** This diagnostic does not calculate outflow and must not be described as complete inflow-outflow mass-balance closure.
+The full ratio history, local hydraulic quantities, boundary fluxes, termination evidence, and artifact inventory remain separate evidence.
+See [MX-002](decision-code-artifact-crosswalk.md#mx-002-convergence) and [CQ-005](conflicts-and-open-questions.md#cq-005-insufficient-convergence-evidence).

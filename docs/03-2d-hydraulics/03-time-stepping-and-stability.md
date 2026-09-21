@@ -124,9 +124,9 @@ Runtime can therefore grow for both spatial and temporal reasons.
 A fixed-step method uses one selected \(\Delta t\) throughout the modeled interval or until the user changes it between runs.
 Its review must consider the worst relevant combination of grid spacing, wet depth, speed, and event change.
 
-An adaptive method recomputes an allowable step from the current numerical state and configured limits.
-It can shorten the step as velocities rise, water deepens, or a limiting region appears, then lengthen it when conditions permit.
-An adaptive step can improve efficiency and protect a numerical criterion, but it does not validate the terrain, roughness, boundary conditions, forcing, or physical approximation.
+A CFL-based or otherwise state-dependent adaptive method recomputes an allowable step from the current numerical state and configured limits.
+Such a method can shorten the step as velocities rise, water deepens, or a limiting region appears, then lengthen it when conditions permit.
+A CFL-limited adaptive step can improve efficiency and help satisfy its configured numerical criterion, but it does not validate the terrain, roughness, boundary conditions, forcing, or physical approximation.
 
 The reported model-output interval is not necessarily the internal computational time step.
 Several internal steps can occur between saved rasters.
@@ -187,15 +187,15 @@ This sequence separates an initial numerical diagnosis from later convergence an
 
 ## Solver-specific limits and this chapter's boundary
 
-Official HEC-RAS guidance publishes equation-set-specific Courant suggestions and emphasizes joint cell-size and time-step testing.
-Official SFINCS documentation describes a global adaptive CFL-limited step and identifies cells that constrain it.
-The primary LISFLOOD-FP local-inertial paper documents a formulation and numerical approach specific to that model family.
+The cited HEC-RAS documentation publishes equation-set-specific Courant suggestions and emphasizes joint cell-size and time-step testing.
+The SFINCS 2.0.6 documentation describes a global adaptive CFL-limited step and identifies cells that constrain it.
+The cited LISFLOOD-FP local-inertial paper documents a formulation and numerical approach evaluated in that study.
 
 Those sources demonstrate why the generic estimate is not an operational rule for every solver.
-This chapter does not transfer a HEC-RAS Courant recommendation to LISFLOOD-FP or SFINCS, and it does not infer the current project executable's exact rule from a paper or another solver's manual.
+This chapter does not transfer a HEC-RAS Courant recommendation to LISFLOOD-FP or SFINCS, and it does not infer an executable's exact rule from a paper or another solver's manual.
 
 [LISFLOOD-FP and SFINCS](05-lisflood-fp-and-sfincs.md) addresses solver-specific equations, settings, diagnostics, and comparison evidence.
-[Convergence, Mass Balance, and Hot Starts](04-convergence-mass-balance-and-hot-starts.md) addresses convergence, mass-balance interpretation, and initialization evidence in its project context.
+[Convergence, Mass Balance, and Hot Starts](04-convergence-mass-balance-and-hot-starts.md) addresses convergence, mass-balance interpretation, and initialization evidence through a synthetic example.
 This chapter does not decide those questions.
 
 ## Common misconceptions
@@ -238,6 +238,6 @@ Complete [Lab 6: Grid Stability and Wetting](../labs/lab-06-grid-stability-and-w
 ## Source notes
 
 - **Scientific foundation:** Shallow-water gravity-wave and numerical-method context is supported by [SCI-027](../reference/bibliography.md#sci-027-hec-ras-2d-unsteady-flow-hydrodynamics) and the primary research in [SCI-031](../reference/bibliography.md#sci-031-lisflood-fp-local-inertial-formulation).
-- **Scientific foundation with solver-specific scope:** HEC-RAS grid and time-step guidance is recorded in [SCI-029](../reference/bibliography.md#sci-029-hec-ras-grid-size-and-time-step-guidance).
-- **Scientific foundation with solver-specific scope:** SFINCS adaptive time-step diagnostics and numerical controls are recorded in [SCI-032](../reference/bibliography.md#sci-032-sfincs-user-manual).
-- **Open question:** Current project solver-support boundaries remain recorded in [CONF-003](../reference/conflicts-and-open-questions.md#conf-003-sfincs-documentation-and-current-support).
+- **Scientific foundation:** HEC-RAS grid and time-step guidance is supported within the cited documentation scope by [SCI-029](../reference/bibliography.md#sci-029-hec-ras-grid-size-and-time-step-guidance).
+- **Scientific foundation:** SFINCS adaptive time-step diagnostics and numerical controls are supported for documentation release 2.0.6 by [SCI-032](../reference/bibliography.md#sci-032-sfincs-user-manual).
+- **Design principle:** A solver-specific time-step rule should be taken from the exact solver version and configured equation set rather than transferred from another model.

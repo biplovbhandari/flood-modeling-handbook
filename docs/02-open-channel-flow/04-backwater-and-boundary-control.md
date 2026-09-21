@@ -19,8 +19,8 @@ After this chapter, the reader should be able to:
 
 - define gradually varied flow, backwater, control section, and upstream or downstream influence;
 - explain why a raised downstream WSE can affect an upstream subcritical profile;
-- distinguish imposed discharge, imposed WSE, slope-based outflow, closed edges, transfer boundaries, and initial conditions;
-- keep solver tokens separate from physical boundary meanings; and
+- distinguish fixed-discharge, specified-stage, normal-depth outflow, closed-edge, transferred-stage, and initial conditions;
+- keep software labels separate from physical boundary meanings; and
 - identify evidence needed before choosing a boundary near a confluence, lake, coast, or structure.
 
 ## Gradually varied flow
@@ -63,7 +63,7 @@ The left panel shows the uniform-flow reference implied by a slope-based normal-
 The right panel shows a raised downstream WSE, a deeper downstream section, and an influence arrow pointing upstream.
 The dashed line in the right panel is the normal-depth reference, not a second simulated water surface.
 The separation between the raised profile and the dashed reference grows toward the downstream control.
-The drawing is qualitative and does not assert a distance of influence for a project reach.
+The drawing is qualitative and does not assert a distance of influence for a real reach.
 
 The figure does not claim that known stage is always preferable.
 It shows that the two boundary choices encode different hydraulic information and can produce different profiles.
@@ -72,18 +72,18 @@ It shows that the two boundary choices encode different hydraulic information an
 
 | Concept | What is prescribed | Typical hydraulic role | Main evidence need |
 | --- | --- | --- | --- |
-| Imposed discharge | Flow rate \(Q\), steady or time-varying. | Adds or removes a specified flux through a boundary. | Discharge magnitude or hydrograph, units, timing, geometry, direction, and provenance. |
-| Imposed WSE or known stage | WSE relative to a stated vertical datum, steady or time-varying. | Constrains water level and allows flux response according to the solver and local state. | Datum-compatible stage evidence, time support, boundary location, and physical control. |
-| Slope-based or normal-depth outflow | Friction slope used with geometry and roughness to form a depth-discharge relation. | Allows outflow according to a uniform-flow approximation at the edge. | Defensible friction-slope estimate, roughness, geometry, flow regime, and distance from interpreted results. |
+| Fixed-discharge boundary | Flow rate \(Q\), steady or time-varying. | Adds or removes a specified flux through a boundary. | Discharge magnitude or hydrograph, units, timing, geometry, direction, and provenance. |
+| Specified-stage boundary | WSE relative to a stated vertical datum, steady or time-varying. | Constrains water level and allows flux response according to the solver and local state. | Datum-compatible stage evidence, time support, boundary location, and physical control. |
+| Normal-depth outflow | Friction slope used with geometry and roughness to form a depth-discharge relation. | Allows outflow according to a uniform-flow approximation at the edge. | Defensible friction-slope estimate, roughness, geometry, flow regime, and distance from interpreted results. |
 | Closed edge | Zero normal flux through the modeled edge. | Retains water inside that edge and can create pooling or reflection if placed across a real flow path. | Evidence that the edge is a divide, wall, symmetry boundary, or otherwise impermeable at modeled conditions. |
-| Transfer boundary | WSE information derived from another modeled scenario and mapped to a shared or intersecting geometry. | Carries downstream hydraulic control into an upstream model. | Compatible scenario identity, terrain, grid, datum, geometry, stage extraction, and provenance. |
+| Transferred-stage boundary | WSE information derived from another modeled scenario and mapped to a shared or intersecting geometry. | Carries downstream hydraulic control into an upstream model. | Compatible scenario identity, terrain, grid, datum, geometry, stage extraction, and provenance. |
 | Initial condition | Water depth, WSE, or other state at simulation start. | Sets the starting state and can reduce or increase adjustment time. | Compatible state, datum, time, geometry, and justification for initialization. |
 
 An initial condition does not remain a boundary constraint merely because the initial state touches an edge.
 A stage can be used both to initialize and to constrain a boundary only when both roles are explicitly configured and supported.
 
 The official HEC-RAS [2D external-boundary documentation](https://www.hec.usace.army.mil/confluence/rasdocs/r2dum/latest/boundary-and-initial-conditions-for-2d-flow-areas/external-boundary-conditions) distinguishes flow, stage, rating-curve, and normal-depth boundary types and separately describes optional stage-based initialization.
-That solver documentation supports the conceptual distinctions but does not define the project's solver tokens or selected methodology.
+That documentation supports the conceptual distinctions for the cited HEC-RAS documentation and does not define another solver's behavior.
 
 ## Free outflow is not one universal condition
 
@@ -112,7 +112,7 @@ A practical boundary-sensitivity review therefore asks:
 6. Is the apparent decay physical, or is it caused by domain limits, numerical diffusion, dry cells, or another modeled control?
 
 Moving a boundary or changing its value is a sensitivity experiment.
-It does not validate the preferred choice unless the choice also has physical and project evidence.
+It does not validate the preferred choice unless the choice also has physical evidence.
 
 ## Confluences, lakes, coasts, and structures require evidence
 
@@ -142,43 +142,31 @@ Replacing the structure with a generic Manning slope or fixed stage can hide the
 The required evidence depends on geometry, operations, submergence, blockage, and the flow range.
 
 These contexts identify questions to investigate.
-They are not universal project prescriptions.
+They are not universal prescriptions.
 
-## Current project boundary semantics
+## Applied boundary example
 
-**Current implementation:** The current solver input model exposes `QFIX`, `HFIX`, `FREE`, and `TRANSFER` boundary types in [`solvers.py`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/models/solvers.py).
-`QFIX` carries an imposed discharge, `HFIX` carries a fixed WSE, `FREE` carries a value described as normal-depth slope in m/m, and `TRANSFER` carries cell-related WSE information reconstructed from a downstream scenario's depth and terrain assets.
-The existence of an interface type does not prove that every current job constructs or validates every type for every context.
+**Applied example:** Reach R-100 uses a fixed-discharge boundary at its upstream edge and a normal-depth outflow at its downstream edge.
+Reach R-200, immediately upstream of R-100, instead receives a transferred-stage boundary derived from R-100 at their shared interface.
+The source depth raster is aligned with the source terrain and uses compatible linear units.
+Depth has no vertical datum, so source WSE is derived by adding depth to terrain expressed in the terrain's vertical datum.
+The derived WSE is then confirmed or transformed to the target vertical datum and aligned with the target grid, interface geometry, and time support.
 
-**Current implementation:** The transfer writer calculates each candidate point's WSE as downstream depth plus downstream terrain and writes an `HFIX` point only when that WSE is greater than zero.
-It does not require positive depth, so a dry downstream cell with positive terrain can produce an `HFIX` point equal to its terrain elevation, while a zero or negative WSE is omitted.
-The nominal transfer `bc_value` participates in scenario labeling or identity but does not set the current writer's per-cell `HFIX` values.
+The transfer procedure retains source wetness as an explicit condition.
+A dry source cell is not converted into a specified-stage point merely because its terrain elevation is positive.
+The procedure also retains separate intersection segments rather than filling dry gaps between them.
 
-**Open question:** The current transfer contract does not establish whether points should require wet downstream cells, how zero or negative WSE should be represented, whether the source and target vertical datums are compatible, or whether the realized `HFIX` points match the intended transfer geometry and hydraulics.
+**Design principle:** Boundary records should state physical meaning, units, spatial support, time support, derivation, and provenance.
+Software labels are insufficient when the same word could mean normal-depth outflow, physical freefall, a zero-depth outlet, or another solver-specific rule.
 
-**Current implementation:** The ND job constructs `QFIX` at the inflow and `FREE` at a derived or caller-supplied outflow area.
-Its `FREE` value is the centerline-endpoint terrain slope estimate subject to a configured minimum.
+**Evidence note:** A transferred-stage boundary carries information from another modeled result.
+It does not establish source alignment, unit compatibility, target-datum compatibility, wet-cell validity, hydraulic equivalence, or independence from the source scenario unless those properties are checked directly.
 
-**Current implementation:** The KWSE job constructs `QFIX`, `TRANSFER`, and an additional `FREE` condition.
-The transfer comes from the named downstream scenario.
-The additional `FREE` condition intersects the downstream scenario's inundation polygon with each cardinal domain edge and uses a hard-coded slope value of 0.5 m/m in the reviewed code.
-For each touched edge, the writer reduces every intersection to its overall bounds and emits one contiguous cardinal-edge span, including dry gaps between disjoint intersections.
+**Open question:** If an interface label says "open" but the configured value is a friction slope, should the boundary be interpreted as normal depth, freefall, or another documented solver relation?
+Resolve the question from the governing equation and exact solver documentation, then revise the label so that it matches the behavior.
 
-**Selected methodology:** DR-003 has Alternate Selected status in the reviewed Decision Register and selects freefall at downstream-FIM-informed KWSE edge cells.
-The decision explicitly distinguishes that choice from its normal-depth alternatives.
-
-**Open question:** Current code represents the relevant edge condition with the `FREE` token whose schema meaning is normal-depth slope, and it supplies 0.5 m/m for KWSE edge handling.
-Neither the token nor the steep numeric slope proves physical freefall.
-The implemented contiguous per-edge span is also broader than DR-003's downstream-FIM-informed edge-cell wording when disjoint intersections leave dry gaps.
-The geometry and hydraulic response of that difference remain unvalidated.
-[CONF-001](../reference/conflicts-and-open-questions.md#conf-001-boundary-condition-terminology-and-behavior) keeps this semantics conflict visible.
-
-**Open question:** The standalone DR-039 file marks an ND edge-handling alternative `#current`, but the reviewed Decision Register contains no DR-039 row or registered status.
-[CONF-008](../reference/conflicts-and-open-questions.md#conf-008-unregistered-dr-039-selection) therefore prevents the handbook from presenting DR-039 as selected methodology.
-Current ND code remains authoritative for checkout behavior.
-
-**Selected methodology and open question:** Registered decisions DR-005, DR-006, and DR-008 address lake and coastal contexts, but the approved handbook design records lake and coastal policy as unresolved or weakly settled.
-Those records do not justify a universal boundary prescription, and this chapter did not establish current end-to-end implementation or validation for every lake or coastal case.
+**Open question:** Lake, coastal, confluence, and structure boundaries remain site-specific choices.
+No generic boundary type is justified without event timing, datum, geometry, forcing, sensitivity, and validation evidence.
 
 ## Common misconceptions
 
@@ -197,10 +185,10 @@ An incompatible stage can be a precise but wrong boundary.
 A closed edge enforces zero normal flux.
 It can be appropriate at a real no-flow boundary and damaging across a real drainage path.
 
-### The `FREE` token defines physical freefall
+### An "open" label defines physical freefall
 
-In the reviewed current schema, `FREE` carries a normal-depth slope.
-Project terminology and selected-methodology wording conflict with that implementation label.
+A label does not define the governing relation.
+A normal-depth outflow remains a slope-based uniform-flow approximation even when an interface gives it a more general name.
 
 ### A hot start or wet initial grid supplies downstream control
 
@@ -217,11 +205,10 @@ Finally, explain why the same answer cannot be applied automatically to a conflu
 
 ## Practice
 
-Complete [Lab 5: Backwater and Boundaries](../labs/lab-05-backwater-and-boundaries.md) to compare boundary choices across synthetic river, confluence, lake, coastal, and structure contexts while preserving project evidence scopes.
+Complete [Lab 5: Backwater and Boundaries](../labs/lab-05-backwater-and-boundaries.md) to compare boundary choices across synthetic river, confluence, lake, coastal, and structure contexts while preserving evidence scopes.
 
 ## Source notes
 
 - **Scientific foundation:** Boundary direction, normal-depth limitations, and boundary sensitivity are supported by [SCI-022](../reference/bibliography.md#sci-022-hec-ras-flow-regime-boundary-guidance), [SCI-024](../reference/bibliography.md#sci-024-hec-ras-downstream-boundary-conditions), and [SCI-026](../reference/bibliography.md#sci-026-hec-ras-2d-external-boundary-conditions).
-- **Selected methodology and Open question:** Project boundary records and their authority limits are mapped under [SDR-002](../reference/bibliography.md#sdr-002-boundary-condition-decisions) and [SDR-007](../reference/bibliography.md#sdr-007-lake-and-coastal-boundary-decisions).
-- **Current implementation:** Current boundary classes and ND or KWSE construction are mapped under [JOB-003](../reference/bibliography.md#job-003-current-implementation-locations).
-- **Supporting reference:** *Open-Channel Hydraulics* remains supporting reading under SCI-001, but it was not directly inspected and no chapter or page citation is asserted.
+- **Applied example:** The R-100 and R-200 boundary transfer is synthetic and demonstrates the evidence needed to realize a transferred-stage boundary.
+- **Design principle:** Descriptive boundary terms should remain separate from solver-specific file labels and tokens.

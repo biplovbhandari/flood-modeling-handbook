@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
-  <title id="title">Adaptive normal-depth proposal and measured verdict</title>
-  <desc id="desc">A response curve begins at a labeled reference point and crosses a floor and ceiling that define a shaded discharge acceptance window. A dashed extrapolated curve predicts an in-window response at the proposed discharge. A separate measured point at the same discharge lies above the ceiling and is labeled reject high, showing that a proposal is not a verdict.</desc>
+  <title id="title">Adaptive discharge proposal and measured verdict</title>
+  <desc id="desc">A response curve begins at a labeled reference point and crosses a floor and ceiling that define a shaded discharge acceptance window. A dashed extrapolated curve predicts an in-window response at the proposed discharge. A separate measured point at the same discharge lies above the ceiling and receives an above-ceiling verdict, showing that a proposal is not a verdict.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#243447"/>
@@ -11,8 +11,8 @@
   </defs>
 
   <rect x="0" y="0" width="1200" height="720" fill="#ffffff"/>
-  <text x="70" y="55" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#17212b">Adaptive ND selection: the curve proposes, the measurement decides</text>
-  <text x="70" y="86" font-family="Arial, sans-serif" font-size="16" fill="#425466">Synthetic one-metric schematic. The same crossing logic is applied separately to all three current metrics.</text>
+  <text x="70" y="55" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#17212b">Adaptive discharge selection: the curve proposes, the measurement decides</text>
+  <text x="70" y="86" font-family="Arial, sans-serif" font-size="16" fill="#425466">Synthetic one-metric schematic. Apply the crossing logic separately to each configured response metric.</text>
 
   <rect x="115" y="130" width="905" height="450" fill="#f8fafc" stroke="#c5d0db" stroke-width="2"/>
 
@@ -52,7 +52,7 @@
   <line x1="694" y1="190" x2="824" y2="190" stroke="#c43d3d" stroke-width="2" marker-end="url(#arrow)"/>
   <rect x="835" y="163" width="168" height="55" rx="8" fill="#fff1f1" stroke="#c43d3d" stroke-width="2"/>
   <text x="919" y="185" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#9f2424">measured verdict</text>
-  <text x="919" y="206" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#9f2424">reject_high</text>
+  <text x="919" y="206" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#9f2424">reject: above ceiling</text>
 
   <g transform="translate(125 662)">
     <circle cx="0" cy="0" r="7" fill="#1b6f5c"/>

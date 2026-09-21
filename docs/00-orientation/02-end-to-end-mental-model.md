@@ -1,19 +1,19 @@
 # End-to-End Mental Model
 
-The system converts hydrologic conditions into reusable hydraulic responses and then assembles selected responses into flood inundation products.
-Each transition changes either scientific meaning, software representation, or ownership.
-Keeping those transitions visible prevents a file path, job result, or scheduler state from being mistaken for scientific evidence.
+A flood-mapping workflow converts hydrologic conditions into hydraulic responses and then assembles selected responses into flood inundation products.
+Each transition changes scientific meaning, data representation, responsibility, or more than one of these.
+Keeping the transitions visible prevents a file path, completed calculation, or storage record from being mistaken for scientific evidence.
 
 ## Why this topic matters
 
-Most difficult failures occur at boundaries rather than inside one calculation.
+Many difficult failures occur at boundaries rather than inside one calculation.
 A valid discharge can be assigned to the wrong reach, a valid WSE can use an incompatible vertical datum, a completed scenario can fall outside the intended library, or a stored raster can be composited with an incompatible quantity.
-An end-to-end mental model gives each check a place and an owner.
+An end-to-end mental model gives each check a defined place.
 
 ## Prerequisites
 
 Read [What Is Flood Inundation Mapping?](01-what-is-fim.md) and [Source Authority](../reference/source-authority.md).
-The later chapters define the detailed hydrology, boundaries, and scenario methods introduced here.
+Later chapters define the detailed hydrology, boundaries, and scenario methods introduced here.
 
 ## Learning objectives
 
@@ -21,165 +21,129 @@ After this chapter, the reader should be able to:
 
 - trace catchment conditions to a composite FIM product;
 - identify where discharge becomes a hydraulic boundary condition;
-- explain the separate roles of model building, scenario execution, scenario planning, network coupling, storage, and compositing;
-- map the current jobs to the larger scientific chain; and
-- distinguish a job response from a verified materialized artifact.
+- explain the separate roles of model preparation, scenario definition, response calculation, library selection, network coupling, storage, and compositing; and
+- distinguish a calculation result from a verified materialized artifact.
 
 ## The scientific chain
 
-The chain below is intentionally solver-neutral.
-It establishes the meaning of each stage before later chapters introduce the project's ND and KWSE scenario families.
+The chain below is solver-neutral.
 
-| Stage | Scientific meaning | Representative record or artifact | Main responsibility boundary |
+| Stage | Scientific meaning | Representative record or artifact | Required check |
 | --- | --- | --- | --- |
-| 1. Catchment and network conditions | Precipitation, losses, storage, routing, and antecedent conditions influence flow through the drainage network. | Hydrologic observations, forcing datasets, hydrographs, frequency analysis, and prepared network topology. | Hydrologic analysis and network preparation are outside the three current modeling jobs. |
-| 2. Hydraulic forcing | A discharge value or hydrograph is selected for a reach and time or probability context. | Discharge value with units, source, reach identity, time or probability basis, and uncertainty. | The forcing source is upstream of the jobs package. |
-| 3. Reach-model realization | Terrain, roughness, domain, grid, centerline, and inflow geometry define the hydraulic problem in space. | Model manifest plus terrain, roughness, domain, centerline, inflow line, and a grid-snapped domain-anchor asset stored in the `reach_centroid` schema field. | `build_model` owns current reach-model construction from prepared inputs. |
-| 4. Scenario definition | Forcing, downstream condition, initial state, solver settings, and model identity define one hydraulic simulation. | Typed scenario input and boundary-condition records. | The executing job validates and realizes supplied inputs, while planning may be external. |
-| 5. Hydraulic response | The solver evolves water over the domain under the defined forcing and controls. | Depth outputs, WSE time series when saved, inundation polygon, storage and convergence metrics, and warnings. | The scenario runner and hydraulic solver own execution and post-processing. |
-| 6. Reach library | Selected scenarios represent a bounded portion of a reach's response to discharge and downstream conditions. | Set of scenario manifests plus a durable plan or index that explains inclusion. | ND selection partly occurs inside the ND job, while network-wide KWSE planning is outside the current jobs. |
-| 7. Network coupling | A downstream modeled state supplies a boundary influence to an upstream reach. | Downstream scenario manifest, depth raster, stage-transfer line, and selected stage value. | Planning chooses compatible dependencies, and the KWSE job realizes the supplied dependency. |
-| 8. Composite product | Compatible reach or scenario results are combined under an explicit overlap and quantity rule. | Composite raster or polygon plus source-scenario and method provenance. | Compositing is outside the three current modeling jobs. |
+| Catchment and network conditions | Precipitation, losses, storage, routing, and antecedent conditions influence flow through the drainage network. | Hydrologic observations, forcing datasets, hydrographs, frequency analysis, and network topology. | Confirm source, location, period, units, and uncertainty. |
+| Hydraulic forcing | A discharge value or hydrograph is associated with a reach and a time or probability context. | Forcing record with reach identity and provenance. | Confirm that the hydrologic quantity matches the hydraulic boundary. |
+| Model realization | Terrain, roughness, domain, grid or mesh, channel geometry, and boundary locations define the problem in space. | Model record and prepared geospatial artifacts. | Confirm compatible spatial and vertical references. |
+| Scenario definition | Forcing, downstream condition, initial state, numerical settings, and model identity define one calculation. | Scenario record. | Confirm completeness and stable identity. |
+| Hydraulic response | The method calculates water state under the scenario conditions. | WSE, depth, velocity, extent, storage, convergence evidence, and warnings. | Confirm quantity meaning and numerical adequacy. |
+| Response library | Selected scenarios cover a bounded part of the response to forcing and downstream conditions. | Library index with inclusion reasons and bounds. | Confirm coverage and distinguish attempted from selected scenarios. |
+| Network coupling | A downstream state can supply boundary information to an upstream model. | Dependency record and transferred boundary values. | Confirm compatible location, datum, scenario meaning, and dependency order. |
+| Composite product | Compatible results are combined under a stated rule. | Composite raster or polygon with source provenance. | Confirm overlap rule, quantity compatibility, and source completeness. |
 
 ## From catchment condition to discharge
 
 **Scientific foundation:** Catchment conditions affect how water reaches the drainage network, while routing changes the timing and magnitude of flow along the network.
 The resulting discharge is a flow rate through a section or boundary, usually expressed in m3/s.
 
-The hydraulic model does not need to reproduce every upstream hydrologic process to consume its result.
+A hydraulic model does not need to reproduce every upstream hydrologic process to consume their result.
 It does need a discharge whose reach, units, temporal meaning, source, and uncertainty are known.
 A value representing a steady library scenario has a different time interpretation from one point on a forecast hydrograph even if the numerical value is identical.
 
-**Current implementation:** The current jobs accept discharge in whole cubic metres per second for scenario forcing.
-They do not calculate rainfall-runoff response or establish the National Water Model or frequency-analysis meaning of that discharge.
+## From prepared data to a model realization
 
-## From prepared reach data to a hydraulic model
+Model preparation changes network and source-data descriptions into one spatial realization of the hydraulic problem.
+Typical inputs include terrain, roughness, reach geometry, the domain, grid or mesh settings, and inflow and downstream boundary locations.
 
-**Current implementation:** [`build_model`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/jobs/build_model.py) consumes a prepared reach identifier and network, upstream topology inputs, terrain and land-cover sources, grid settings, and either an authored or computed domain.
-It produces a model manifest and geospatial assets for terrain, roughness, centerline, inflow line, domain, and a grid-snapped domain anchor.
-The current schema stores that anchor under the field named `reach_centroid`, but the exported point is the reach centroid floored to the model grid rather than the exact geometric centroid.
-The field name and realized geometry therefore have different meanings and must remain visible during artifact inspection.
+The model record should preserve input identities, transformations, warnings, and produced artifacts.
+That provenance supports reproducibility, but it does not prove that the domain, terrain, roughness, or boundary placement is scientifically adequate.
 
-This stage changes the representation from network and source-data descriptions to a particular hydraulic model realization.
-The model is not yet a flood scenario because it has no scenario-specific discharge, downstream condition, or solver response.
-
-The model manifest records identity, input, property, asset, warning, and provenance fields.
-The manifest supports reproducibility and traceability, but it does not prove that the domain, terrain, roughness, or inflow placement is scientifically adequate.
+**Design principle:** Treat a model realization as an input to scenarios rather than as a flood scenario by itself.
+The model has no scenario-specific discharge, downstream control, or computed response until those elements are added.
 
 ## From discharge to a boundary condition
 
 **Scientific foundation:** Discharge becomes hydraulic forcing only when it is applied at a defined boundary or source location with a sign and unit convention.
 The spatial boundary connects the hydrologic quantity to the hydraulic domain.
 
-**Current implementation:** Both current scenario jobs construct a `QFIX` boundary from a scenario discharge and the model manifest's inflow-line asset.
-The boundary tells the solver where the specified volume rate enters the domain.
 Downstream handling is a separate boundary choice and can change the upstream hydraulic response.
+One discharge therefore does not define a unique response without the model realization, downstream condition, initial condition, and numerical settings.
 
-The later scenario-library chapters explain the project-specific downstream boundary families.
-For orientation, remember only that one discharge does not define a unique response without the downstream condition, model realization, initial condition, and solver settings.
+## Scenario definition and hydraulic response
 
-## The two current scenario-job roles
+A scenario record should identify the model realization, forcing, downstream condition, initial state, numerical settings, and intended outputs.
+The hydraulic method then calculates the response under that complete definition.
 
-### Discharge-response library execution
+Response artifacts may include WSE, depth, velocity, extent, storage, and diagnostic time series.
+A summary record may also contain convergence measures, warnings, and checksums.
+Neither record completeness nor numerical completion alone establishes scientific validity.
 
-**Current implementation:** [`run_nd_scenarios`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/jobs/run_nd_scenarios.py) consumes a model manifest, a caller-provided discharge range, adaptive-step settings, run settings, `existing_scenarios`, and `q_grid_resolution`.
-It runs a sequence of discharge scenarios with a slope-based downstream condition.
-It can re-adopt caller-supplied existing manifests that match the reach, model identity, and run identity and whose discharge falls within the supplied range, then re-evaluate them under the current response bands without simulating them again.
-It evaluates changes in maximum depth, median depth, and flooded area to select hydraulically distinct library entries within the supplied range.
-The current `_propose` calculations snap later adaptive proposals to `q_grid_resolution`.
-Current code does not enforce that grid for re-adopted manifests, the minimum or maximum endpoints, or the initial `min_upstream_inflow + delta_upstream_inflow` trial.
-The current library can therefore contain off-grid discharges even when `q_grid_resolution` is greater than one.
-Every newly simulated trial is published immediately, including a trial later classified as rejected by the adaptive selection logic.
-Published trial artifacts are therefore not the same thing as selected library membership.
-The small job response reports scenario comparisons and warnings rather than a complete authoritative library index.
+## Response libraries
 
-The job does not determine the hydrologic basis of the minimum and maximum discharge bounds.
-It also does not aggregate results across reaches or create a composite product.
+A response library is a scientifically selected collection of scenarios.
+It represents a bounded region of forcing and boundary-condition space for a stated intended use.
 
-### Downstream-stage-aware execution
+**Design principle:** Keep attempted calculations separate from selected library membership.
+A calculation can finish successfully and still be redundant, outside the authored bounds, numerically unsuitable, or unsupported by the intended method.
 
-**Current implementation:** [`run_kwse_scenarios`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/jobs/run_kwse_scenarios.py) consumes a caller-provided ordered scenario list.
-Each list entry carries an upstream discharge, a nominal downstream-stage or stage-grid planning coordinate in `bc_value`, a downstream scenario manifest, and an optional hot-start reference.
-The achieved upstream-end `RunScenarioResults.nominal_wse` is computed later during post-processing, while transferred pointwise `HFIX` values come from the downstream source raster values.
-The job processes every supplied combination and applies cell-specific transferred water information along a stage-transfer line.
-It simulates and publishes a scenario when no matching manifest exists, or re-adopts an existing manifest when the manifest is present and its recorded inputs exactly match.
-The manifest-only reuse check does not itself verify that every asset referenced by that manifest exists.
-The job returns manifest paths and warnings for both newly simulated and re-adopted scenarios.
+Library documentation should state the lower and upper bounds, sampling method, inclusion criteria, gaps, and uncertainty.
+It should also preserve enough identity to distinguish models, scenarios, and artifacts without relying on filenames alone.
 
-The job does not decide which discharge-stage points belong in the library.
-It does not determine the dependency order, choose hot starts, or perform composite post-processing.
+## Network coupling
 
-## Scenario planning and network coupling
+Connected reaches can exchange more than discharge information.
+A modeled downstream water level can influence an upstream reach through a downstream boundary.
+The transferred values must preserve location, units, vertical datum, source-scenario identity, and the dependency relation.
 
-**Scientific foundation:** A reach library is useful only if its scenarios cover the forcing and downstream-control conditions needed by its intended use.
-At a confluence or along a connected network, a downstream water level can influence an upstream reach.
-The scenario set therefore has both local hydraulic meaning and network dependency meaning.
-
-**Target design:** The target orchestrator detects a gap, verifies model and scenario artifacts in storage, records materialized state in the `materialized_*` tables, plans downstream-stage-aware scenarios, supplies work to the modeling jobs, and propagates changed downstream dependencies upstream.
-It treats the modeling jobs as tools with typed inputs and manifests.
-See the [target orchestrator design](https://github.com/NGWPC/twod-fim-knowledge-base/blob/6ca2d8471676eb4d6b4a86ef3c4683e029ef017e/system-design/orchestrator-design.md) and [system design guide](https://github.com/NGWPC/twod-fim-knowledge-base/blob/6ca2d8471676eb4d6b4a86ef3c4683e029ef017e/system-design/guide.md).
-
-Some older target-design text uses `current_state` for this responsibility.
-The current reconciliation-loop design records the narrower materialized-state claim instead, so the older term is a target-design terminology transition rather than the current table contract.
-
-This ownership boundary matters because the executing job can faithfully run an incomplete or scientifically unsuitable plan.
-Execution success answers whether the supplied scenario ran under the implemented checks.
-It does not answer whether the planner chose the right bounds, combinations, or network dependencies.
+**Design principle:** Scenario-dependency propagation is not hydrologic routing.
+Hydrologic routing changes a time-varying flow response through a river network.
+Scenario-dependency propagation carries selected boundary information between hydraulic calculations.
 
 ## Library, storage, and materialization
 
-A library is a scientifically selected collection of scenarios.
-Storage is where the scenario records and assets persist.
-Materialization is the verified presence of the intended artifact at the identity-derived location.
+A library is a selected scientific collection.
+Storage is where records and artifacts persist.
+Materialization is the verified presence of the intended artifact at its identity-derived location.
+
 These concepts overlap operationally but are not synonyms.
+A returned path is a pointer to inspect, not proof that the artifact exists, is complete, belongs to the intended scenario, or makes the library scientifically adequate.
 
-**Current implementation:** Scenario manifests record model and run identity, scenario code, inputs, computed properties, assets, and warnings.
-The public jobs publish depth, inundation polygon, and stage-transfer-line assets for a scenario.
-Their accepted `save_zarr` inputs are not forwarded into `RunConfig`, and the generic true branch cannot complete manifest construction with the current file-only hash helper.
+**Design principle:** Verify important artifacts from observed storage and content rather than from a task return value alone.
 
-**Target design:** Orchestration observes storage and updates the applicable `materialized_*` state after a job completes.
-The job's returned manifest path is therefore a pointer to inspect, not sufficient proof by itself that the full intended library exists and is scientifically complete.
+## From reach libraries to a composite product
 
-## From reach libraries to a composite FIM product
+**Scientific foundation:** Compositing combines compatible mapped quantities under a stated overlap rule.
+Source scenarios must use compatible units, spatial support, horizontal references, vertical references when elevations are combined, and scenario meaning.
 
-**Scientific foundation:** Compositing combines compatible mapped quantities under a stated rule.
-The source scenarios must use compatible units, grids or an explicit resampling method, horizontal references, vertical references when elevations are combined, and scenario meaning.
+A pixelwise maximum is one possible overlap rule for compatible depth rasters, but it is not universally correct for every quantity or purpose.
+The product record should name the rule and retain the contributing scenario identities.
 
-**Selected methodology:** Decision record DR-004 selects pixelwise maximum for composite pixel values with status Alternate Selected.
-That selection applies within the decision's scope and does not identify a current producing job.
+## Applied trace for reach R-200
 
-**Current implementation:** No current `twod-fim-jobs` entry point performs cross-reach compositing.
-The final composite therefore begins after the three modeling jobs' current responsibility boundary.
-See [XW-008](../reference/decision-code-artifact-crosswalk.md#xw-008-composite-fim-pixel-calculation).
+**Applied example:** This synthetic trace uses reach `R-200` and does not claim external operational behavior.
 
-## One illustrative trace
+1. Catchment analysis supplies \(Q=250\ \text{m3/s}\) with source, time basis, units, reach identity, and uncertainty.
+2. Model preparation creates a model record for `R-200` from terrain, roughness, domain, channel, and boundary geometry.
+3. A scenario record combines that model with \(Q=250\ \text{m3/s}\), a stated downstream condition, an initial state, and numerical settings.
+4. The hydraulic method calculates WSE, depth, velocity, and extent where supported.
+5. Inspection verifies the response artifacts, their identities, and their diagnostic evidence.
+6. Library selection decides whether this response belongs in the bounded collection for `R-200`.
+7. A network plan checks whether boundary dependencies with neighboring reaches are compatible.
+8. Product assembly combines compatible selected responses under a documented overlap rule.
 
-Suppose an upstream hydrologic source supplies $Q = 250$ m3/s for reach R under a stated event or library context.
-The number first means a volumetric flow rate associated with a hydrologic source and reach.
-A planner then selects a model and downstream condition and places 250 in a typed scenario input.
-The scenario job binds 250 to the reach inflow line as a `QFIX` boundary.
-The solver calculates a spatial response under the complete scenario definition.
-Post-processing records the realized discharge, response metrics, and output assets in a scenario manifest.
-Library logic decides whether that manifest belongs in the intended response collection.
-Compositing later selects compatible scenario results and applies its documented overlap rule.
-
-The numerical value remains 250 through this trace, but its role changes from sourced hydrologic information to job input, boundary forcing, provenance, library coordinate, and product-selection key.
-The hydraulic response is not the number 250.
-The response is the calculated water state produced under the complete scenario.
+The number 250 changes role as it moves from sourced hydrologic information to scenario input, boundary forcing, library coordinate, and product-selection key.
+The hydraulic response is the calculated water state produced under the complete scenario.
 
 ## Responsibility map
 
-| Responsibility | Science, orchestration, or storage? | Current or target location |
-| --- | --- | --- |
-| Establish the source and meaning of discharge | Hydrologic science and data provenance | Outside the three current jobs. |
-| Build terrain, roughness, domain, and boundary geometry | Scientific model preparation implemented as tooling | Current `build_model`. |
-| Select discharge bounds from hydrologic evidence | Scientific methodology and planning | Caller or orchestration responsibility outside current jobs. |
-| Adaptively select discharge-response entries within supplied bounds | Scientific sampling logic implemented as tooling | Current `run_nd_scenarios`. |
-| Plan network-wide downstream-stage scenarios and dependency order | Scientific planning plus orchestration | Target orchestrator ownership, outside current jobs. |
-| Execute supplied downstream-stage-aware scenarios | Hydraulic tooling | Current `run_kwse_scenarios`. |
-| Persist scenario artifacts and manifests | Tool publishing plus storage service | Current jobs publish, while target orchestration verifies materialization. |
-| Decide whether the intended library is complete | Scientific acceptance plus orchestration state | Outside a single scenario execution. |
-| Combine compatible reach results into a composite | Product science and processing | Outside current jobs. |
+| Responsibility | Scientific or information role |
+| --- | --- |
+| Establish the source and meaning of discharge | Hydrologic analysis and provenance. |
+| Prepare terrain, roughness, domain, and boundary geometry | Model development. |
+| Select discharge bounds | Scientific methodology and planning. |
+| Define and calculate scenarios | Hydraulic analysis. |
+| Select a response library | Sampling methodology and scientific acceptance. |
+| Plan network dependencies | Hydraulic planning and dependency management. |
+| Persist and verify artifacts | Storage, identity, and materialization. |
+| Combine compatible results | Product methodology and geospatial processing. |
 
 ## Common failure patterns
 
@@ -188,30 +152,30 @@ The response is the calculated water state produced under the complete scenario.
 Units can be correct while reach identity or time context is wrong.
 Check the forcing source, reach identifier, and scenario provenance together.
 
-### The job returned a path, so the library is complete
+### A path was returned, so the library is complete
 
 A path identifies a candidate artifact.
-Verify the manifest, assets, identities, intended bounds, scenario set, and storage state.
+Verify the record, assets, identities, intended bounds, selected scenario set, and storage state.
 
-### The scenario executed, so the plan was correct
+### The scenario completed, so the plan was correct
 
-Execution validates only the constraints implemented by the job.
-Planning adequacy requires separate evidence about coverage and network dependencies.
+Completion answers whether the supplied scenario was processed under the implemented checks.
+Planning adequacy requires separate evidence about coverage and dependencies.
 
-### A depth raster can always be combined with another depth raster
+### Any two depth rasters can be combined
 
-Both rasters must also share compatible spatial support, terrain meaning, units, scenario context, and compositing rules.
-The same filename or quantity name is insufficient.
+Both rasters must share compatible spatial support, terrain meaning, units, scenario context, and compositing rules.
+The same quantity name is insufficient.
 
 ## Competency check
 
 Draw or describe eight boxes from catchment conditions through composite product.
-For each arrow, state whether the main change is scientific meaning, software representation, ownership, or a combination of those changes.
-Then identify which boxes the three current modeling jobs do not own.
+For each arrow, state whether the main change is scientific meaning, data representation, responsibility, or a combination of those changes.
+Then explain why a verified response artifact does not by itself prove that a response library is complete.
 
 ## Source notes
 
-- **Current implementation:** The job and manifest claims come from local checkout paths recorded under JOB-002 and JOB-003 in [Bibliography and Source Map](../reference/bibliography.md).
-- **Target design:** Orchestration ownership comes from SYS-001 and the linked target design files.
-- **Selected methodology:** The composite rule is mapped in [XW-008](../reference/decision-code-artifact-crosswalk.md#xw-008-composite-fim-pixel-calculation).
-- **Open question:** A durable current implementation for all work outside the three modeling jobs is not established by this chapter.
+- **Scientific foundation:** Watershed and runoff concepts are supported by [SCI-003](../reference/bibliography.md#sci-003-watersheds-and-drainage-basins) and [SCI-006](../reference/bibliography.md#sci-006-surface-runoff-and-catchment-response).
+- **Scientific foundation:** Stable terms and equations are mapped in [Glossary](../reference/glossary.md) and [Equations and Units](../reference/equations-and-units.md).
+- **Design principle:** The chain deliberately separates scientific selection, calculation, storage, verification, and compositing.
+- **Evidence note:** The `R-200` trace is synthetic and cannot establish external deployment, accepted methodology, or current behavior.

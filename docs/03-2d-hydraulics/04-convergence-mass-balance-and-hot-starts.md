@@ -19,11 +19,11 @@ Retain the distinction among internal numerical time steps, saved-output interva
 After this chapter, the reader should be able to:
 
 - distinguish numerical stability, residual transient behavior, quasi-steady behavior, storage change, mass-balance closure, solver exit status, hydraulic adequacy, and acceptance;
-- calculate and dimension the current project storage-change ratio;
+- calculate and dimension a saved-output storage-change ratio;
 - state exactly what the ratio measures and what it leaves unmeasured;
 - identify complementary evidence needed before accepting a scenario;
 - explain how a hot start changes only the initial-value problem; and
-- trace the current implementation from saved depth grids to manifest fields without inferring unavailable evidence.
+- identify which diagnostic records are needed without inferring evidence that was not stored.
 
 ## Evidence that answers different questions
 
@@ -59,9 +59,9 @@ A quasi-steady claim therefore needs four parts:
 
 The word `converged` is incomplete without those parts.
 
-## The project storage-change convergence ratio
+## A saved-output storage-change ratio
 
-For saved output times \(t-\Delta t_s\) and \(t\), the current project diagnostic is
+For saved output times \(t-\Delta t_s\) and \(t\), consider the synthetic diagnostic
 
 \[
 C_V=
@@ -69,14 +69,14 @@ C_V=
 {Q_{in}\Delta t_s}
 \]
 
-For square raster cells of width \(\Delta x\), the code estimates each stored volume as
+For square raster cells of width \(\Delta x\), the synthetic calculation estimates each stored volume as
 
 \[
 V_t=(\Delta x)^2\sum_{i\in P_t}h_{i,t}
 \]
 
-where \(P_t\) is the set of cells whose saved depth is positive at time \(t\).
-The code uses `numpy.nansum`, so `NaN` cells do not contribute to the sum.
+where \(P_t\) is the set of valid cells whose saved depth is positive at time \(t\).
+Nodata cells do not contribute to the sum.
 
 The numerator has units
 
@@ -127,43 +127,32 @@ C_V=\frac{36}{45{,}000}=0.0008
 This synthetic result is below \(10^{-3}\).
 It establishes only the stated domain-storage comparison under the supplied values.
 
-## Exact current implementation semantics
+## Applied diagnostic semantics
 
-**Current implementation:** [`calculate_volume_convergence`](https://github.com/NGWPC/twod-fim-jobs/blob/40192ef7cbb92e6847e6c4ecdc8ebf90b07b9c5e/twod_fim_jobs/hydraulic_solvers/run.py) calculates positive-depth storage from consecutive `.wd` grids using raster resolution squared.
-The watcher supplies `save_interval_seconds`, not the separate LISFLOOD-FP `massint` output interval, as \(\Delta t_s\).
-The first saved grid receives a sentinel ratio of `1` because no previous grid is available.
-The first-grid return occurs before boundary checking, so it also contains no boundary-check result.
-Later ratios are compared with the configured tolerance using strict less-than, so a value exactly equal to the tolerance does not trigger convergence.
+**Applied example:** A synthetic run evaluates the ratio at each saved depth grid after the first.
+The saved-output interval supplies \(\Delta t_s\), while the internal computational step and any separate diagnostic-output interval remain distinct quantities.
+The run declares quasi-steady storage when \(C_V<10^{-3}\) for three consecutive saved intervals.
+A ratio exactly equal to the tolerance does not satisfy that strict criterion.
 
-For later saved grids, the current boundary check returns no result until the downstream centerline endpoint cell is wet.
-Once active, it examines wet perimeter cells and flags only those whose WSE lies inclusively between the two centerline-endpoint WSE values.
-An `edge_error` termination requires such a flagged result and `allow_water_on_edges` set to false.
-When convergence and a disallowed edge violation are both true on the same saved grid, the current branch records `volume_convergence` because convergence has priority over `edge_error`.
-Absence of `edge_error` does not establish that a completed check found clean edges because convergence may have suppressed the edge reason, the check may not have run, the downstream endpoint may still have been dry, wet edge WSE may have fallen outside the endpoint range, or edge water may have been allowed.
+The same run checks whether water reaches a domain edge that is not intended to carry flow.
+Storage convergence and an unintended wet edge are recorded independently so that one result cannot suppress the other.
+The run record also distinguishes solver completion, requested termination after meeting a criterion, wall-time limit, simulation-time limit, and process failure.
 
-The current default tolerance is `0.001`.
-DR-022 ALT-G selects volume convergence, and DR-028 ALT-A selects \(10^{-3}\), both with status Alternate Selected in the reviewed Decision Register.
-EXP-014 and Case-018 are preliminary scoped evidence for that choice, not universal validation.
-The standalone DR-022 file also marks ALT-J as `#current` while its history and the reviewed register identify ALT-G.
-That competing file-local marker remains an Open question and does not replace the registered selection within its recorded status and scope.
+**Design principle:** Record each termination and diagnostic fact separately.
+A single status should not collapse numerical convergence, edge behavior, process exit, artifact completeness, and hydraulic acceptance.
 
-When the ratio is below tolerance, the watcher requests process termination and records `volume_convergence` as the termination condition.
-When the process ends by itself while the watcher still considers it running, a nonzero return code raises an error and a zero return code is mapped to `max_simulation_time`.
-When elapsed wall time exceeds `max_simulation_wall_time_seconds` while the process is still running, the watcher requests termination and records `max_wall_time`.
-For watcher-requested termination, the helper sends terminate, waits three seconds, and kills the process if it has not exited.
-When the watcher terminates the process for convergence, an edge error, or maximum wall time, the stored result records the termination condition but not the raw process return code, termination-signal outcome, or whether termination escalated to kill.
+The synthetic result record stores the full ratio history, criterion and tolerance, saved-output times, termination request, process exit status, edge-check result, boundary-flux summary, and final artifact inventory.
+It stores directory and file artifacts with type-appropriate integrity metadata rather than assuming that every artifact is one regular file.
 
-The scenario manifest stores the final ratio, termination condition, wall time, nominal upstream WSE, upstream discharge, derived simulated time, maximum wet-cell depth, median wet-cell depth, and flooded area.
-Its schema can name an optional time-series Zarr store, but neither public ND nor public KWSE job currently forwards `save_zarr` into `RunConfig`.
-The generic true branch creates a directory-backed store and then applies file-only hashing, so current manifest construction cannot complete that branch.
-The derived simulated time is the number of discovered `.wd` files multiplied by the saved-output interval.
+**Evidence note:** A stored field establishes only the observation it actually records.
+An omitted convergence history, edge result, outflow history, or balance residual cannot be inferred from a successful process exit or a final depth raster.
 
-The manifest does not store the complete convergence history, raw process return code, termination-signal outcome, whether termination escalated to kill, boundary-check details, outflow history, solver mass file, or a closed mass-balance residual.
-A stored manifest must therefore not be read as evidence that those omitted checks passed.
+**Open question:** How many consecutive intervals and which local hydraulic quantities should supplement the storage threshold for the intended product?
+The answer requires sensitivity and validation evidence across representative cases rather than one convenient run.
 
 ## What the ratio measures
 
-The current ratio measures one domain-integrated response over one saved-output interval:
+The example ratio measures one domain-integrated response over one saved-output interval:
 
 - It detects the magnitude of net storage change represented by the two positive-depth rasters.
 - It normalizes that change by the constant imposed inflow volume during the interval.
@@ -183,8 +172,7 @@ It does not establish numerical independence from grid size, internal time-step 
 It does not establish physical agreement with observed WSE, depth, extent, velocity, or timing.
 It does not prove that the result is independent of the initial condition or hot-start source.
 
-The name `volume_convergence` is project terminology for this storage-change proxy.
-It must not be expanded into a claim of complete water-volume or mass-balance closure.
+Calling this proxy "volume convergence" does not make it a complete water-volume or mass-balance closure test.
 
 ## Complete balance evidence
 
@@ -201,7 +189,7 @@ V_{in}-V_{out}+V_{source}-V_{sink}
 where every term has units m3 under one sign convention.
 A useful report would state both the signed residual \(R_V\) and a declared normalization with guarded behavior when its scale is zero or very small.
 
-The current termination calculation supplies \(\Delta S\) and the normalization \(V_{in}=Q_{in}\Delta t_s\).
+The example termination calculation supplies \(\Delta S\) and the normalization \(V_{in}=Q_{in}\Delta t_s\).
 It does not supply \(V_{out}\), all internal source and sink volumes, or \(R_V\).
 No outflow-closure conclusion follows from a solver exit or scenario manifest.
 
@@ -235,21 +223,20 @@ The source and target must be compatible in grid geometry, alignment, CRS, verti
 They also need hydraulic compatibility in discharge, downstream condition, and expected flow paths.
 A technically readable raster can still be a poor hydraulic initial state.
 
-### Current project behavior
+### Applied depth-only hot start
 
-**Current implementation:** The ND adaptive sequence passes the current adaptive search position's final `depth` asset as the next newly simulated trial's `hot_start`.
-That search position can be a newly simulated, re-adopted, or reused scenario and can be an accepted reference or a trial retained as the position after a `reject_low` result.
-The KWSE input can identify an ND or KWSE source scenario, and the job resolves that source manifest's final `depth` asset.
-The LISFLOOD-FP writer materializes that raster, converts it to ARC ASCII, and writes it as `startfile`.
+**Applied example:** A synthetic scenario sequence uses the prior scenario's final depth raster as the next scenario's initial water depth.
+The initial-state record names the source scenario, discharge, downstream condition, grid, terrain, datum, and final depth artifact.
+It does not claim to carry velocity, momentum, face flux, or a complete solver checkpoint.
 
-The current code therefore supplies prior water depth only.
-It does not supply a velocity, momentum, face-flux, or solver checkpoint state through the hot-start path.
-The cited official LISFLOOD-FP manual likewise defines `startfile` as an initial water-depth raster for its documented release.
-The behavior of the exact deployed executable when depth is supplied without motion state still requires version-specific confirmation before a stronger claim about momentum initialization is made.
+The LISFLOOD-FP 5.9.6 manual defines an initial-depth input as a water-depth raster for that documented release.
+That bounded manual claim does not establish how a different executable version initializes omitted motion variables.
 
-The source scenario remains part of provenance because its discharge, downstream condition, run identity, terrain, and final state affect the starting condition.
-The source scenario's own convergence or adequacy does not automatically transfer to the target scenario.
-[CONF-010](../reference/conflicts-and-open-questions.md#conf-010-depth-only-hot-starts-and-initial-condition-independence) records the unresolved initialization and sensitivity evidence.
+**Evidence note:** The source scenario remains part of provenance because its forcing, boundary conditions, terrain, and final state affect the target's starting condition.
+The source scenario's convergence or adequacy does not automatically transfer to the target scenario.
+
+**Open question:** Does a target result agree when approached from a cold start and from more than one compatible depth-only hot start?
+Without that comparison, initial-condition independence remains unestablished.
 
 ## Initial-condition sensitivity
 
@@ -278,11 +265,11 @@ The relevant terms, units, interval, residual, and normalization must be inspect
 ### A zero process exit proves convergence
 
 An exit status reports process behavior.
-The current termination reason and hydraulic evidence answer different questions.
+The recorded termination reason and hydraulic evidence answer different questions.
 
 ### A hot start continues the previous simulation
 
-The current path reuses a final depth raster as a new initial condition under a target scenario.
+The applied example reuses a final depth raster as a new initial condition under a target scenario.
 It does not carry the complete prior dynamic state through a solver checkpoint.
 
 ### The shortest run is the best hot start
@@ -294,7 +281,7 @@ Runtime alone does not distinguish those explanations.
 
 Explain why \(C_V=8\times10^{-4}\) can coexist with a poor inflow-outflow balance.
 Name two local transient signals that can be hidden by a domain-total storage sum.
-Then identify the exact state supplied by the current hot-start path and state one comparison needed before claiming initial-condition independence.
+Then identify the exact state supplied by the applied depth-only hot start and state one comparison needed before claiming initial-condition independence.
 
 ## Practice
 
@@ -303,7 +290,6 @@ Complete [Lab 7: Convergence and Solver Evidence](../labs/lab-07-convergence-and
 ## Source notes
 
 - **Scientific foundation:** Storage continuity and the distinction between storage change and full balance are supported by [SCI-016](../reference/bibliography.md#sci-016-hec-ras-continuity-equation).
-- **Selected methodology and Evidence or experiment:** Project termination choices and preliminary evidence are recorded in [SDR-003](../reference/bibliography.md#sdr-003-domain-inflow-terrain-and-convergence-decisions) and [SDR-004](../reference/bibliography.md#sdr-004-cases-issues-and-experiments).
-- **Current implementation:** The exact convergence, process, edge, hot-start, result, and artifact paths are mapped in [JOB-007](../reference/bibliography.md#job-007-convergence-hot-start-and-solver-execution-paths).
-- **External solver documentation:** The historical official LISFLOOD-FP `startfile` contract is recorded in [SCI-033](../reference/bibliography.md#sci-033-lisflood-fp-user-manual).
-- **Open question:** The storage-change and mass-balance boundary remains recorded in [CONF-002](../reference/conflicts-and-open-questions.md#conf-002-volume-convergence-and-mass-balance), and the depth-only initialization gap remains recorded in [CONF-010](../reference/conflicts-and-open-questions.md#conf-010-depth-only-hot-starts-and-initial-condition-independence).
+- **Applied example:** The storage criterion, independent edge result, termination record, and depth-only hot start are synthetic teaching contracts.
+- **Scientific foundation:** The LISFLOOD-FP initial-depth statement is bounded to the official release 5.9.6 manual recorded in [SCI-033](../reference/bibliography.md#sci-033-lisflood-fp-user-manual).
+- **Open question:** Storage-change and mass-balance evidence remain distinct, and depth-only initialization requires sensitivity testing before an independence claim.
