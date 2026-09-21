@@ -11,10 +11,10 @@
     <style>
       .title { font: 700 29px Arial, sans-serif; fill: #0f172a; }
       .subtitle { font: 400 16px Arial, sans-serif; fill: #334155; }
-      .laneTitle { font: 700 17px Arial, sans-serif; fill: #0f172a; }
-      .boxTitle { font: 700 16px Arial, sans-serif; fill: #0f172a; }
-      .body { font: 400 13px Arial, sans-serif; fill: #1e293b; }
-      .small { font: 400 12px Arial, sans-serif; fill: #334155; }
+      .laneTitle { font: 700 18px Arial, sans-serif; fill: #0f172a; }
+      .boxTitle { font: 700 17px Arial, sans-serif; fill: #0f172a; }
+      .body { font: 400 14px Arial, sans-serif; fill: #1e293b; }
+      .small { font: 400 13px Arial, sans-serif; fill: #334155; }
       .whiteTitle { font: 700 18px Arial, sans-serif; fill: #ffffff; }
       .whiteBody { font: 400 13px Arial, sans-serif; fill: #ffffff; }
       .arrow { fill: none; stroke: #334155; stroke-width: 3; marker-end: url(#arrow); }
@@ -33,7 +33,7 @@
   <text x="45" y="186" class="body">Target reach geometry</text>
   <text x="45" y="208" class="body">Reviewed topology</text>
   <text x="45" y="230" class="body">Drainage area and order</text>
-  <text x="45" y="252" class="small">Plus authored geometry inputs</text>
+  <text x="45" y="252" class="small">Plus required geometry inputs</text>
 
   <rect x="25" y="315" width="215" height="125" rx="14" fill="#ecfdf5" stroke="#047857" stroke-width="3"/>
   <text x="45" y="345" class="boxTitle">Realized terrain source</text>
@@ -46,7 +46,7 @@
   <text x="45" y="536" class="body">Declared source and version</text>
   <text x="45" y="558" class="body">Realized lookup dictionary</text>
   <text x="45" y="580" class="body">Categorical source values</text>
-  <text x="45" y="602" class="small">Unmapped values can become -9999</text>
+  <text x="45" y="602" class="small">Unmapped values require review</text>
 
   <text x="300" y="112" class="laneTitle">Applied transformations</text>
 
@@ -59,16 +59,16 @@
 
   <rect x="300" y="315" width="250" height="125" rx="14" fill="#ecfdf5" stroke="#047857" stroke-width="3"/>
   <text x="320" y="345" class="boxTitle">Terrain extraction</text>
-  <text x="320" y="371" class="body">Reproject elevation to model bounds</text>
+  <text x="320" y="371" class="body">Reproject elevation to bounds</text>
   <text x="320" y="393" class="body">Create terrain raster</text>
   <text x="320" y="415" class="small">Record integrity checksum</text>
 
   <rect x="300" y="480" width="250" height="145" rx="14" fill="#fef3c7" stroke="#b45309" stroke-width="3"/>
   <text x="320" y="510" class="boxTitle">Roughness conversion</text>
-  <text x="320" y="536" class="body">Reproject classes to same raster grid</text>
+  <text x="320" y="536" class="body">Reproject classes to common grid</text>
   <text x="320" y="558" class="body">Map source classes through lookup</text>
   <text x="320" y="580" class="body">Create roughness raster</text>
-  <text x="320" y="602" class="small">Unmapped classes require an explicit warning</text>
+  <text x="320" y="602" class="small">Unmapped classes require warning</text>
 
   <path d="M240 202 L300 202" class="arrow"/>
   <path d="M240 377 L300 377" class="arrow"/>
@@ -84,13 +84,13 @@
   <text x="630" y="208" class="body">inflow geometry</text>
   <text x="630" y="230" class="body">grid anchor</text>
   <text x="630" y="252" class="body">domain geometry</text>
-  <text x="630" y="270" class="small">Compatible CRS; map vectors to cells</text>
+  <text x="630" y="270" class="small">Compatible CRS and cell mapping</text>
 
   <rect x="610" y="315" width="235" height="125" rx="14" fill="#f1f5f9" stroke="#475569" stroke-width="3"/>
   <text x="630" y="345" class="boxTitle">Raster assets</text>
   <text x="630" y="375" class="body">terrain raster</text>
   <text x="630" y="399" class="body">roughness raster</text>
-  <text x="630" y="421" class="small">Same transform, size, CRS, extent</text>
+  <text x="630" y="421" class="small">Same grid, CRS, and extent</text>
 
   <rect x="610" y="480" width="235" height="145" rx="14" fill="#f5f3ff" stroke="#6d28d9" stroke-width="3"/>
   <text x="630" y="510" class="boxTitle">Model record</text>
@@ -111,7 +111,7 @@
   <rect x="905" y="165" width="270" height="200" rx="16" fill="#0f766e" stroke="#115e59" stroke-width="3"/>
   <text x="1040" y="200" text-anchor="middle" class="whiteTitle">Model generation</text>
   <text x="1040" y="230" text-anchor="middle" class="whiteBody">output root /</text>
-  <text x="1040" y="254" text-anchor="middle" class="whiteBody">complete identity / generation /</text>
+  <text x="1040" y="254" text-anchor="middle" class="whiteBody">complete identity / generation</text>
   <text x="1040" y="288" text-anchor="middle" class="whiteBody">Six assets plus model record</text>
   <text x="1040" y="312" text-anchor="middle" class="whiteBody">Stage complete artifact set</text>
   <text x="1040" y="341" text-anchor="middle" class="whiteBody">Promote one verified generation</text>
@@ -123,7 +123,7 @@
   <text x="1040" y="470" text-anchor="middle" class="boxTitle">Separate evidence gate</text>
   <text x="925" y="500" class="body">Observe storage and asset integrity.</text>
   <text x="925" y="526" class="body">Review topology and provenance.</text>
-  <text x="925" y="552" class="body">Review raster grid and vector mapping.</text>
+  <text x="925" y="552" class="body">Review grid and vector mapping.</text>
   <text x="925" y="578" class="body">Review datum, boundaries, and clipping.</text>
   <text x="925" y="604" class="small">Presence alone is not adequacy.</text>
 
@@ -131,6 +131,6 @@
 
   <rect x="25" y="688" width="1150" height="92" rx="14" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
   <text x="45" y="720" class="boxTitle">What the chain does not add</text>
-  <text x="45" y="748" class="body">It does not add topobathymetry, structures, a vertical-datum transformation, stage-transfer geometry, an outflow area, a hydraulic scenario, domain expansion, or scientific acceptance.</text>
-  <text x="45" y="771" class="small">Every omitted responsibility needs its own authoritative producer, artifact, and validation evidence.</text>
+  <text x="45" y="744" class="small">Not included: topobathymetry, structures, vertical transformation, stage transfer, scenario execution,</text>
+  <text x="45" y="768" class="small">domain expansion, or scientific acceptance. Each needs its own evidence and responsibility.</text>
 </svg>
