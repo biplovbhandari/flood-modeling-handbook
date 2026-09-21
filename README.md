@@ -21,3 +21,8 @@ python -m mkdocs serve
 ```bash
 python -m mkdocs build --strict
 ```
+
+## Content license
+
+Except where otherwise noted, handbook text under `docs/` and original SVG figures under `docs/assets/` are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+See [LICENSE.md](LICENSE.md) and [LICENSE-CONTENT.md](LICENSE-CONTENT.md) for repository-specific scope and suggested attribution.

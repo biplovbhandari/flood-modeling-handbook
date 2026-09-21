@@ -12,7 +12,7 @@ Each visual is an original handbook asset, and its reuse terms remain pending a 
   The learner should notice that WSE and terrain are elevations from a datum, depth is their compatible local difference, and stage uses its own stated reference.
 - **Creator:** Original handbook asset.
 - **Source URL or local path:** `Original handbook asset`.
-- **License or reuse status:** Reuse terms pending publication-rights decision.
+- **License or reuse status:** Licensed under CC BY 4.0; attribution is required and changes must be indicated.
 - **Access date:** 2026-09-17.
 - **Modification notes:** Created as a code-native SVG for the handbook.
   The geometry is schematic, not derived from a measured cross-section, external figure, or textbook.
@@ -25,7 +25,7 @@ Each visual is an original handbook asset, and its reuse terms remain pending a 
   The learner should notice the prepared-forcing boundary and that one steady discharge preserves only a sample of the complete event.
 - **Creator:** Original handbook asset.
 - **Source URL or local path:** `Original handbook asset`.
-- **License or reuse status:** Reuse terms pending publication-rights decision.
+- **License or reuse status:** Licensed under CC BY 4.0; attribution is required and changes must be indicated.
 - **Access date:** 2026-09-17.
 - **Modification notes:** Created as a code-native SVG for the handbook.
   The catchment, network, hydrograph, grid, channel, and inflow geometry are schematic and were not copied, traced, downloaded, or derived from an external figure or textbook.
@@ -37,7 +37,7 @@ Each visual is an original handbook asset, and its reuse terms remain pending a 
   The learner should notice the approximately uniform normal-depth reference in the first panel, the deeper downstream profile in the second panel, and the arrow showing possible upstream backwater influence under subcritical conditions.
 - **Creator:** Original handbook asset.
 - **Source URL or local path:** `Original handbook asset`.
-- **License or reuse status:** Reuse terms pending publication-rights decision.
+- **License or reuse status:** Licensed under CC BY 4.0; attribution is required and changes must be indicated.
 - **Access date:** 2026-09-17.
 - **Modification notes:** Created as a code-native SVG for the handbook.
   The bed, water profiles, boundary lines, and influence arrow are qualitative and were not copied, traced, downloaded, or derived from an external figure, measured reach, or textbook.
@@ -50,7 +50,7 @@ Each visual is an original handbook asset, and its reuse terms remain pending a 
   The learner should notice cell centers, faces, active and inactive states, equal and opposite shared-face accounting, the wetting transition, and the explicitly illustrative threshold.
 - **Creator:** Original handbook asset.
 - **Source URL or local path:** `Original handbook asset`.
-- **License or reuse status:** Reuse terms pending publication-rights decision.
+- **License or reuse status:** Licensed under CC BY 4.0; attribution is required and changes must be indicated.
 - **Access date:** 2026-09-17.
 - **Modification notes:** Created as a code-native SVG for the handbook.
   The grid, flux, threshold, cell states, and coordinates are schematic and were not copied, traced, downloaded, or derived from an external figure, measured grid, model output, or textbook.
@@ -63,7 +63,7 @@ Each visual is an original handbook asset, and its reuse terms remain pending a 
   The learner should notice that every lane asks a different question and that no passing lane substitutes for another.
 - **Creator:** Original handbook asset.
 - **Source URL or local path:** `Original handbook asset`.
-- **License or reuse status:** Reuse terms pending publication-rights decision.
+- **License or reuse status:** Licensed under CC BY 4.0; attribution is required and changes must be indicated.
 - **Access date:** 2026-09-17.
 - **Modification notes:** Created as a code-native SVG for the handbook.
   The evidence cards, arrows, labels, and acceptance gate are conceptual and were not copied, traced, downloaded, or derived from an external figure, model output, or textbook.
@@ -79,7 +79,7 @@ Each visual is an original handbook asset, and its reuse terms remain pending a 
   The learner should also notice that the artifacts and model record form one publication set and that storage observation and scientific acceptance remain separate evidence gates.
 - **Creator:** Original handbook asset.
 - **Source URL or local path:** `Original handbook asset`.
-- **License or reuse status:** Reuse terms pending publication-rights decision.
+- **License or reuse status:** Licensed under CC BY 4.0; attribution is required and changes must be indicated.
 - **Access date:** 2026-09-17.
 - **Modification notes:** Created as a code-native SVG for the handbook.
   The process boxes, arrows, artifact roles, generation address, and evidence gate are synthetic and were not copied, traced, downloaded, or derived from an external figure, screenshot, model output, or textbook.
@@ -99,7 +99,7 @@ Each visual is an original handbook asset, and its reuse terms remain pending a 
   The learner should also notice that the floor and ceiling define a discharge window only through a response model built from existing scenario points.
 - **Creator:** Original handbook asset.
 - **Source URL or local path:** `Original handbook asset`.
-- **License or reuse status:** Reuse terms pending publication-rights decision.
+- **License or reuse status:** Licensed under CC BY 4.0; attribution is required and changes must be indicated.
 - **Access date:** 2026-09-17.
 - **Modification notes:** Created as a code-native SVG for the handbook.
   The axes, metric values, response curve, crossings, window, prediction, and measured result are schematic and were not copied, traced, downloaded, or derived from an external figure, measured response, model output, or textbook.
@@ -117,7 +117,7 @@ Each visual is an original handbook asset, and its reuse terms remain pending a 
   Planning, execution, storage, and observation remain distinct responsibilities.
 - **Creator:** Original handbook asset.
 - **Source URL or local path:** `Original handbook asset`.
-- **License or reuse status:** Reuse terms pending publication-rights decision.
+- **License or reuse status:** Licensed under CC BY 4.0; attribution is required and changes must be indicated.
 - **Access date:** 2026-09-17.
 - **Modification notes:** Created as a code-native SVG for the handbook.
   The domains, river, transfer geometry, samples, transfer cells, edge spans, generation labels, and responsibility lanes are schematic and were not copied, traced, downloaded, or derived from an external figure, screenshot, measured reach, model output, or textbook.
@@ -135,7 +135,7 @@ Each visual is an original handbook asset, and its reuse terms remain pending a 
   The learner should also notice that acceptance is an authorized decision gate rather than a model output, and that monitoring follows acceptance without replacing missing verification or validation.
 - **Creator:** Original handbook asset.
 - **Source URL or local path:** `Original handbook asset`.
-- **License or reuse status:** Reuse terms pending publication-rights decision.
+- **License or reuse status:** Licensed under CC BY 4.0; attribution is required and changes must be indicated.
 - **Access date:** 2026-09-18.
 - **Modification notes:** Created as a code-native SVG for the handbook.
   The stage geometry, feedback arrows, labels, and evidence statements were not copied, traced, downloaded, or adapted from an external figure, model output, or textbook.
